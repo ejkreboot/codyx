@@ -2,8 +2,11 @@
 create table public.notebooks (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
+  sandbox_slug text unique not null, 
+  is_public boolean not null default true, -- future me says 'hi'
   owner text not null default 'public',
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  UNIQUE (slug, sandbox_slug)
 );
 
 -- Cells table
@@ -17,8 +20,3 @@ create table public.cells (
   updated_at timestamptz not null default now()
 );
 
--- Keep updated_at current automatically
-create trigger set_cells_updated_at
-before update on public.cells
-for each row
-execute function pg_catalog.set_current_timestamp();

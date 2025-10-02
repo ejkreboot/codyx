@@ -1,16 +1,23 @@
 import { supabase } from '$lib/supabase-client.js';
 import { LexaKey } from './lexasort.js';
 import { writable } from 'svelte/store';
+import Haikunator from 'haikunator'
+
 
 // create a notebook class that interacts with supabase
 // Usage: const nb = await Notebook.create(slug).
 
 export class Notebook {
-    
+
+    static haikunator = new Haikunator();
+
     constructor(slug, owner = 'public') {
         this.slug = slug;
         this.owner = owner ?? 'public';
-        this.id = null;        
+        this.id = null;
+        this.sandboxSlug = null;
+        this.mainSlug = null; // Will store the original slug when accessing via sandbox
+        this.isSandbox = false;
         this.cellsStore = writable([]);
         this.initialized = false;
         this.channel = null;
@@ -32,51 +39,99 @@ export class Notebook {
     async checkIfSlugAvailable(newSlug) {
         if (newSlug === this.slug) return true; // no change, so it's "available"
         
+        // Check if slug exists in either 'slug' or 'sandbox_slug' columns
         const { data, error } = await supabase
             .from('notebooks')
             .select('id')
-            .eq('slug', newSlug)
-            .single();
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+            .or(`slug.eq.${newSlug},sandbox_slug.eq.${newSlug}`);
+            
+        if (error) {
             throw error;
         }
         
-        return !data; // available if no data found
+        return data && data.length === 0; // available if no rows found in either column
     }
     
     async rename(newSlug) {
-        if (!this.id) throw new Error('Notebook not initialized');
-        if (this.slug === newSlug) return; // no change
+        if (!newSlug) return;
         
-        const { data, error } = await supabase
+        const isAvailable = await this.checkIfSlugAvailable(newSlug);
+        if (!isAvailable) {
+            throw new Error('That name is already taken');
+        }
+        
+        const { error } = await supabase
             .from('notebooks')
             .update({ slug: newSlug })
-            .eq('id', this.id)
-            .select()
-            .single();
+            .eq('id', this.id);
+            
         if (error) throw error;
         
         this.slug = newSlug;
     }
 
+    getSandboxUrl() {
+        if (!this.sandboxSlug) return null;
+        return `${window.location.origin}/?slug=${this.sandboxSlug}`;
+    }
+
+    getMainUrl() {
+        // Get the original notebook URL (not sandbox)
+        const mainSlug = this.isSandbox ? this.mainSlug : this.slug;
+        return `${window.location.origin}/${mainSlug}`;
+    }
+
+    async #generateUniqueSandboxSlug() {
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        while (attempts < maxAttempts) {
+            const candidateSlug = Notebook.haikunator.haikunate({ tokenLength: 0 });
+            
+            // Check if this sandbox slug is available
+            const { data, error } = await supabase
+                .from('notebooks')
+                .select('id')
+                .or(`slug.eq.${candidateSlug},sandbox_slug.eq.${candidateSlug}`);
+                
+            if (error) throw error;
+            
+            if (data.length === 0) {
+                return candidateSlug; // Found a unique slug
+            }
+            
+            attempts++;
+        }
+        
+        // Fallback: add timestamp if we can't find a unique one
+        const timestamp = Date.now().toString(36);
+        return `${Notebook.haikunator.haikunate({ tokenLength: 0 })}-${timestamp}`;
+    }
+
     async #init() {
         if (this.initialized) return;
         
-        // Try to load by slug
+        // Try to load by slug (check both main slug and sandbox_slug columns)
         const { data, error } = await supabase
             .from('notebooks')
-            .select('id, slug, owner')
-            .eq('slug', this.slug)
+            .select('id, slug, sandbox_slug, owner')
+            .or(`slug.eq.${this.slug},sandbox_slug.eq.${this.slug}`)
             .maybeSingle();
         
         if (error) throw error;
         
         if (!data) {
-            // Not found: try to create
+            // Not found: generate unique sandbox slug and create
+            const sandboxSlug = await this.#generateUniqueSandboxSlug();
+            
             const { data: created, error: insErr } = await supabase
                 .from('notebooks')
-                .insert({ slug: this.slug, owner: this.owner })
-                .select('id, slug, owner')
+                .insert({ 
+                    slug: this.slug, 
+                    sandbox_slug: sandboxSlug,
+                    owner: this.owner 
+                })
+                .select('id, slug, sandbox_slug, owner')
                 .single();
             
             if (insErr) {
@@ -84,19 +139,28 @@ export class Notebook {
                     // Race: someone created it first → reselect
                     const { data: nb, error: reSelErr } = await supabase
                         .from('notebooks')
-                        .select('id, slug, owner')
+                        .select('id, slug, sandbox_slug, owner')
                         .eq('slug', this.slug)
                         .single();
                     if (reSelErr) throw reSelErr;
                     this.id = nb.id;
+                    this.sandboxSlug = nb.sandbox_slug;
                 } else {
                     throw insErr;
                 }
             } else {
                 this.id = created.id;
+                this.sandboxSlug = created.sandbox_slug;
             }
         } else {
             this.id = data.id;
+            this.sandboxSlug = data.sandbox_slug;
+            
+            // Determine if we're accessing via sandbox slug
+            this.isSandbox = (this.slug === data.sandbox_slug);
+            
+            // Store the main slug for reference
+            this.mainSlug = data.slug;
         }
         
         const cells = await this.getCells();
@@ -105,10 +169,12 @@ export class Notebook {
         if (cells.length === 0) {
             await this.upsertCell({ content: 'Welcome to your new notebook!', type: 'md', position: 'h' });
         }
-        
-        // Set up realtime channel for notebook-level changes
-        await this.#setupRealtimeChannel();
-        
+
+        if(!this.isSandbox) {
+            // Set up realtime channel for notebook-level changes
+            await this.#setupRealtimeChannel();
+        }
+
         this.initialized = true;
     }
     
@@ -130,6 +196,7 @@ export class Notebook {
     }
 
     #broadcastCellSync(action, cellId) {
+        if (!this.channel) return;
         this.channel?.send({
             type: 'broadcast',
             event: 'cell_sync',
@@ -180,6 +247,8 @@ export class Notebook {
     }
     
     async deleteNotebook() {
+        if(this.isSandbox) return;
+
         const { error } = await supabase
             .from('notebooks')
             .delete()
@@ -201,6 +270,25 @@ export class Notebook {
     ******************************************/
     
     async upsertCell(cell) {
+        if(this.isSandbox) {
+            // Generate ID for new cells in sandbox mode
+            if (!cell.id) {
+                cell.id = 'sandbox_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            // Update local store with the cell changes but don't persist
+            this.cellsStore.update(cells => {
+                const index = cells.findIndex(obj => obj.id === cell.id);
+                if (index === -1) {
+                    cells.push(cell);
+                } else {
+                    cells[index] = cell;
+                }
+                return cells.sort((a, b) => a.position.localeCompare(b.position));
+            });
+            return cell;
+        }
+
         if (!this.id) throw new Error('Notebook not initialized');
         if (!cell.position) throw new Error('Cell position is required');
         const { data, error } = await supabase
@@ -238,16 +326,15 @@ export class Notebook {
     }
     
     async deleteCell(id) {
+        if(this.isSandbox) return;
+
         const { error } = await supabase
             .from('cells')
             .delete()
             .eq('id', id);
         if (error) throw error;
         
-        // Broadcast cell sync to other sessions
-        this.#broadcastCellSync('deleted', id);
-        
-        // Update the store instead of this.cells
+        this.#broadcastCellSync('deleted', id);        
         this.cellsStore.update(cells => cells.filter(c => c.id !== id));
     }  
 
@@ -294,9 +381,11 @@ export class Notebook {
         cell.position = newPosition;
         
         await this.upsertCell(cell); // sorts as side effect - this will NOT broadcast since it's an update
-        
-        this.#broadcastCellSync('moved', cell.id);
-        
+
+        if(!this.isSandbox) {
+            this.#broadcastCellSync('moved', cell.id);
+        }
+
         return cell;
     }
 
@@ -309,7 +398,7 @@ export class Notebook {
             const newPosition = LexaKey.between(last.position, null);
             cell.position = newPosition;
         }
-        await this.upsertCell(cell); // sorts as side effect
+        await this.upsertCell(cell); // sorts as side effect and handles sandbox mode
         return cell;
     }
 
@@ -322,7 +411,10 @@ export class Notebook {
         const newPosition = LexaKey.between(after, before);
         cell.position = newPosition;
         await this.upsertCell(cell); // sorts as side effect
-        this.#broadcastCellSync('moved', cell.id);
+
+        if (!this.isSandbox) { // ← Add this check
+            this.#broadcastCellSync('moved', cell.id);
+        }
         return cell;
     }
 
@@ -334,8 +426,11 @@ export class Notebook {
         let before = this.cells[index - 1].position;
         const newPosition = LexaKey.between(after, before);
         cell.position = newPosition;
-        await this.upsertCell(cell); // sorts as side effect
-        this.#broadcastCellSync('moved', cell.id);
+        await this.upsertCell(cell);
+
+        if (!this.isSandbox) { // ← Add this check
+            this.#broadcastCellSync('moved', cell.id);
+        }
         return cell;
     }
 

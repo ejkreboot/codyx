@@ -173,10 +173,29 @@ $effect(async () => {
     }
 });
 
+// Listen for new notebook events from the header
+$effect(() => {
+    const handleCreateNewNotebook = () => {
+        createNewNotebook();
+    };
+    
+    window.addEventListener('createNewNotebook', handleCreateNewNotebook);
+    
+    return () => {
+        window.removeEventListener('createNewNotebook', handleCreateNewNotebook);
+    };
+});
+
 </script>
 
 {#if error}
     <div class="error">{error}</div>
+{/if}
+
+{#if nb?.isSandbox}
+    <div class="sandbox-banner">
+        🏖️ Sandbox Mode - Changes won't be saved
+    </div>
 {/if}
 
 {#if isPyodideLoading}
@@ -198,43 +217,44 @@ $effect(async () => {
     </div>
 {/if}
 
-<div class="notebook-header">
-    <div class="notebook-name-section">
-        {#if isEditingName}
-            <input 
-                bind:this={nameInputElement}
-                bind:value={editingNameValue}
-                class="notebook-name-input"
-                onblur={saveNotebookName}
-                onkeydown={(e) => {
-                    if (e.key === 'Enter') saveNotebookName();
-                    if (e.key === 'Escape') cancelEditingName();
-                }}
-                placeholder="Notebook name..."
-            />
-        {:else}
-            <div 
-                class="notebook-name" 
-                onclick={startEditingName}
-                onkeydown={(e) => e.key === 'Enter' && startEditingName()}
-                role="button"
-                tabindex="0"
-                aria-label="Click to edit notebook name"
-            >
-                <span class="notebook-label">Notebook:</span>
-                <span class="notebook-title">{nb?.slug || 'Loading...'}</span>
-                <span class="material-symbols-outlined edit-icon">edit</span>
-            </div>
-        {/if}
-    </div>
-    
-    <button class="new-notebook-btn" onclick={createNewNotebook}>
-        <span class="material-symbols-outlined">add</span>
-        New Notebook
-    </button>
-</div>
-
-{#each $cells as cell, index (cell.id)}
+    <div class="notebook-header">
+        <div class="notebook-name-section">
+            {#if isEditingName}
+                <input 
+                    bind:this={nameInputElement}
+                    bind:value={editingNameValue}
+                    class="notebook-name-input"
+                    onblur={saveNotebookName}
+                    onkeydown={(e) => {
+                        if (e.key === 'Enter') saveNotebookName();
+                        if (e.key === 'Escape') cancelEditingName();
+                    }}
+                    placeholder="Notebook name..."
+                />
+            {:else}
+                <div class="notebook-info">
+                    <div 
+                        class="notebook-name" 
+                        onclick={startEditingName}
+                        onkeydown={(e) => e.key === 'Enter' && startEditingName()}
+                        role="button"
+                        tabindex="0"
+                        aria-label="Click to edit notebook name"
+                    >
+                        <span class="notebook-label">Notebook:</span>
+                        <span class="notebook-title">{nb?.slug || 'Loading...'}</span>
+                        <span class="material-symbols-outlined edit-icon">edit</span>
+                    </div>
+                    <div class="notebook-url">
+                        {$page.url.href}
+                        {#if !nb?.isSandbox && nb?.sandboxSlug}
+                            <span class="sandbox-url-inline">SANDBOX: {nb.getSandboxUrl()}</span>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+        </div>
+    </div>{#each $cells as cell, index (cell.id)}
     <SatyrnCell 
         initialText={cell.content}
         type={cell.type}
@@ -268,6 +288,20 @@ $effect(async () => {
     font-weight: 500;
     line-height: 1.4;
     box-shadow: 0 2px 8px rgba(214, 48, 49, 0.1);
+}
+
+.sandbox-banner {
+    background: linear-gradient(135deg, var(--color-accent-1), #ffb74d);
+    color: white;
+    text-align: center;
+    padding: 1rem 1.25rem;
+    margin: 0 0 2rem 0;
+    border-radius: 8px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(255, 160, 0, 0.3);
+    border: 1px solid rgba(255, 183, 77, 0.5);
 }
 
 .pyodide-loading-overlay {
@@ -352,18 +386,24 @@ $effect(async () => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-    padding: 0 0.5rem;
+    padding: 0 0;
 }
 
 .notebook-name-section {
     flex: 1;
 }
 
+.notebook-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 .notebook-name {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    padding: 0rem;
     cursor: pointer;
     border-radius: 6px;
     transition: all 0.2s ease;
@@ -417,35 +457,21 @@ $effect(async () => {
     box-shadow: 0 0 0 3px rgba(0, 149, 242, 0.1);
 }
 
-.new-notebook-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    background: linear-gradient(135deg, #0095f2, #0085d8);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Raleway', sans-serif;
-    font-size: 14px;
+.notebook-url {
+    font-family: 'Cutive Mono', monospace;
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 400;
+    margin-left: 0;
+    padding: 0;
+    opacity: 0.8;
+    word-break: break-all;
+    max-width: 100%;
+}
+
+.sandbox-url-inline {
+    margin-left: 1rem;
+    color: #888;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 149, 242, 0.2);
-}
-
-.new-notebook-btn:hover {
-    background: linear-gradient(135deg, #0085d8, #0075c4);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 149, 242, 0.3);
-}
-
-.new-notebook-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(0, 149, 242, 0.2);
-}
-
-.new-notebook-btn .material-symbols-outlined {
-    font-size: 18px;
 }
 </style>
