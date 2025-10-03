@@ -2,17 +2,24 @@
     import { onMount, onDestroy } from 'svelte';
     import { pyodideService } from './pyodide-service.js';
 
-    let { code = '', cellId = '', executePython = null, clearOutput = null } = $props();
+    let { 
+        code = '', 
+        cellId = '', 
+        executePython = $bindable(),
+        clearOutput = $bindable() 
+    } = $props();
 
     let isLoading = $state(false);
     let isExecuting = $state(false);
     let output = $state('');
     let error = $state(null);
+    let hasPlot = $state(false);
+    let plotData = $state(null);
     let hasRun = $state(false);
 
-    // Expose functions to parent
-    if (executePython) executePython.value = execute;
-    if (clearOutput) clearOutput.value = clear;
+    // Expose functions to parent using bindable
+    executePython = execute;
+    clearOutput = clear;
 
     // Execute Python code using shared service
     async function execute() {
@@ -21,6 +28,8 @@
         isExecuting = true;
         error = null;
         output = '';
+        hasPlot = false;
+        plotData = null;
         
         // Show loading state if Pyodide is initializing for the first time
         const status = pyodideService.getStatus();
@@ -30,13 +39,41 @@
         
         try {
             const result = await pyodideService.executeCode(code);
-            output = result;
+            
+            // If error is "PythonError" but we have output, treat output as the error
+            if (result.error === "PythonError" && result.output) {
+                // Clean up the traceback by removing noisy lines
+                const lines = result.output.split('\n');
+                const cleanedLines = lines.filter(line => {
+                    const trimmed = line.trim();
+                    // Remove File references, eval_code, and .run lines
+                    if (trimmed.match(/^\s*File\s+/)) return false;
+                    if (trimmed.includes('eval_code')) return false;
+                    if (trimmed.match(/^\s*\.run/)) return false;
+                    if (trimmed.match(/^\s*coroutine\s*=/)) return false;
+                    if (trimmed.match(/^\s*~~~\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^/)) return false;
+                    // Keep everything else
+                    return true;
+                });
+                
+                error = cleanedLines.join('\n').trim();
+                output = null; // Clear output since we're showing it as error
+                hasPlot = false;
+                plotData = null;
+            } else {
+                output = result.output;
+                error = result.error;
+                hasPlot = result.hasPlot;
+                plotData = result.plotData;
+            }
+            
             hasRun = true;
             
         } catch (err) {
-            console.log('Python execution error:', err);
             error = err.message || String(err);
-            output = ''; // Clear output when there's an error
+            output = '';
+            hasPlot = false;
+            plotData = null;
             hasRun = true;
         } finally {
             isExecuting = false;
@@ -47,6 +84,8 @@
     function clear() {
         output = '';
         error = null;
+        hasPlot = false;
+        plotData = null;
         hasRun = false;
     }
 
@@ -70,7 +109,7 @@
 
 <div class="python-area">
 
-    {#if output || error}
+    {#if output || error || hasPlot}
         <div class="output-section">
             {#if error}
                 <div class="error-output">
@@ -80,15 +119,22 @@
                     </div>
                     <pre class="output-content error-content">{error}</pre>
                 </div>
-            {/if}
-            
-            {#if output}
+            {:else if output || hasPlot}
                 <div class="success-output">
                     <div class="output-label success-label">
                         <span class="material-symbols-outlined">terminal</span>
                         Output:
                     </div>
-                    <pre class="output-content success-content">{output}</pre>
+                    <div class="output-content success-content">
+                        {#if hasPlot && plotData}
+                            <div class="plot-output">
+                                <img src="data:image/png;base64,{plotData}" alt="Plot output" />
+                            </div>
+                        {/if}
+                        {#if output}
+                            <pre class="text-output">{output}</pre>
+                        {/if}
+                    </div>
                 </div>
             {/if}
         </div>
@@ -109,8 +155,7 @@
 
 
     .output-section {
-        max-height: 400px;
-        overflow-y: auto;
+        /* Allow output to expand to fit content */
     }
 
     .success-output,
@@ -167,5 +212,30 @@
         background: #fffafa;
         color: #c53030;
         border-bottom: 1px solid #fdf2f2;
+    }
+
+    .plot-output {
+        margin-bottom: 1rem;
+        text-align: center;
+        padding: 1rem 0;
+    }
+
+    .plot-output img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: white;
+        padding: 0.5rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .text-output {
+        margin: 0;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        white-space: pre-wrap;
+        word-wrap: break-word;
     }
 </style>

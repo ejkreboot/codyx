@@ -19,8 +19,8 @@
     let isDirty = $state(false);
     
     // Python execution function bindings
-    let pythonExecute = $state({ value: null });
-    let pythonClear = $state({ value: null });
+    let pythonExecute = $state(null);
+    let pythonClear = $state(null);
 
     let liveText;
     let textareaElement = $state();
@@ -129,7 +129,13 @@
           oninput={handleInput}
           onblur={stopEditing}
           class="cell-textarea"
+          placeholder="Enter markdown..."
         ></textarea>
+        <div class="markdown-preview">
+          <div class="rendered-markdown">
+            {@html marked(text)}
+          </div>
+        </div>
       {:else}
         <div class="rendered-markdown" onclick={startEditing} onkeydown={handleKeydown} role="button" tabindex="0">
           {@html marked(text)}
@@ -142,7 +148,7 @@
         <div class="code-gutter">
           <button 
             class="gutter-btn run-btn" 
-            onclick={() => pythonExecute?.value?.()}
+            onclick={() => pythonExecute?.()}
             title="Run Python code (Ctrl/Cmd + Enter)"
           >
             <span class="material-symbols-outlined">play_circle</span>
@@ -169,8 +175,8 @@
           <PythonArea 
             code={text}
             cellId={docId}
-            executePython={pythonExecute}
-            clearOutput={pythonClear}
+            bind:executePython={pythonExecute}
+            bind:clearOutput={pythonClear}
           />
         </div>
       </div>
@@ -191,9 +197,9 @@
   }
 
   .cell-container {
-    border: 1px solid #555958;
+    border: 1px solid #f0f0f0;
     border-radius: 8px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     overflow: hidden;
     background: white;
     width: 100%;
@@ -366,7 +372,19 @@
     box-sizing: border-box;
   }
 
+  .markdown-preview {
+    margin-top: 8px;
+    padding: 12px;
+    background: #fafbfc;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+  }
 
+  .markdown-preview .rendered-markdown {
+    cursor: default;
+    padding: 0;
+    margin: 0;
+  }
 
   .rendered-markdown {
     cursor: pointer;
@@ -398,7 +416,7 @@
   .rendered-markdown :global(h6) {
     color: #555958;
     font-weight: 600;
-    margin-top: 1.5em;
+    margin-top: 0.5em;
     margin-bottom: 0.5em;
   }
 

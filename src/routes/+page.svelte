@@ -100,19 +100,20 @@
     .app-name {
         font-family: 'Orbitron', monospace;
         font-size: 1.5rem;
-        font-weight: 700;
-        margin: 0;
+        font-weight: 300;
+        margin: -4px 0 0 0;
         color: #555958;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.15em;
+        line-height: 1;
     }
 
     .tagline {
         font-family: 'Raleway', sans-serif;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         color: #999;
         font-weight: 400;
         margin: 0;
-        line-height: 1;
+        line-height: 0.5;
     }
 
     .header-actions {

@@ -16,6 +16,8 @@ let currentSlug = $state(null); // Track current slug to prevent duplicate loads
 // Notebook name editing state
 let isEditingName = $state(false);
 let editingNameValue = $state('');
+
+// svelte-ignore non_reactive_update
 let nameInputElement;
 
 // Pyodide loading state
@@ -96,7 +98,6 @@ function startEditingName() {
     error = null; // Clear any previous errors when starting to edit
     isEditingName = true;
     editingNameValue = nb.slug;
-    // Focus the input after it becomes visible
     setTimeout(() => nameInputElement?.focus(), 0);
 }
 
@@ -164,7 +165,6 @@ $effect(async () => {
         currentSlug = slug;
         nb = await Notebook.create(slug);
         
-        // Warm up Pyodide in the background for faster code execution
         warmUpPyodide();
 
     } catch (err) {
@@ -173,7 +173,6 @@ $effect(async () => {
     }
 });
 
-// Listen for new notebook events from the header
 $effect(() => {
     const handleCreateNewNotebook = () => {
         createNewNotebook();
@@ -208,9 +207,9 @@ $effect(() => {
                 <h3>🐍 Initializing Python Environment</h3>
                 <p>Setting up Pyodide for code execution...</p>
                 <div class="loading-steps">
-                    <div class="step">Downloading Python runtime</div>
-                    <div class="step">Loading scientific libraries</div>
-                    <div class="step">Almost ready...</div>
+                    <div class="step step-1">Downloading Python runtime</div>
+                    <div class="step step-2">Loading scientific libraries</div>
+                    <div class="step step-3">Almost ready...</div>
                 </div>
             </div>
         </div>
@@ -310,12 +309,13 @@ $effect(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(8px);
+    background: rgba(248, 249, 250, 0.85);
+    backdrop-filter: blur(4px);
     z-index: 1000;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    padding-top: 4rem;
     border-radius: 12px;
 }
 
@@ -374,11 +374,33 @@ $effect(() => {
 .step {
     padding: 0.25rem 0;
     position: relative;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: stepAppear 0.5s ease-out forwards;
+}
+
+.step-1 {
+    animation-delay: 1.5s;
+}
+
+.step-2 {
+    animation-delay: 4s;
+}
+
+.step-3 {
+    animation-delay: 6s;
 }
 
 .step::before {
     content: "⏳";
     margin-right: 0.5rem;
+}
+
+@keyframes stepAppear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .notebook-header {

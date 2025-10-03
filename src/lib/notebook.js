@@ -183,7 +183,6 @@ export class Notebook {
         
         this.channel = supabase.channel(channelName)
             .on('broadcast', { event: 'cell_sync' }, (payload) => {
-                console.log('Cell sync from another session:', payload);
                 this.#handleCellSync(payload.payload);
             })
         const sub = this.channel.subscribe();
