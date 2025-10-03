@@ -1,38 +1,118 @@
-# sv
+# SATYRN 
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+**Collaborative Data Science Notebooks • No Logins Required**
 
-## Creating a project
+SATYRN is a browser-based collaborative notebook platform that lets you execute Python and R code seamlessly, interleaved with markdown documentation. Share analyses instantly with a simple URL - perfect for classrooms, research, and team collaboration.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## ✨ Features
+
+- **Python Support** - Full Pyodide integration with popular data science libraries
+- **R Support** - Complete WebR environment with ggplot2 and tidyverse packages  
+- **Real-time Collaboration** - Multiple users can edit simultaneously with live updates
+- **Browser-based** - No installation required, runs entirely in your browser
+- **Easy Sharing** - Share notebooks with a simple URL
+- **Rich Markdown** - Full markdown support for documentation and analysis
+
+## 🚀 Quick Start
+
+Visit the live platform: satyrn.vercel.app
+
+1. Click "New Notebook" to create a notebook with a unique URL
+2. Add cells with Markdown, Python, or R code
+3. Execute code directly in your browser
+4. Share the URL with collaborators
+
+## 🛠️ Installation & Development
+
+### Prerequisites
+- Node.js 18+ 
+- A Supabase account and database
+- Git
+
+### Setup Instructions
+
+1. **Clone the repository**
+   ```sh
+   git clone https://github.com/your-username/satyrn2.git
+   cd satyrn2
+   ```
+
+2. **Install dependencies**
+   ```sh
+   npm install
+   ```
+
+3. **Configure environment**
+   ```sh
+   # Copy the example environment file
+   cp .env.example .env
+   
+   # Edit .env with your Supabase credentials
+   # VITE_SUPABASE_URL=your_supabase_url
+   # VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Initialize database**
+   Execute the contents of init.sql in your Supabase SQL editor
+
+
+5. **Start development server**
+   ```sh
+   npm run dev
+   ```
+
+6. **Open your browser**
+   ```
+   Navigate to http://localhost:5173
+   ```
+
+### Database Schema
+
+The `init.sql` file contains the complete database schema including:
+- `notebooks` table for storing notebook metadata
+- `cells` table for individual notebook cells
+- Real-time subscriptions for live collaboration
+- Row Level Security (RLS) policies
+
+## Architecture
+
+- **Frontend**: SvelteKit with modern JavaScript/TypeScript
+- **Python Execution**: Pyodide (browser-based Python interpreter)
+- **R Execution**: WebR (browser-based R interpreter) 
+- **Database**: Supabase (PostgreSQL with real-time subscriptions)
+- **Styling**: Custom CSS with responsive design
+- **Fonts**: Orbitron (headings), Raleway (body), Bowlby One (R symbols)
+
+## Building for Production
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
+# Create production build
 npm run build
+
+# Preview production build locally
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+## Contributing
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- **Pyodide** - Python in the browser
+- **WebR** - R in the browser  
+- **Supabase** - Backend infrastructure and real-time features
+- **SvelteKit** - Modern web framework
+- **Material Symbols** - Beautiful icons
+
+---
+
+**Built with ❤️ for the data science community**
