@@ -13,7 +13,7 @@
     <header class="app-header">
         <div class="header-content">
             <div class="logo-section">
-                <img src="/logo_100.png" alt="CODYX Logo" class="logo" />
+                <img src="/logo_200.png" alt="CODYX Logo" class="logo" />
                 <div class="brand-info">
                     <h1 class="app-name">CODYX</h1>
                     <div class="tagline">
