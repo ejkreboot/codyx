@@ -70,6 +70,67 @@ export class Notebook {
         this.slug = newSlug;
     }
 
+    async createCopy(newSlug) {
+        if (!newSlug) throw new Error('New slug is required for copy');
+        
+        const isAvailable = await this.checkIfSlugAvailable(newSlug);
+        if (!isAvailable) {
+            throw new Error('That name is already taken');
+        }
+
+        // Generate a unique sandbox slug for the new notebook
+        const sandboxSlug = await this.#generateUniqueSandboxSlug();
+        
+        // Create new notebook entry
+        const { data: newNotebookData, error: notebookError } = await supabase
+            .from('notebooks')
+            .insert({
+                slug: newSlug,
+                sandbox_slug: sandboxSlug,
+                owner: this.owner
+            })
+            .select()
+            .single();
+            
+        if (notebookError) throw notebookError;
+        
+        // Copy all cells from current notebook to new notebook
+        // Fetch cells directly from database to ensure we get all current data
+        const { data: currentCells, error: fetchError } = await supabase
+            .from('cells')
+            .select('content, type, position')
+            .eq('notebook_id', this.id)
+            .order('position');
+            
+        if (fetchError) {
+            // Clean up the notebook if cell fetching failed
+            await supabase.from('notebooks').delete().eq('id', newNotebookData.id);
+            throw fetchError;
+        }
+        
+        if (currentCells && currentCells.length > 0) {
+            const cellsToInsert = currentCells.map(cell => ({
+                notebook_id: newNotebookData.id,
+                content: cell.content,
+                type: cell.type,
+                position: cell.position
+            }));
+            
+            const { error: cellsError } = await supabase
+                .from('cells')
+                .insert(cellsToInsert);
+                
+            if (cellsError) {
+                // Clean up the notebook if cell copying failed
+                await supabase.from('notebooks').delete().eq('id', newNotebookData.id);
+                throw cellsError;
+            }
+        }
+        
+        // Copy completed successfully - the UI will navigate to the new notebook
+        return newSlug;
+    }
+
     getSandboxUrl() {
         if (!this.sandboxSlug) return null;
         return `${window.location.origin}/notebooks?slug=${this.sandboxSlug}`;

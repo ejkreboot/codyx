@@ -17,6 +17,7 @@ let currentSlug = $state(null); // Track current slug to prevent duplicate loads
 // Notebook name editing state
 let isEditingName = $state(false);
 let editingNameValue = $state('');
+let createCopy = $state(false);
 
 // svelte-ignore non_reactive_update
 let nameInputElement;
@@ -114,6 +115,7 @@ function startEditingName() {
 function cancelEditingName() {
     isEditingName = false;
     editingNameValue = '';
+    createCopy = false;
 }
 
 async function saveNotebookName() {
@@ -127,7 +129,7 @@ async function saveNotebookName() {
         .replace(/--+/g, '-')         // Replace multiple hyphens with single
         .replace(/^-|-$/g, '');       // Remove leading/trailing hyphens
     
-    if (newSlug === nb.slug) {
+    if (newSlug === nb.slug && !createCopy) {
         cancelEditingName();
         error = null;
         return;
@@ -140,13 +142,29 @@ async function saveNotebookName() {
             error = `Notebook name "${newSlug}" is already taken. Please choose a different name.`;
             return;
         }
+        
         error = null;
-        const newUrl = `/notebooks?slug=${encodeURIComponent(newSlug)}`;
-        await goto(newUrl, { replaceState: true });
-        cancelEditingName();
+        
+        if (createCopy) {
+            // Create a copy of the current notebook with the new slug
+            try {
+                const newNotebook = await nb.createCopy(newSlug);
+                const newUrl = `/notebooks?slug=${encodeURIComponent(newSlug)}`;
+                await goto(newUrl, { replaceState: true });
+                cancelEditingName();
+            } catch (copyErr) {
+                console.error("Failed to create copy:", copyErr);
+                error = copyErr.message || "Failed to create copy. Please try again.";
+            }
+        } else {
+            // Just rename the current notebook
+            const newUrl = `/notebooks?slug=${encodeURIComponent(newSlug)}`;
+            await goto(newUrl, { replaceState: true });
+            cancelEditingName();
+        }
         
     } catch (err) {
-        console.error("Failed to rename notebook:", err);
+        console.error("Failed to save notebook:", err);
         error = err.message;
     }
 }
@@ -269,17 +287,32 @@ $effect(() => {
     <div class="notebook-header">
         <div class="notebook-name-section">
             {#if isEditingName}
-                <input 
-                    bind:this={nameInputElement}
-                    bind:value={editingNameValue}
-                    class="notebook-name-input"
-                    onblur={saveNotebookName}
-                    onkeydown={(e) => {
-                        if (e.key === 'Enter') saveNotebookName();
-                        if (e.key === 'Escape') cancelEditingName();
-                    }}
-                    placeholder="Notebook name..."
-                />
+                <div class="notebook-editing-container">
+                    <input 
+                        bind:this={nameInputElement}
+                        bind:value={editingNameValue}
+                        class="notebook-name-input"
+                        onkeydown={(e) => {
+                            if (e.key === 'Enter') saveNotebookName();
+                            if (e.key === 'Escape') cancelEditingName();
+                        }}
+                        placeholder="Notebook name..."
+                    />
+                    <label class="create-copy-option">
+                        <input 
+                            type="checkbox"
+                            bind:checked={createCopy}
+                            class="create-copy-checkbox"
+                        />
+                        <span class="create-copy-label">Create copy</span>
+                    </label>
+                    <button class="save-name-btn" onclick={saveNotebookName} title="Save changes">
+                        <span class="material-symbols-outlined">check</span>
+                    </button>
+                    <button class="cancel-name-btn" onclick={cancelEditingName} title="Cancel">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
             {:else}
                 <div class="notebook-info">
                     <div 
@@ -612,6 +645,76 @@ $effect(() => {
 
 .notebook-name-input:focus {
     box-shadow: 0 0 0 3px rgba(0, 149, 242, 0.1);
+}
+
+.notebook-editing-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.save-name-btn, .cancel-name-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.save-name-btn {
+    background: var(--color-accent-1);
+    color: white;
+}
+
+.save-name-btn:hover {
+    background: #e6900a;
+    transform: translateY(-1px);
+}
+
+.cancel-name-btn {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #dee2e6;
+}
+
+.cancel-name-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.create-copy-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Raleway', sans-serif;
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.create-copy-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-accent-1);
+    cursor: pointer;
+}
+
+.create-copy-label {
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.create-copy-option:hover .create-copy-label {
+    color: var(--color-accent-1);
 }
 
 .notebook-url {
