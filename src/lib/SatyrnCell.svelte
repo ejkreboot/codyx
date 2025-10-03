@@ -4,6 +4,7 @@
     import { supabase } from '$lib/supabase-client.js';
     import { marked } from 'marked';
     import PythonArea from './PythonArea.svelte';
+    import RArea from './RArea.svelte';
 	
     let props = $props();
     let initialText = props.initialText ?? '';
@@ -21,6 +22,10 @@
     // Python execution function bindings
     let pythonExecute = $state(null);
     let pythonClear = $state(null);
+    
+    // R execution function bindings
+    let rExecute = $state(null);
+    let rClear = $state(null);
 
     let liveText;
     let textareaElement = $state();
@@ -68,6 +73,10 @@
         dispatch('addCell', {  docId, cellType: 'code' });
     }
 
+    function addRCell() {
+        dispatch('addCell', {  docId, cellType: 'r' });
+    }
+
     function handleKeydown(event) {
         if (event.key === 'Enter') {
             startEditing();
@@ -93,9 +102,13 @@
 <div class="cell-container" data-cell-type={type}>
   <div class="cell-gutter">
     <div class="cell-type-icon">
-      <span class="material-symbols-outlined">
-        {type === 'md' ? 'markdown' : 'code'}
-      </span>
+      {#if type === 'r'}
+        <span class="r-symbol"></span>
+      {:else if type === 'code'}
+        <span class="python-symbol"></span>
+      {:else}
+        <span class="material-symbols-outlined">markdown</span>
+      {/if}
     </div>
     <div class="cell-index">
       [{cellIndex}]
@@ -113,8 +126,11 @@
       <button class="toolbar-btn" onclick={addMarkdownCell} title="Add Markdown Cell">
         <span class="material-symbols-outlined">markdown</span>
       </button>
-      <button class="toolbar-btn" onclick={addCodeCell} title="Add Code Cell">
-        <span class="material-symbols-outlined">code</span>
+      <button class="toolbar-btn" onclick={addCodeCell} title="Add Python Cell">
+        <span class="python-symbol"></span>
+      </button>
+      <button class="toolbar-btn" onclick={addRCell} title="Add R Cell">
+        <span class="r-symbol"></span>
       </button>
       <button class="toolbar-btn delete-btn" onclick={deleteCell} title="Delete Cell">
         <span class="material-symbols-outlined">delete</span>
@@ -181,6 +197,46 @@
         </div>
       </div>
     {/if}
+    
+    {#if type === 'r'}
+      <div class="code-cell-content">
+        <div class="code-gutter">
+          <button 
+            class="gutter-btn run-btn" 
+            onclick={() => rExecute?.()}
+            title="Run R code (Ctrl/Cmd + Enter)"
+          >
+            <span class="material-symbols-outlined">play_circle</span>
+          </button>
+          
+          <button 
+            class="gutter-btn clear-btn"
+            onclick={() => rClear?.()}
+            title="Clear output"
+          >
+            <span class="material-symbols-outlined">clear</span>
+          </button>
+        </div>
+        
+        <div class="code-cell-main">
+          <textarea 
+            bind:this={textareaElement}
+            bind:value={text} 
+            oninput={handleInput}
+            onblur={stopEditing}
+            class="cell-textarea"
+          ></textarea>
+          
+          <RArea 
+            code={text}
+            cellIndex={cellIndex}
+            bind:executeR={rExecute}
+            bind:clearOutput={rClear}
+          />
+        </div>
+      </div>
+    {/if}
+    
     {#if typing}
       <div class="typing-indicator" aria-live="polite">Typing…</div>
     {/if}
@@ -230,13 +286,23 @@
     font-size: 18px;
   }
 
-  /* Color code symbols with accent-1 (orange) and markdown symbols with accent-2 (blue) */
+  /* Color code symbols with custom colors */
   .cell-container[data-cell-type="code"] .cell-type-icon {
-    color: var(--color-accent-1);
+    color: #f6ce35; /* Python Gold */
   }
 
   .cell-container[data-cell-type="md"] .cell-type-icon {
     color: var(--color-accent-2);
+  }
+
+  .cell-container[data-cell-type="r"] .cell-type-icon {
+    color: #054ba4; /* R Blue */
+  }
+
+  /* Size adjustments for custom symbols */
+  .cell-container .r-symbol,
+  .cell-container .python-symbol {
+    font-size: 14px;
   }
 
   .cell-index {

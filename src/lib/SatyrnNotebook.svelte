@@ -41,6 +41,10 @@ let handleCellEvent = async (e) => {
                 const newCodeCell = { type: 'code', content: '// New Code Cell' };
                 await nb.insertCellAfter(newCodeCell, thisCell);
                 break;
+            case "addRCell":
+                const newRCell = { type: 'r', content: '# New R Cell\nlibrary(ggplot2)' };
+                await nb.insertCellAfter(newRCell, thisCell);
+                break;
             case "moveUp":
                 await nb.moveCellUp(args.docId);
                 break;
@@ -67,7 +71,7 @@ async function createNewNotebook() {
         // Generate a unique notebook name using Haikunator
         const haikunator = new Haikunator();
         const newNotebookName = haikunator.haikunate({ tokenLength: 0 });        
-        const newUrl = `/?slug=${encodeURIComponent(newNotebookName)}`;
+        const newUrl = `/notebooks?slug=${encodeURIComponent(newNotebookName)}`;
         await goto(newUrl);
     } catch (err) {
         console.error("Failed to create new notebook:", err);
@@ -131,7 +135,7 @@ async function saveNotebookName() {
             return;
         }
         error = null;
-        const newUrl = `/?slug=${encodeURIComponent(newSlug)}`;
+        const newUrl = `/notebooks?slug=${encodeURIComponent(newSlug)}`;
         await goto(newUrl, { replaceState: true });
         cancelEditingName();
         
@@ -204,10 +208,10 @@ $effect(() => {
                 <span class="material-symbols-outlined spinning">hourglass_empty</span>
             </div>
             <div class="loading-text">
-                <h3>🐍 Initializing Python Environment</h3>
-                <p>Setting up Pyodide for code execution...</p>
+                <h3>Initializing Compute Environment</h3>
+                <p>Embedding interpreters for code execution...</p>
                 <div class="loading-steps">
-                    <div class="step step-1">Downloading Python runtime</div>
+                    <div class="step step-1">Downloading  Runtimes</div>
                     <div class="step step-2">Loading scientific libraries</div>
                     <div class="step step-3">Almost ready...</div>
                 </div>
@@ -264,7 +268,7 @@ $effect(() => {
         on:edit={(e) => handleCellEvent({detail: {type: 'edit', ...e.detail}})}
         on:moveUp={(e) => handleCellEvent({detail: {type: 'moveUp', ...e.detail}})}
         on:moveDown={(e) => handleCellEvent({detail: {type: 'moveDown', ...e.detail}})}
-        on:addCell={(e) => handleCellEvent({detail: {type: e.detail.cellType === 'md' ? 'addMarkdownCell' : 'addCodeCell', ...e.detail}})}
+        on:addCell={(e) => handleCellEvent({detail: {type: e.detail.cellType === 'md' ? 'addMarkdownCell' : e.detail.cellType === 'r' ? 'addRCell' : 'addCodeCell', ...e.detail}})}
         on:delete={(e) => handleCellEvent({detail: {type: 'delete', ...e.detail}})}
     />
 {/each}

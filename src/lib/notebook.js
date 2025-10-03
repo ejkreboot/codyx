@@ -72,13 +72,13 @@ export class Notebook {
 
     getSandboxUrl() {
         if (!this.sandboxSlug) return null;
-        return `${window.location.origin}/?slug=${this.sandboxSlug}`;
+        return `${window.location.origin}/notebooks?slug=${this.sandboxSlug}`;
     }
 
     getMainUrl() {
         // Get the original notebook URL (not sandbox)
         const mainSlug = this.isSandbox ? this.mainSlug : this.slug;
-        return `${window.location.origin}/${mainSlug}`;
+        return `${window.location.origin}/notebooks?${mainSlug}`;
     }
 
     async #generateUniqueSandboxSlug() {
