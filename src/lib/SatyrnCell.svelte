@@ -3,6 +3,7 @@
     import { LiveText } from '$lib/live-text.js';
     import { supabase } from '$lib/supabase-client.js';
     import { marked } from 'marked';
+    import { processEnhancedMarkdown, collapsibleScript } from './enhanced-markdown.js';
     import PythonArea from './PythonArea.svelte';
     import RArea from './RArea.svelte';
 	
@@ -90,6 +91,13 @@
         handleInput = (e) => {
             liveText.update(e.target.value);
         };
+        
+        // Inject collapsible functionality if not already present
+        if (!window.toggleCollapsible) {
+            const script = document.createElement('script');
+            script.textContent = collapsibleScript;
+            document.head.appendChild(script);
+        }
     });
 
     onDestroy(() => {
@@ -149,12 +157,12 @@
         ></textarea>
         <div class="markdown-preview">
           <div class="rendered-markdown">
-            {@html marked(text)}
+            {@html processEnhancedMarkdown(text)}
           </div>
         </div>
       {:else}
         <div class="rendered-markdown" onclick={startEditing} onkeydown={handleKeydown} role="button" tabindex="0">
-          {@html marked(text)}
+          {@html processEnhancedMarkdown(text)}
         </div>
       {/if}
     {/if}
@@ -541,5 +549,77 @@
     font-style: italic;
     padding: 0.5rem 1rem;
     background-color: rgba(255, 160, 0, 0.1);
+  }
+
+  /* Collapsible Section Styles */
+  .rendered-markdown :global(.collapsible-section) {
+    margin: 1rem 0;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+  }
+
+  .rendered-markdown :global(.collapsible-header) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .rendered-markdown :global(.collapsible-header:hover) {
+    background: #e9ecef;
+  }
+
+  .rendered-markdown :global(.collapsible-icon) {
+    font-size: 18px;
+    color: var(--color-accent-1);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .rendered-markdown :global(.collapsible-title) {
+    margin: 0;
+    font-weight: 600;
+    font-family: 'Raleway', sans-serif;
+    color: #333;
+    flex: 1;
+  }
+
+  .rendered-markdown :global(.collapsible-content) {
+    padding: 1rem;
+    background: white;
+    animation: slideDown 0.2s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 1000px;
+    }
+  }
+
+  /* Style content inside collapsible sections */
+  .rendered-markdown :global(.collapsible-content p) {
+    margin-bottom: 1em;
+  }
+
+  .rendered-markdown :global(.collapsible-content h1),
+  .rendered-markdown :global(.collapsible-content h2),
+  .rendered-markdown :global(.collapsible-content h3),
+  .rendered-markdown :global(.collapsible-content h4),
+  .rendered-markdown :global(.collapsible-content h5),
+  .rendered-markdown :global(.collapsible-content h6) {
+    margin-top: 0;
+    margin-bottom: 0.75em;
   }
 </style>
