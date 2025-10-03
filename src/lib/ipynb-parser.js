@@ -1,5 +1,5 @@
 /**
- * Parse .ipynb files and convert to SATYRN format
+ * Parse .ipynb files and convert to CODYX format
  */
 
 export function parseIpynbFile(fileContent) {

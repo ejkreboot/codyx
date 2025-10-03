@@ -17,7 +17,7 @@
 
 <footer class="app-footer">
     © 2025 Eric J. Kort. License: <a href="https://mit-license.org/" target="_blank" rel="noopener">&nbsp;MIT</a>. 
-    Bugs? Suggestions? Open an issue on <a href="https://github.com/ejkreboot/satyrn" target="_blank" rel="noopener">&nbsp;GitHub</a>. 
+    Bugs? Suggestions? Open an issue on <a href="https://github.com/ejkreboot/codyx" target="_blank" rel="noopener">&nbsp;GitHub</a>. 
 	Created with lots of help from <a href="https://www.anthropic.com/claude/sonnet" target="_blank" rel="noopener">&nbsp;Claude Sonnet 4</a>.
 </footer>
 

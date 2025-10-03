@@ -1,5 +1,5 @@
 /**
- * Enhanced Markdown Processor for SATYRN
+ * Enhanced Markdown Processor for CODYX
  * Adds support for collapsible sections inspired by Google Colab
  */
 

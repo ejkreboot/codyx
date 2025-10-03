@@ -1,8 +1,12 @@
-# SATYRN 
+# # CODYX 
+
+🚀 **Collaborative Data Science Notebooks in Your Browser**
+
+CODYX is a browser-based collaborative notebook platform that lets you execute Python and R code seamlessly, interleaved with markdown documentation. Share analyses instantly with a simple URL - perfect for classrooms, research, and team collaboration.YRN 
 
 **Collaborative Data Science Notebooks • No Logins Required**
 
-SATYRN is a browser-based collaborative notebook platform that lets you execute Python and R code seamlessly, interleaved with markdown documentation. Share analyses instantly with a simple URL - perfect for classrooms, research, and team collaboration.
+Codyx is a browser-based collaborative notebook platform that lets you execute Python and R code seamlessly, interleaved with markdown documentation. Share analyses instantly with a simple URL - perfect for classrooms, research, and team collaboration.
 
 ## ✨ Features
 
@@ -15,7 +19,7 @@ SATYRN is a browser-based collaborative notebook platform that lets you execute 
 
 ## 🚀 Quick Start
 
-Visit the live platform: satyrn-notebooks.vercel.app
+Visit the live platform: codyx.app
 
 1. Click "New Notebook" to create a notebook with a unique URL
 2. Add cells with Markdown, Python, or R code
@@ -33,8 +37,8 @@ Visit the live platform: satyrn-notebooks.vercel.app
 
 1. **Clone the repository**
    ```sh
-   git clone https://github.com/your-username/satyrn2.git
-   cd satyrn2
+   git clone https://github.com/your-username/codyx.git
+   cd codyx
    ```
 
 2. **Install dependencies**

@@ -1,6 +1,5 @@
 <script>
     import { goto } from '$app/navigation';
-    import { Notebook } from '$lib/notebook.js';
     import Haikunator from 'haikunator';
 
     let notebookSlug = $state('');
@@ -39,21 +38,23 @@
 </script>
 
 <svelte:head>
-    <title>SATYRN - Collaborative Data Science Notebooks</title>
+    <title>CODYX - Collaborative Data Science Notebooks</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="preload" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
 </svelte:head>
 
+
+
 <div class="landing-container">
     <!-- Navigation Header -->
     <header class="landing-header">
         <div class="header-content">
             <div class="logo-section">
-                <img src="/logo_100.png" alt="SATYRN Logo" class="logo" />
+                                <img src="/logo_100.png" alt="CODYX Logo" class="logo" />
                 <div class="brand-info">
-                    <h1 class="app-name">SATYRN</h1>
+                    <h1 class="app-name">CODYX</h1>
                     <div class="tagline">
                         Collaborative Data Science Notebooks • No Logins Required
                     </div>
@@ -102,7 +103,7 @@
             
             <div class="hero-visual">
                 <div class="desktop-mockup">
-                    <img src="/desktop.png" alt="SATYRN Desktop Application" class="desktop-image" />
+                    <img src="/desktop.png" alt="CODYX Desktop Application" class="desktop-image" />
                 </div>
             </div>
         </div>

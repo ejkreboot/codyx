@@ -5,7 +5,7 @@ import { page } from '$app/stores';
 import { goto, invalidateAll } from '$app/navigation';
 import { Notebook } from '$lib/notebook.js'
 import Haikunator from 'haikunator'
-import SatyrnCell from './SatyrnCell.svelte';
+import CodyxCell from './CodyxCell.svelte';
 import { pyodideService } from '$lib/pyodide-service.js';
 import { parseIpynbFile, validateIpynbFile } from '$lib/ipynb-parser.js';
 
