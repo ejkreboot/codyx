@@ -15,7 +15,7 @@ SATYRN is a browser-based collaborative notebook platform that lets you execute 
 
 ## 🚀 Quick Start
 
-Visit the live platform: satyrn.vercel.app
+Visit the live platform: satyrn-notebooks.vercel.app
 
 1. Click "New Notebook" to create a notebook with a unique URL
 2. Add cells with Markdown, Python, or R code
