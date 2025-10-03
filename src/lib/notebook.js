@@ -256,7 +256,7 @@ export class Notebook {
     }
 
     #broadcastCellSync(action, cellId) {
-        if (!this.channel) return;
+        if (!this.channel || this.isSandbox) return;
         this.channel?.send({
             type: 'broadcast',
             event: 'cell_sync',
@@ -330,25 +330,13 @@ export class Notebook {
     ******************************************/
     
     async upsertCell(cell) {
+        console.log('upsertCell called with sandbox value:', this.isSandbox);
         if(this.isSandbox) {
             // Generate ID for new cells in sandbox mode
-            if (!cell.id) {
-                cell.id = 'sandbox_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            }
-            
-            // Update local store with the cell changes but don't persist
-            this.cellsStore.update(cells => {
-                const index = cells.findIndex(obj => obj.id === cell.id);
-                if (index === -1) {
-                    cells.push(cell);
-                } else {
-                    cells[index] = cell;
-                }
-                return cells.sort((a, b) => a.position.localeCompare(b.position));
-            });
+ 
             return cell;
         }
-
+console.log('Proceeding with upsertCell in non-sandbox mode');
         if (!this.id) throw new Error('Notebook not initialized');
         if (!cell.position) throw new Error('Cell position is required');
         const { data, error } = await supabase

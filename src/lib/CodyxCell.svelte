@@ -14,6 +14,7 @@
     let userId = props.userId ?? null;
     let version = props.version;
     let cellIndex = props.cellIndex ?? 1;
+    let sandboxed = props.sandboxed ?? false;
 
     let text = $state(initialText);
     let typing = $state(false);
@@ -85,13 +86,14 @@
     }
     
     onMount(async() => {
-        liveText = await LiveText.create({text: initialText, docId, supabase, userId, version});
-        liveText.addEventListener('patched', onPatched);
-        liveText.addEventListener('typing', onTyping);
-        handleInput = (e) => {
-            liveText.update(e.target.value);
-        };
-        
+          liveText = await LiveText.create({text: initialText, docId, supabase, userId, version});
+          liveText.addEventListener('patched', onPatched);
+          liveText.addEventListener('typing', onTyping);
+        if(!sandboxed) {
+          handleInput = (e) => {
+              liveText.update(e.target.value);
+          };
+        }
         // Inject collapsible functionality if not already present
         if (!window.toggleCollapsible) {
             const script = document.createElement('script');
@@ -101,6 +103,7 @@
     });
 
     onDestroy(() => {
+      if(sandboxed) return;
       liveText?.removeEventListener('patched', onPatched);
       liveText?.removeEventListener('typing', onTyping);
       liveText?.destroy();
@@ -124,6 +127,7 @@
   </div>
   
   <div class="cell-content">
+    {#if !sandboxed}
     <div class="toolbar">
       <button class="toolbar-btn" onclick={moveUp} title="Move Up">
         <span class="material-symbols-outlined">keyboard_arrow_up</span>
@@ -144,6 +148,7 @@
         <span class="material-symbols-outlined">delete</span>
       </button>
     </div>
+    {/if}
 
     {#if type === 'md'}
       {#if isEditing}

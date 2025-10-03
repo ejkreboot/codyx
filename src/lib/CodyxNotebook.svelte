@@ -375,6 +375,7 @@ $effect(() => {
         docId={cell.id}
         userId="public"
         version={cell.updated_at}
+        sandboxed={nb?.isSandbox}
         cellIndex={index + 1}
         on:edit={(e) => handleCellEvent({detail: {type: 'edit', ...e.detail}})}
         on:moveUp={(e) => handleCellEvent({detail: {type: 'moveUp', ...e.detail}})}
