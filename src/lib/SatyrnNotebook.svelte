@@ -7,6 +7,7 @@ import { Notebook } from '$lib/notebook.js'
 import Haikunator from 'haikunator'
 import SatyrnCell from './SatyrnCell.svelte';
 import { pyodideService } from '$lib/pyodide-service.js';
+import { parseIpynbFile, validateIpynbFile } from '$lib/ipynb-parser.js';
 
 let error = $state(null);
 let nb = $state(null);
@@ -22,6 +23,11 @@ let nameInputElement;
 
 // Pyodide loading state
 let isPyodideLoading = $state(false);
+
+// Import state
+let isImporting = $state(false);
+let importError = $state(null);
+let fileInputElement;
 
 let handleCellEvent = async (e) => {
     const { type, ...args } = e.detail;
@@ -155,6 +161,46 @@ function handleNameKeydown(event) {
     }
 }
 
+function triggerFileImport() {
+    fileInputElement?.click();
+}
+
+async function handleFileImport(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    importError = null;
+    
+    const validation = validateIpynbFile(file);
+    if (!validation.valid) {
+        importError = validation.error;
+        return;
+    }
+
+    try {
+        isImporting = true;
+        
+        const fileContent = await file.text();
+        const cells = parseIpynbFile(fileContent);
+        
+        if (cells.length === 0) {
+            importError = 'No valid cells found in the notebook';
+            return;
+        }
+        
+        await nb.importCells(cells);
+        
+        // Clear the file input
+        event.target.value = '';
+        
+    } catch (err) {
+        console.error('Import failed:', err);
+        importError = err.message;
+    } finally {
+        isImporting = false;
+    }
+}
+
 $effect(async () => {
     try {
         const slug = $page.url.searchParams.get('slug') || 'default-notebook';
@@ -257,7 +303,39 @@ $effect(() => {
                 </div>
             {/if}
         </div>
-    </div>{#each $cells as cell, index (cell.id)}
+        
+        <div class="notebook-actions">
+            <button 
+                class="import-btn"
+                onclick={triggerFileImport}
+                disabled={isImporting}
+                title="Import Jupyter notebook (.ipynb file)"
+            >
+                {#if isImporting}
+                    <span class="material-symbols-outlined">hourglass_empty</span>
+                    Importing...
+                {:else}
+                    <span class="material-symbols-outlined">place_item</span>
+                    Import
+                {/if}
+            </button>
+            
+            <input 
+                bind:this={fileInputElement}
+                type="file"
+                accept=".ipynb"
+                onchange={handleFileImport}
+                style="display: none;"
+            />
+        </div>
+    </div>
+    
+    {#if importError}
+        <div class="error-message">
+            <span class="material-symbols-outlined">error</span>
+            {importError}
+        </div>
+    {/if}{#each $cells as cell, index (cell.id)}
     <SatyrnCell 
         initialText={cell.content}
         type={cell.type}
@@ -417,6 +495,54 @@ $effect(() => {
 
 .notebook-name-section {
     flex: 1;
+}
+
+.notebook-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.import-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-accent-1);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.import-btn:hover:not(:disabled) {
+    background: #e6900a;
+    transform: translateY(-1px);
+}
+
+.import-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.error-message {
+    background: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
 }
 
 .notebook-info {

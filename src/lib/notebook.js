@@ -433,6 +433,51 @@ export class Notebook {
         return cell;
     }
 
+    /******************************************
+    * 📥 Import functionality
+    ******************************************/
+    
+    async importCells(cells) {
+        if (!Array.isArray(cells)) {
+            throw new Error('Cells must be an array');
+        }
+        
+        if (cells.length === 0) {
+            return;
+        }
+        
+        // Clear existing cells first
+        const existingCells = this.cells;
+        for (const cell of existingCells) {
+            await this.deleteCell(cell.id);
+        }
+        
+        // Add imported cells with proper positioning
+        let lastPosition = null;
+        
+        for (let i = 0; i < cells.length; i++) {
+            const cellData = cells[i];
+            let position;
+            
+            if (i === 0) {
+                // First cell gets middle position
+                position = LexaKey.mid();
+            } else {
+                // Subsequent cells go after the previous one
+                position = LexaKey.between(lastPosition, null);
+            }
+            
+            await this.upsertCell({
+                content: cellData.content,
+                type: cellData.type,
+                position: position
+            });
+            
+            // Track the position for the next iteration
+            lastPosition = position;
+        }
+    }
+
     // Clean up resources when notebook instance is no longer needed
     async destroy() {
         if (this.channel) {

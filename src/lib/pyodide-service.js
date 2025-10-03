@@ -129,8 +129,8 @@ class PyodideService {
                 // Store the code in a Python variable to avoid escaping issues
                 py.globals.set('__user_code__', code);
                 
-                // Execute user code directly - let JavaScript catch all errors
-                await py.runPython('exec(__user_code__)');
+                // Execute user code in the global namespace for variable persistence
+                await py.runPython('exec(__user_code__, globals())');
                 
                 // Capture any matplotlib plots
                 const plotOutput = await py.runPython('capture_matplotlib()');
