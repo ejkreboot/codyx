@@ -249,9 +249,9 @@ $effect(() => {
                         <span class="material-symbols-outlined edit-icon">edit</span>
                     </div>
                     <div class="notebook-url">
-                        {$page.url.href}
+                        &nbsp; &nbsp;  EDIT: {$page.url.href}
                         {#if !nb?.isSandbox && nb?.sandboxSlug}
-                            <span class="sandbox-url-inline">SANDBOX: {nb.getSandboxUrl()}</span>
+                            <br><span class="sandbox-url-inline"> SANDBOX: {nb.getSandboxUrl()}</span>
                         {/if}
                     </div>
                 </div>
@@ -421,8 +421,11 @@ $effect(() => {
 
 .notebook-info {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
 }
 
 .notebook-name {
@@ -434,6 +437,8 @@ $effect(() => {
     border-radius: 6px;
     transition: all 0.2s ease;
     max-width: fit-content;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .notebook-name:hover {
@@ -492,12 +497,14 @@ $effect(() => {
     padding: 0;
     opacity: 0.8;
     word-break: break-all;
-    max-width: 100%;
+    text-align: right;
+    flex-shrink: 0;
+    max-width: 60%;
 }
 
 .sandbox-url-inline {
-    margin-left: 1rem;
-    color: #888;
-    font-weight: 500;
+    margin-left: 6px;
+    color: #aaa;
+    font-weight: 400;
 }
 </style>
