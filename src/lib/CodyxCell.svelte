@@ -34,10 +34,17 @@
 
     const dispatch = createEventDispatcher();
 
+    let liveTextUpdater = null;
+    
     // svelte-ignore non_reactive_update
-    let handleInput = (e) => {
-      console.log("Event received before LiveText init:", e);
-    };
+    function handleInput(e) {
+      console.log(`[${type}] handleInput called, liveTextUpdater exists:`, !!liveTextUpdater);
+      if (liveTextUpdater) {
+          liveTextUpdater(e);
+      } else {
+          console.log("Event received before LiveText init:", e);
+      }
+    }
 
     function onPatched(e) { 
         console.log(`[${type}] LiveText patched:`, e.detail.text.slice(0, 50) + '...');
@@ -95,7 +102,7 @@
         liveText.addEventListener('patched', onPatched);
         liveText.addEventListener('typing', onTyping);
         if(!sandboxed) {
-          handleInput = (e) => {
+          liveTextUpdater = (e) => {
               console.log(`[${type}] LiveText update:`, e.target.value.slice(0, 50) + '...');
               liveText.update(e.target.value);
           };
