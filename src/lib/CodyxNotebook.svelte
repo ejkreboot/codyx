@@ -93,7 +93,7 @@ async function warmUpPyodide() {
         try {
             await pyodideService.initialize();
         } catch (err) {
-\            // Not critical - it will try again when user runs code
+            // Not critical - it will try again when user runs code
         } finally {
             isPyodideLoading = false;
         }
@@ -337,6 +337,7 @@ $effect(() => {
         </div>
         
         <div class="notebook-actions">
+            {#if !nb?.isSandbox}
             <button 
                 class="import-btn"
                 onclick={triggerFileImport}
@@ -350,8 +351,9 @@ $effect(() => {
                     <span class="material-symbols-outlined">place_item</span>
                     Import
                 {/if}
+
             </button>
-            
+            {/if}
             <input 
                 bind:this={fileInputElement}
                 type="file"
