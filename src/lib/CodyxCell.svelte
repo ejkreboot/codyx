@@ -35,7 +35,9 @@
     const dispatch = createEventDispatcher();
 
     // svelte-ignore non_reactive_update
-    let handleInput = () => {};
+    let handleInput = (e) => {
+      console.log("Event received before LiveText init:", e);
+    };
 
     function onPatched(e) { 
         console.log(`[${type}] LiveText patched:`, e.detail.text.slice(0, 50) + '...');
