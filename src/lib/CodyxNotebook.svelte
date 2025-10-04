@@ -93,8 +93,7 @@ async function warmUpPyodide() {
         try {
             await pyodideService.initialize();
         } catch (err) {
-            console.log('Pyodide warm-up failed:', err.message);
-            // Not critical - it will try again when user runs code
+\            // Not critical - it will try again when user runs code
         } finally {
             isPyodideLoading = false;
         }

@@ -39,11 +39,9 @@ export class LiveText extends EventTarget {
         });
             
         this.#channel.on('broadcast', { event: 'lt_patch' }, ({ payload }) => {
-            console.log(`[LiveText] Received patch for ${this.docId}:`, payload.patch.slice(0, 100));
             this.applyPatch(payload.patch);
         });
         this.#channel.on('broadcast', { event: 'lt_typing' }, ({ payload }) => {
-            console.log(`[LiveText] Received typing for ${this.docId}:`, payload.typing);
             this.dispatchEvent(new CustomEvent('typing', { detail: { typing: payload.typing } }));
         });
         this.#channel.on('broadcast', { event: 'lt_sync' }, ({ payload }) => {
@@ -139,14 +137,12 @@ export class LiveText extends EventTarget {
     }
     
     update(newText) {
-        console.log(`[LiveText] Update called for ${this.docId}:`, newText.slice(0, 50) + '...');
         if (this.#debounceTimer) clearTimeout(this.#debounceTimer);
         this.#dirty = true;
         this.#setTyping(true);          
         this.text = newText;
         this.#debounceTimer = setTimeout(async () => {
             const patch = this.createPatch();
-            console.log(`[LiveText] Created patch for ${this.docId}:`, patch.slice(0, 100));
             if (patch === '') {
                 this.#dirty = false;
                 this.#setTyping(false);
@@ -162,7 +158,6 @@ export class LiveText extends EventTarget {
                     clientId: this.clientId
                 }
             });
-            console.log(`[LiveText] Patch send result for ${this.docId}:`, ok);
             if (!ok) {
                 console.warn(`[LiveText] Failed to send patch for ${this.docId}`);
                 return

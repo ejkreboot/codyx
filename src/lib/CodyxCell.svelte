@@ -38,21 +38,18 @@
     
     // svelte-ignore non_reactive_update
     function handleInput(e) {
-      console.log(`[${type}] handleInput called, liveTextUpdater exists:`, !!liveTextUpdater);
       if (liveTextUpdater) {
           liveTextUpdater(e);
       } else {
-          console.log("Event received before LiveText init:", e);
+        return;
       }
     }
 
     function onPatched(e) { 
-        console.log(`[${type}] LiveText patched:`, e.detail.text.slice(0, 50) + '...');
         text = e.detail.text;
     }   
 
     function onTyping(e) { 
-      console.log(`[${type}] LiveText typing:`, e.detail.typing);
         typing = e.detail.typing; 
     }
 
@@ -103,7 +100,6 @@
         liveText.addEventListener('typing', onTyping);
         if(!sandboxed) {
           liveTextUpdater = (e) => {
-              console.log(`[${type}] LiveText update:`, e.target.value.slice(0, 50) + '...');
               liveText.update(e.target.value);
           };
         }

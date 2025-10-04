@@ -330,13 +330,11 @@ export class Notebook {
     ******************************************/
     
     async upsertCell(cell) {
-        console.log('upsertCell called with sandbox value:', this.isSandbox);
         if(this.isSandbox) {
             // Generate ID for new cells in sandbox mode
  
             return cell;
         }
-console.log('Proceeding with upsertCell in non-sandbox mode');
         if (!this.id) throw new Error('Notebook not initialized');
         if (!cell.position) throw new Error('Cell position is required');
         const { data, error } = await supabase

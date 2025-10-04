@@ -150,10 +150,6 @@
         background: #fafbfc;
     }
 
-
-
-
-
     .output-section {
         /* Allow output to expand to fit content */
     }
