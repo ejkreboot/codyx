@@ -38,11 +38,12 @@
     let handleInput = () => {};
 
     function onPatched(e) { 
+        console.log(`[${type}] LiveText patched:`, e.detail.text.slice(0, 50) + '...');
         text = e.detail.text;
     }   
 
     function onTyping(e) { 
-      console.log( "Typing event:", e.detail.typing );
+      console.log(`[${type}] LiveText typing:`, e.detail.typing);
         typing = e.detail.typing; 
     }
 
@@ -93,6 +94,7 @@
         liveText.addEventListener('typing', onTyping);
         if(!sandboxed) {
           handleInput = (e) => {
+              console.log(`[${type}] LiveText update:`, e.target.value.slice(0, 50) + '...');
               liveText.update(e.target.value);
           };
         }
