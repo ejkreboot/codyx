@@ -314,22 +314,37 @@ $effect(() => {
                 </div>
             {:else}
                 <div class="notebook-info">
-                    <div 
-                        class="notebook-name" 
-                        onclick={startEditingName}
-                        onkeydown={(e) => e.key === 'Enter' && startEditingName()}
-                        role="button"
-                        tabindex="0"
-                        aria-label="Click to edit notebook name"
-                    >
-                        <span class="notebook-label">Notebook:</span>
-                        <span class="notebook-title">{nb?.slug || 'Loading...'}</span>
-                        <span class="material-symbols-outlined edit-icon">edit</span>
-                    </div>
-                    <div class="notebook-url">
-                        &nbsp; &nbsp;  EDIT: {$page.url.href}
+                    <div class="notebook-container">
+                        <div 
+                            class="notebook-name" 
+                            onclick={startEditingName}
+                            onkeydown={(e) => e.key === 'Enter' && startEditingName()}
+                            role="button"
+                            tabindex="0"
+                            aria-label="Click to edit notebook name"
+                        >
+                            <span class="notebook-label">Notebook:</span>
+                            <span class="notebook-title">{nb?.slug || 'Loading...'}</span>
+                            <span class="material-symbols-outlined edit-icon">edit</span>
+                        </div>
+                        
                         {#if !nb?.isSandbox && nb?.sandboxSlug}
-                            <br><span class="sandbox-url-inline"> SANDBOX: {nb.getSandboxUrl()}</span>
+                            <div class="view-link-section">
+                                <span class="view-label">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                    View-only:
+                                </span>
+                                <div class="view-url-container">
+                                    <span class="view-url-text">{nb.getSandboxUrl()}</span>
+                                    <button 
+                                        class="view-copy-btn"
+                                        onclick={() => navigator.clipboard.writeText(nb.getSandboxUrl())}
+                                        title="Copy view-only URL"
+                                    >
+                                        <span class="material-symbols-outlined">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
                         {/if}
                     </div>
                 </div>
@@ -582,32 +597,43 @@ $effect(() => {
 
 .notebook-info {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: flex-start;
-    justify-content: space-between;
     gap: 1rem;
     width: 100%;
+}
+
+.notebook-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    max-width: fit-content;
+    transition: all 0.2s ease;
+}
+
+.notebook-container:hover {
+    background: #f1f3f4;
+    border-color: #dee2e6;
 }
 
 .notebook-name {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0rem;
     cursor: pointer;
-    border-radius: 6px;
     transition: all 0.2s ease;
-    max-width: fit-content;
-    flex-shrink: 1;
-    min-width: 0;
 }
 
-.notebook-name:hover {
-    background: #f8f9fa;
+.notebook-name:hover .notebook-title {
+    color: #e6900a;
 }
 
 .notebook-label {
-    color: #555958;
+    color: #666;
     font-family: 'Raleway', sans-serif;
     font-size: 14px;
     font-weight: 500;
@@ -630,6 +656,75 @@ $effect(() => {
 
 .notebook-name:hover .edit-icon {
     opacity: 1;
+}
+
+.view-link-section {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-left: 1rem;
+    border-left: 1px solid #dee2e6;
+}
+
+.view-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'Raleway', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.view-label .material-symbols-outlined {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.view-url-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.view-url-text {
+    font-family: 'Cutive Mono', monospace;
+    font-size: 10px;
+    color: #495057;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 0.25rem 0.4rem;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.view-copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.view-copy-btn:hover {
+    background: var(--color-accent-1);
+    border-color: var(--color-accent-1);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.view-copy-btn .material-symbols-outlined {
+    font-size: 10px;
 }
 
 .notebook-name-input {
@@ -737,5 +832,38 @@ $effect(() => {
     margin-left: 6px;
     color: #aaa;
     font-weight: 400;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .notebook-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .notebook-actions {
+        margin-left: 0;
+        align-self: flex-end;
+    }
+    
+    .notebook-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        max-width: 100%;
+    }
+    
+    .view-link-section {
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid #dee2e6;
+        padding-top: 0.5rem;
+        width: 100%;
+    }
+    
+    .view-url-text {
+        max-width: 220px;
+    }
 }
 </style>
