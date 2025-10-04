@@ -37,20 +37,22 @@
     // svelte-ignore non_reactive_update
     let handleInput = () => {};
 
-
     function onPatched(e) { 
         text = e.detail.text;
     }   
 
     function onTyping(e) { 
+      console.log( "Typing event:", e.detail.typing );
         typing = e.detail.typing; 
     }
 
     function startEditing() {
+        if(sandboxed) return;
         isEditing = true;
     }
 
     function stopEditing() {
+        if(sandboxed) return;
         isEditing = false;
         dispatch('edit', { type: "edit", docId, text });
     }
@@ -86,9 +88,9 @@
     }
     
     onMount(async() => {
-          liveText = await LiveText.create({text: initialText, docId, supabase, userId, version});
-          liveText.addEventListener('patched', onPatched);
-          liveText.addEventListener('typing', onTyping);
+        liveText = await LiveText.create({text: initialText, docId, supabase, userId, version});
+        liveText.addEventListener('patched', onPatched);
+        liveText.addEventListener('typing', onTyping);
         if(!sandboxed) {
           handleInput = (e) => {
               liveText.update(e.target.value);

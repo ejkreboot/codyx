@@ -26,6 +26,14 @@ class WebRService {
             });
             
             await this.webR.init();            
+            await this.webR.installPackages([
+                'ggplot2', 
+                'dplyr',
+                'tidyr',      // Data reshaping - pivot_longer, pivot_wider
+                'plotly',     // Interactive plots! 🎉
+                'stringr',    // String manipulation - str_detect, str_replace
+                'lubridate'   // Date/time handling - ymd(), today()
+            ]);
             await this.webR.installPackages(['ggplot2', 'dplyr']);
             
             // Set default plot size (width=480, height=320 for 3:2 ratio)
