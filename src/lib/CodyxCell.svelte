@@ -636,4 +636,30 @@
     margin-top: 0;
     margin-bottom: 0.75em;
   }
+
+  /* KaTeX Math Styling */
+  .rendered-markdown :global(.katex) {
+    font-size: 1em;
+  }
+
+  .rendered-markdown :global(.katex-display) {
+    margin: 1em 0;
+    text-align: center;
+  }
+
+  .rendered-markdown :global(.math-error) {
+    color: #cc0000;
+    background: #ffe6e6;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Cutive Mono', monospace;
+    font-size: 0.9em;
+    border: 1px solid #ffcccc;
+  }
+
+  /* Ensure inline math doesn't break line height */
+  .rendered-markdown :global(.katex .base) {
+    display: inline-block;
+    vertical-align: middle;
+  }
 </style>

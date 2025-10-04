@@ -1,9 +1,11 @@
 /**
  * Enhanced Markdown Processor for CODYX
  * Adds support for collapsible sections inspired by Google Colab
+ * and KaTeX math rendering
  */
 
 import { marked } from 'marked';
+import katex from 'katex';
 
 // Configure marked with standard options
 marked.setOptions({
@@ -13,9 +15,50 @@ marked.setOptions({
 });
 
 /**
- * Process markdown with collapsible sections
+ * Process math expressions in text using KaTeX
+ * @param {string} text - Text containing math expressions
+ * @returns {string} - Text with math rendered as HTML
+ */
+function processMath(text) {
+    if (!text) return text;
+    
+    // Process display math ($$...$$) first
+    text = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
+        try {
+            return katex.renderToString(mathContent.trim(), {
+                displayMode: true,
+                throwOnError: false,
+                errorColor: '#cc0000',
+                strict: 'warn'
+            });
+        } catch (error) {
+            console.warn('KaTeX display math error:', error.message);
+            return `<span class="math-error">$$${mathContent}$$</span>`;
+        }
+    });
+    
+    // Process inline math ($...$) - be careful not to match display math remnants
+    text = text.replace(/(?<!\$)\$(?!\$)((?:[^$\n]|\\\$)+?)\$(?!\$)/g, (match, mathContent) => {
+        try {
+            return katex.renderToString(mathContent.trim(), {
+                displayMode: false,
+                throwOnError: false,
+                errorColor: '#cc0000',
+                strict: 'warn'
+            });
+        } catch (error) {
+            console.warn('KaTeX inline math error:', error.message);
+            return `<span class="math-error">$${mathContent}$</span>`;
+        }
+    });
+    
+    return text;
+}
+
+/**
+ * Process markdown with collapsible sections and math rendering
  * @param {string} markdownText - The markdown text to process
- * @returns {string} - HTML with collapsible sections
+ * @returns {string} - HTML with collapsible sections and rendered math
  */
 export function processEnhancedMarkdown(markdownText) {
     if (!markdownText || typeof markdownText !== 'string') return '';
@@ -112,15 +155,17 @@ export function processEnhancedMarkdown(markdownText) {
         
         for (const section of sections) {
             if (section.type === 'markdown') {
-                // Regular markdown processing
-                result += marked(section.content);
+                // Regular markdown processing with math
+                const markdownHtml = marked(section.content);
+                result += processMath(markdownHtml);
             } else if (section.type === 'collapsible') {
                 // Process collapsible section
                 const id = `collapsible-${Math.random().toString(36).substr(2, 9)}`;
                 const { level, title } = section.info;
                 
-                // Process the content inside as markdown first
-                const processedContent = marked(section.content);
+                // Process the content inside as markdown first, then add math
+                const markdownHtml = marked(section.content);
+                const processedContent = processMath(markdownHtml);
                 
                 result += `
 <div class="collapsible-section">
@@ -139,8 +184,9 @@ export function processEnhancedMarkdown(markdownText) {
         return result;
     } catch (error) {
         console.error('Error processing enhanced markdown:', error);
-        // Fallback to regular marked processing
-        return marked(markdownText);
+        // Fallback to regular marked processing with math
+        const markdownHtml = marked(markdownText);
+        return processMath(markdownHtml);
     }
 }/**
  * JavaScript function to be injected into the page for collapsible functionality
