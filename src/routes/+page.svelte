@@ -48,21 +48,6 @@
 
 
 <div class="landing-container">
-    <!-- Navigation Header -->
-    <header class="landing-header">
-        <div class="header-content">
-            <div class="logo-section">
-                                <img src="/logo_200.png" alt="CODYX Logo" class="logo" />
-                <div class="brand-info">
-                    <h1 class="app-name">CODYX</h1>
-                    <div class="tagline">
-                        Collaborative Data Science Notebooks • No Logins Required
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
     <!-- Hero Section -->
     <main class="hero-section">
         <div class="hero-content">

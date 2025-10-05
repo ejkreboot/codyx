@@ -11,6 +11,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </svelte:head>
 
+<header class="app-header">
+    <div class="header-content">
+        <div class="logo-section">
+            <img src="/logo_200.png" alt="CODYX Logo" class="logo" />
+            <div class="brand-info">
+                <h1 class="app-name">CODYX</h1>
+                <div class="tagline">
+                    Collaborative Data Science Notebooks • No Logins Required
+                </div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="new-notebook-btn" onclick={() => window.dispatchEvent(new CustomEvent('createNewNotebook'))}>
+                <span class="material-symbols-outlined">add</span>
+                New Notebook
+            </button>
+        </div>
+    </div>
+</header>
 <main class="app-container">
     {@render children?.()}
 </main>
@@ -51,5 +70,94 @@
     .app-footer a:hover {
         color: #0074cc;
         text-decoration: underline;
+    }
+
+        .app-header {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-bottom: 1px solid #e9ecef;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .logo {
+        height: 48px;
+        width: 48px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+    }
+
+    .brand-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .app-name {
+        font-family: 'Orbitron', monospace;
+        font-size: 1.5rem;
+        font-weight: 300;
+        margin: -4px 0 0 0;
+        color: #555958;
+        letter-spacing: 0.15em;
+        line-height: 1;
+    }
+
+    .tagline {
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.65rem;
+        color: #999;
+        font-weight: 400;
+        margin: 0;
+        line-height: 0.5;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .new-notebook-btn {
+        background: linear-gradient(135deg, #0095f2, #00b4d8);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-family: 'Raleway', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 149, 242, 0.3);
+    }
+
+    .new-notebook-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 149, 242, 0.4);
+    }
+
+    .new-notebook-btn .material-symbols-outlined {
+        font-size: 18px;
     }
 </style>
