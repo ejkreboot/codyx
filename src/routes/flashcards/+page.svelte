@@ -20,8 +20,8 @@
 
     // Get slug from URL params
     let slug = $derived($page.url.searchParams.get('deck'));
-    let deck = null;
-    
+    let deck = $state(null);
+
     async function createNewDeck() {
         try {
             isLoading = true;
@@ -64,7 +64,12 @@
     }
 
     async function loadDeck(deckSlug) {
-        if (!deckSlug || (deck && deck.slug === deckSlug)) return;
+        if (!deckSlug) return;
+        
+        // Check if we already have this deck loaded (check both slug and sandbox_slug)
+        if (deck && (deck.slug === deckSlug || deck.sandbox_slug === deckSlug)) {
+            return;
+        }
         
         try {
             isLoading = true;
@@ -72,8 +77,11 @@
 
             deck = await FlashCardDeck.create(deckSlug, "none"); // Using "none" as user for now
 
+            // Update the deck name input to show current deck
+            deckNameInput = deck.slug;
+
             // Get first card for study
-            const studyCards = deck.getCardsForStudy(1);
+            const studyCards = deck.getCardsForStudy(20);
             currentCard = studyCards.length > 0 ? studyCards[0] : null;
             
         } catch (err) {
@@ -85,15 +93,12 @@
         }
     }
 
-    function handleCardScore(event) {
+    async function handleCardScore(event) {
         const { cardId, score } = event.detail;
-        console.log(`Card ${cardId} scored: ${score}`);
-        
         if (deck) {
-            deck.reviewCard(cardId, score);
-            // Get next card
-            const studyCards = deck.getCardsForStudy(1);
-            currentCard = studyCards.length > 0 ? studyCards[0] : null;
+            await deck.reviewCard(cardId, score);
+            let next = deck.getNextCardForStudy(currentCard.id);
+            currentCard = next;
         }
     }
 
@@ -153,33 +158,54 @@
             <div class="deck-input-section">
                 <div class="deck-info">
                     <div class="deck-container">
-                        <span class="deck-label">Deck Name:</span>
-                        <input 
-                            id="deck-name"
-                            type="text" 
-                            bind:value={deckNameInput}
-                            bind:this={deckNameInputElement}
-                            class="deck-name-input"
-                            placeholder="my-flashcard-deck"
-                            onkeydown={handleDeckNameKeydown}
-                            disabled={isLoading}
-                        />
-                        <button 
-                            class="open-deck-btn" 
-                            onclick={openDeckByName}
-                            disabled={isLoading || !deckNameInput.trim()}
-                        >
-                            <span class="material-symbols-outlined">folder_open</span>
-                            Open Deck
-                        </button>
-                        <button class="create-new-btn" onclick={createNewDeck} disabled={isLoading}>
-                            <span class="material-symbols-outlined">add</span>
-                            Create New Deck
-                        </button>
-                        <button class="import-btn" disabled={isLoading}>
-                            <span class="material-symbols-outlined">place_item</span>
-                            Import
-                        </button>
+                        <div class="deck-controls-row">
+                            <span class="deck-label">Deck Name:</span>
+                            <input 
+                                id="deck-name"
+                                type="text" 
+                                bind:value={deckNameInput}
+                                bind:this={deckNameInputElement}
+                                class="deck-name-input"
+                                placeholder="my-flashcard-deck"
+                                onkeydown={handleDeckNameKeydown}
+                                disabled={isLoading}
+                            />
+                            <button 
+                                class="open-deck-btn" 
+                                onclick={openDeckByName}
+                                disabled={isLoading || !deckNameInput.trim()}
+                            >
+                                <span class="material-symbols-outlined">folder_open</span>
+                                Open Deck
+                            </button>
+                            <button class="create-new-btn" onclick={createNewDeck} disabled={isLoading}>
+                                <span class="material-symbols-outlined">add</span>
+                                Create New Deck
+                            </button>
+                            <button class="import-btn" disabled={isLoading}>
+                                <span class="material-symbols-outlined">place_item</span>
+                                Import
+                            </button>
+                        </div>
+
+                        <!-- View-only link (shown when deck is loaded and not in sandbox) -->
+                        {#if deck && !deck.isSandbox && deck.sandbox_slug}
+                        <div class="view-info">
+                            <div class="view-label">
+                                <span class="material-symbols-outlined">visibility</span>
+                                View-only link:
+                            </div>
+                            <div class="view-url-container">
+                                <span class="view-url-text">{window.location.origin + deck.getSandboxUrl()}</span>
+                                <button 
+                                    class="view-copy-btn"
+                                    onclick={() => navigator.clipboard.writeText(window.location.origin + deck.getSandboxUrl())}
+                                >
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                            </div>
+                        </div>
+                        {/if}
                     </div>
                 </div>
             </div>
@@ -205,71 +231,15 @@
                 </div>
             {/if}
 
-            <div class="deck-info">
-                <div class="deck-container">
-                    <div class="deck-name-section">
-                        {#if isEditingName}
-                        <div class="deck-editing-container">
-                            <input 
-                                type="text" 
-                                bind:value={editingNameValue}
-                                bind:this={nameInputElement}
-                                class="deck-name-input"
-                                onkeydown={(e) => {
-                                    if (e.key === 'Enter') saveNewName();
-                                    if (e.key === 'Escape') cancelEditingName();
-                                }}
-                            />
-                            <button class="save-name-btn" onclick={saveNewName}>
-                                <span class="material-symbols-outlined">check</span>
-                            </button>
-                            <button class="cancel-name-btn" onclick={cancelEditingName}>
-                                <span class="material-symbols-outlined">close</span>
-                            </button>
-                        </div>
-                        {:else}
-                        <button 
-                            class="deck-name" 
-                            onclick={startEditingName}
-                            disabled={deck.isSandbox}
-                            type="button"
-                        >
-                            <span class="deck-title">Deck: {deck.slug}</span>
-                            {#if !deck.isSandbox}
-                            <span class="material-symbols-outlined edit-icon">edit</span>
-                            {/if}
-                        </button>
-                        {/if}
-                    </div>
-
-                    <!-- Sandbox URL Display -->
-                    {#if !deck.isSandbox && deck.sandbox_slug}
-                    <div class="view-info">
-                        <div class="view-label">
-                            <span class="material-symbols-outlined">visibility</span>
-                            View-only link:
-                        </div>
-                        <div class="view-url-container">
-                            <span class="view-url-text">{deck.getSandboxUrl()}</span>
-                            <button 
-                                class="view-copy-btn"
-                                onclick={() => navigator.clipboard.writeText(window.location.origin + deck.getSandboxUrl())}
-                            >
-                                <span class="material-symbols-outlined">content_copy</span>
-                            </button>
-                        </div>
-                    </div>
-                    {/if}
-                </div>
-            </div>
-
             <!-- Flashcard Display -->
             <div class="flashcard-area">
-                {#if currentCard}
+                {#if currentCard} <!-- force refresh on async update -->
+                {#key currentCard.id} 
                 <FlashCard 
                     card={currentCard} 
-                    onscore={handleCardScore}
+                    on:score={handleCardScore}
                 />
+                {/key}
                 {:else}
                 <div class="no-cards">
                     <div class="no-cards-icon">
@@ -362,6 +332,14 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
+    .deck-controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 1rem;
+        flex-wrap: nowrap;
+    }
+
     .deck-name {
         display: flex;
         align-items: center;
@@ -437,7 +415,7 @@
 
     .view-info {
         display: flex;
-        flex-direction: column;
+        align-items: center;
         gap: 0.5rem;
     }
 
@@ -448,12 +426,18 @@
         font-size: 11px;
         font-weight: 500;
         color: #6c757d;
+        flex-shrink: 0;
+    }
+
+    .view-label .material-symbols-outlined {
+        font-size: 14px;
     }
 
     .view-url-container {
         display: flex;
         align-items: center;
         gap: 0.4rem;
+        flex: 1;
     }
 
     .view-url-text {
@@ -478,6 +462,10 @@
         border-radius: 3px;
         cursor: pointer;
         transition: all 0.2s ease;
+    }
+
+    .view-copy-btn .material-symbols-outlined {
+        font-size: 14px;
     }
 
     .view-copy-btn:hover {
@@ -556,8 +544,8 @@
 
     .deck-container {
         display: flex;
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         justify-content: flex-start;
         gap: 1rem;
         padding: 0.75rem 1rem;
@@ -567,7 +555,6 @@
         width: 100%;
         max-width: 100%;
         transition: all 0.2s ease;
-        flex-wrap: nowrap;
         box-sizing: border-box;
     }
 

@@ -17,6 +17,8 @@ export class FlashCardDeck {
         this.user = null; // current user object
         this.cardsStore = writable([]);
         this.isSandbox = true;
+        this.studyCards = this.getCardsForStudy();
+        this.attemptedCardCount = 0;
     }
 
     static async create(requestedSlug, user = null, description = null, topic = null) {
@@ -130,7 +132,6 @@ export class FlashCardDeck {
     }
 
     async #addDeck(user, topic, description) {
-        debugger;
         const { data, error } = await supabase
             .from('flashcard_decks')
             .insert([{ 
@@ -178,6 +179,54 @@ export class FlashCardDeck {
         }
         return data;
     }
+
+    /******************************************
+     *  🔹 SLUG management (yum!) 
+    ******************************************/
+
+    async #checkSlug(newSlug) {
+        if (newSlug === this.slug) return true; // no change, so it's "available"
+        
+        // Check if slug exists in either 'slug' or 'sandbox_slug' columns
+        const { data, error } = await supabase
+            .from('flashcard_decks')
+            .select('id')
+            .or(`slug.eq.${newSlug},sandbox_slug.eq.${newSlug}`);
+            
+        if (error) {
+            throw error;
+        }
+        
+        return data && data.length === 0; // available if no rows found in either column
+    }
+
+    async #generateUniqueSlug() {
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        while (attempts < maxAttempts) {
+            const candidateSlug = FlashCardDeck.haikunator.haikunate({ tokenLength: 0 });
+            
+            // Check if this slug is available
+            const { data, error } = await supabase
+                .from('flashcard_decks')
+                .select('id')
+                .or(`slug.eq.${candidateSlug},sandbox_slug.eq.${candidateSlug}`);
+                
+            if (error) throw error;
+            
+            if (data.length === 0) {
+                return candidateSlug; // Found a unique slug
+            }
+            
+            attempts++;
+        }
+        
+        // Fallback: add timestamp if we can't find a unique one
+        const timestamp = Date.now().toString(36);
+        return `${FlashCardDeck.haikunator.haikunate({ tokenLength: 0 })}-${timestamp}`;
+    }
+
 
     /******************************************
      *  🔹 Flash card CRUD 
@@ -252,39 +301,36 @@ export class FlashCardDeck {
     }
 
     async updateCard(cardId, question, answer) {
-        if (this.isSandbox) {
-            // Handle sandbox mode - update in memory
-            const cardIndex = this.cards.findIndex(card => card.id === cardId);
-            if (cardIndex >= 0) {
-                this.cards[cardIndex] = {
-                    ...this.cards[cardIndex],
-                    question: question.trim(),
-                    answer: answer.trim()
-                };
-                this.cardsStore.set(this.cards);
-                return this.cards[cardIndex];
-            }
+        const cardIndex = this.cards.findIndex(card => card.id === cardId);
+
+        if (cardIndex >= 0) {
+            this.cards[cardIndex] = {
+                ...this.cards[cardIndex],
+                question: question.trim(),
+                answer: answer.trim()
+            };
+            this.cardsStore.set(this.cards);
+        } else {
             return null;
         }
 
-        const { data, error } = await supabase
-            .from(this.table)
-            .update({
-                question: question.trim(),
-                answer: answer.trim()
-            })
-            .eq('id', cardId)
-            .select()
-            .single();
+        if (!this.isSandbox) {
+            const { data, error } = await supabase
+                .from(this.table)
+                .update({
+                    question: question.trim(),
+                    answer: answer.trim()
+                })
+                .eq('id', cardId)
+                .select()
+                .single();
 
-        if (error) {
-            console.error('Error updating flashcard:', error);
-            throw error;
+            if (error) {
+                console.error('Error updating flashcard:', error);
+                throw error;
+            }
         }
-
-        // Update local store
-        await this.refreshCards();
-        return data;
+        return this.cards[cardIndex];
     }
 
     async refreshCards() {
@@ -341,53 +387,6 @@ export class FlashCardDeck {
     }
 
     /******************************************
-     *  🔹 SLUG management (yum!) 
-    ******************************************/
-
-    async #checkSlug(newSlug) {
-        if (newSlug === this.slug) return true; // no change, so it's "available"
-        
-        // Check if slug exists in either 'slug' or 'sandbox_slug' columns
-        const { data, error } = await supabase
-            .from('flashcard_decks')
-            .select('id')
-            .or(`slug.eq.${newSlug},sandbox_slug.eq.${newSlug}`);
-            
-        if (error) {
-            throw error;
-        }
-        
-        return data && data.length === 0; // available if no rows found in either column
-    }
-
-    async #generateUniqueSlug() {
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts) {
-            const candidateSlug = FlashCardDeck.haikunator.haikunate({ tokenLength: 0 });
-            
-            // Check if this slug is available
-            const { data, error } = await supabase
-                .from('flashcard_decks')
-                .select('id')
-                .or(`slug.eq.${candidateSlug},sandbox_slug.eq.${candidateSlug}`);
-                
-            if (error) throw error;
-            
-            if (data.length === 0) {
-                return candidateSlug; // Found a unique slug
-            }
-            
-            attempts++;
-        }
-        
-        // Fallback: add timestamp if we can't find a unique one
-        const timestamp = Date.now().toString(36);
-        return `${FlashCardDeck.haikunator.haikunate({ tokenLength: 0 })}-${timestamp}`;
-    }
-
-    /******************************************
      *  🔹 Study Session Utilities
     ******************************************/
 
@@ -408,7 +407,6 @@ export class FlashCardDeck {
 
     async updateCardWeight(cardId, updates) {
         if (this.isSandbox) {
-            // Handle sandbox mode - update in memory
             const cardIndex = this.cards.findIndex(card => card.id === cardId);
             if (cardIndex >= 0) {
                 this.cards[cardIndex] = { ...this.cards[cardIndex], ...updates };
@@ -443,20 +441,45 @@ export class FlashCardDeck {
             const weight = this.isSandbox ? 1 : (card.weight || 1);
             return weight > 2;
         });
-        
-        const studyCards = [...reinforcementCards];
-        
+
+        this.studyCards = [...reinforcementCards];
+
         // If we need more cards to reach the limit, add random selection from remaining cards
-        if (studyCards.length < limit) {
+        if (this.studyCards.length < limit) {
             const remainingCards = this.cards.filter(card => {
-                return !studyCards.find(sc => sc.id === card.id);
+                return !this.studyCards.find(sc => sc.id === card.id);
             });
-            while (studyCards.length < limit && remainingCards.length > 0) {
+            while (this.studyCards.length < limit && remainingCards.length > 0) {
                 const randomIndex = Math.floor(Math.random() * remainingCards.length);
-                studyCards.push(remainingCards.splice(randomIndex, 1)[0]);
+                this.studyCards.push(remainingCards.splice(randomIndex, 1)[0]);
             }
         }        
-        return studyCards;
+        return this.studyCards;
+    }
+
+    getNextCardForStudy(previousId = null) {
+        if (!this.studyCards || this.studyCards.length === 0) {
+            this.studyCards = this.getCardsForStudy();
+        }
+        if (this.studyCards.length === 0) {
+            return null;
+        }
+        const averageWeight = this.studyCards.map(c => c.weight).reduce((a,b) => a+b, 0) / this.studyCards.length;
+        if (averageWeight < 3 && this.attemptedCardCount > (1.5 * this.studyCards.length)) {
+            this.attemptedCardCount = 0;
+            this.studyCards = this.getCardsForStudy();
+        }
+        let attempts = 0;
+        const cardArray = this.studyCards.map(c => Array(c.weight).fill(c)).flat();
+        while(attempts < 10) {
+            const randomIndex = Math.floor(Math.random() * cardArray.length);
+            const selectedCard = cardArray[randomIndex];
+            if (!previousId || selectedCard.id !== previousId) {
+                return selectedCard;
+            }
+            attempts++;
+        }
+        return this.cards.find(c => c.id === previousId);
     }
 
     getSandboxUrl() {

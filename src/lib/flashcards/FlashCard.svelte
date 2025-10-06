@@ -1,6 +1,7 @@
 <script>
     import { createEventDispatcher } from 'svelte';
     import { marked } from 'marked';
+    import katex from 'katex';
 
     let props = $props();
     let card = props.card ?? null;
@@ -21,10 +22,56 @@
         isFlipped = false; // Reset for next card
     }
     
-    // Parse markdown for question and answer
-    let questionHtml = $derived(card?.question ? marked(card.question) : '');
-    let answerHtml = $derived(card?.answer ? marked(card.answer) : '');
+    // Configure marked with KaTeX support
+    const renderer = new marked.Renderer();
+    
+    // Override code renderer to handle KaTeX
+    renderer.code = function(code, lang) {
+        if (lang === 'math' || lang === 'latex') {
+            try {
+                return katex.renderToString(code, { displayMode: true });
+            } catch (e) {
+                return `<pre><code>${code}</code></pre>`;
+            }
+        }
+        return `<pre><code>${code}</code></pre>`;
+    };
+
+    // Handle inline math with $...$
+    function processInlineMath(text) {
+        return text.replace(/\$([^$]+)\$/g, (match, math) => {
+            try {
+                return katex.renderToString(math, { displayMode: false });
+            } catch (e) {
+                return match;
+            }
+        });
+    }
+
+    // Parse markdown with KaTeX
+    function parseMarkdown(text) {
+        if (!text) return '';
+        
+        try {
+            // First process inline math
+            let processed = processInlineMath(text);
+            
+            // Then process markdown with custom renderer
+            return marked(processed, { renderer });
+        } catch (e) {
+            console.warn('Error parsing markdown:', e);
+            return text;
+        }
+    }
+    
+    // Parse markdown for question and answer with KaTeX support
+    let questionHtml = $derived(card?.question ? parseMarkdown(card.question) : '');
+    let answerHtml = $derived(card?.answer ? parseMarkdown(card.answer) : '');
 </script>
+
+<svelte:head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+</svelte:head>
 
 {#if card}
 <div class="flashcard-container">
@@ -73,13 +120,13 @@
         <div class="scoring-row">
             <div class="scoring-header">How well did you know this?</div>
             <div class="buttons-group">
-                <button class="score-btn score-again" onclick={() => handleScore(1)}>
+                <button class="score-btn score-again" onclick={() => handleScore(5)}>
                     <span class="score-label">Nope</span>
                 </button>
                 <button class="score-btn score-good" onclick={() => handleScore(3)}>
                     <span class="score-label">Sorta</span>
                 </button>
-                <button class="score-btn score-easy" onclick={() => handleScore(5)}>
+                <button class="score-btn score-easy" onclick={() => handleScore(1)}>
                     <span class="score-label">Got It!</span>
                 </button>
             </div>
