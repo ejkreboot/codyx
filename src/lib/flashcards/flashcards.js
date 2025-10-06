@@ -132,7 +132,7 @@ export class FlashCardDeck {
                 topic, 
                 description, 
                 slug: this.slug,
-                sandboxSlug: this.sandboxSlug
+                sandbox_slug: this.sandboxSlug
             }])
             .select()
             .single();
