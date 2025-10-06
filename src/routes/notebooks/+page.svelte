@@ -7,10 +7,11 @@
     <title>CODYX - Collaborative Data Science Notebooks</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="preload" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="stylesheet">
+    <link href="/src/assets/codyx-style.css" rel="stylesheet">
 </svelte:head>
 
-<div class="app-container">
-    <main class="main-content">
+<div class="page">
+    <main class="page__main">
         <div class="notebook-container">
             <CodyxNotebook />
         </div>
@@ -18,20 +19,6 @@
 </div>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
-    
-    :global(body) {
-        margin: 0;
-        padding: 0;
-        font-family: 'Raleway', sans-serif;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        min-height: 100vh;
-    }
-
-    :global(*) {
-        box-sizing: border-box;
-    }
-
     /* Global R symbol using Bowlby One font */
     :global(.r-symbol::before) {
         content: 'R';
@@ -49,27 +36,14 @@
         font-style: normal;
     }
 
-    .app-container {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
-
-    
-    .main-content {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        padding: 2rem 1rem;
-    }
-
+    /* Page-specific notebook container styling */
     .notebook-container {
         width: 100%;
         max-width: 900px;
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-        padding: 2rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: var(--space-8);
         margin: 0 auto;
         position: relative;
         min-height: 400px;
@@ -77,48 +51,20 @@
 
     /* Responsive design */
     @media (max-width: 768px) {
-        .header-content {
-            padding: 1rem;
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .app-name {
-            font-size: 1.25rem;
-        }
-        
-        .tagline {
-            text-align: center;
-            font-size: 0.8rem;
-        }
-        
         .notebook-container {
-            padding: 1.5rem;
+            padding: var(--space-6);
             margin: 0;
-            border-radius: 8px;
+            border-radius: var(--border-radius-md);
         }
         
-        .main-content {
-            padding: 1rem 0.5rem;
+        .page__main {
+            padding: var(--space-4) var(--space-2);
         }
     }
 
     @media (max-width: 480px) {
-        .logo-section {
-            gap: 0.75rem;
-        }
-        
-        .logo {
-            height: 36px;
-            width: 36px;
-        }
-        
-        .app-name {
-            font-size: 1rem;
-        }
-        
         .notebook-container {
-            padding: 1rem;
+            padding: var(--space-4);
         }
     }
 </style>

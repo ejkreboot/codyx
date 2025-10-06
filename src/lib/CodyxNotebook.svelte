@@ -254,13 +254,21 @@ $effect(() => {
 
 </script>
 
+<svelte:head>
+    <link href="/src/assets/codyx-style.css" rel="stylesheet">
+</svelte:head>
+
 {#if error}
-    <div class="error">{error}</div>
+    <div class="message message--error">
+        <span class="material-symbols-outlined">error</span>
+        {error}
+    </div>
 {/if}
 
 {#if nb?.isSandbox}
-    <div class="sandbox-banner">
-        🏖️ Sandbox Mode - Changes won't be saved
+    <div class="message message--warning">
+        <span class="material-symbols-outlined">beach_access</span>
+        Sandbox Mode - Changes won't be saved
     </div>
 {/if}
 
@@ -284,77 +292,73 @@ $effect(() => {
 {/if}
 
     <div class="notebook-header">
-        <div class="notebook-name-section">
+        <div class="notebook-header__content">
             {#if isEditingName}
-                <div class="notebook-editing-container">
+                <div class="notebook-editor">
                     <input 
                         bind:this={nameInputElement}
                         bind:value={editingNameValue}
-                        class="notebook-name-input"
+                        class="form__input notebook-editor__input"
                         onkeydown={(e) => {
                             if (e.key === 'Enter') saveNotebookName();
                             if (e.key === 'Escape') cancelEditingName();
                         }}
                         placeholder="Notebook name..."
                     />
-                    <label class="create-copy-option">
+                    <label class="notebook-editor__copy-option">
                         <input 
                             type="checkbox"
                             bind:checked={createCopy}
-                            class="create-copy-checkbox"
+                            class="form__checkbox"
                         />
-                        <span class="create-copy-label">Create copy</span>
+                        <span class="text-sm">Create copy</span>
                     </label>
-                    <button class="save-name-btn" onclick={saveNotebookName} title="Save changes">
+                    <button class="btn btn--primary btn--small" onclick={saveNotebookName} title="Save changes">
                         <span class="material-symbols-outlined">check</span>
                     </button>
-                    <button class="cancel-name-btn" onclick={cancelEditingName} title="Cancel">
+                    <button class="btn btn--secondary btn--small" onclick={cancelEditingName} title="Cancel">
                         <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
             {:else}
-                <div class="notebook-info">
-                    <div class="notebook-container">
-                        <div 
-                            class="notebook-name" 
-                            onclick={startEditingName}
-                            onkeydown={(e) => e.key === 'Enter' && startEditingName()}
-                            role="button"
-                            tabindex="0"
-                            aria-label="Click to edit notebook name"
-                        >
-                            <span class="notebook-label">Notebook:</span>
-                            <span class="notebook-title">{nb?.slug || 'Loading...'}</span>
-                            <span class="material-symbols-outlined edit-icon">edit</span>
-                        </div>
-                        
-                        {#if !nb?.isSandbox && nb?.sandboxSlug}
-                            <div class="view-link-section">
-                                <span class="view-label">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                    View-only:
-                                </span>
-                                <div class="view-url-container">
-                                    <span class="view-url-text">{nb.getSandboxUrl()}</span>
-                                    <button 
-                                        class="view-copy-btn"
-                                        onclick={() => navigator.clipboard.writeText(nb.getSandboxUrl())}
-                                        title="Copy view-only URL"
-                                    >
-                                        <span class="material-symbols-outlined">content_copy</span>
-                                    </button>
-                                </div>
-                            </div>
-                        {/if}
+                <div class="content-info">
+                    <span class="content-info__label">Notebook:</span>
+                    
+                    <div class="content-info__name-display content-info__name-display--editable"
+                         onclick={startEditingName}
+                         onkeydown={(e) => e.key === 'Enter' && startEditingName()}
+                         role="button"
+                         tabindex="0"
+                         aria-label="Click to edit notebook name">
+                        <span class="content-info__name-text">{nb?.slug || 'Loading...'}</span>
                     </div>
                 </div>
+                
+                {#if !nb?.isSandbox && nb?.sandboxSlug}
+                <div class="content-info__section">
+                    <div class="text-sm">
+                        <span class="text-sm material-symbols-outlined icon-text-align">visibility</span>
+                        View-only link:
+                    </div>
+                    <div class="content-info__url-container">
+                        <span class="content-info__url-text">{nb.getSandboxUrl()}</span>
+                        <button 
+                            class="btn tertiary small icon-only"
+                            onclick={() => navigator.clipboard.writeText(nb.getSandboxUrl())}
+                            title="Copy view-only URL"
+                        >
+                            <span class="material-symbols-outlined">content_copy</span>
+                        </button>
+                    </div>
+                </div>
+                {/if}
             {/if}
         </div>
         
-        <div class="notebook-actions">
+        <div class="notebook-header__actions">
             {#if !nb?.isSandbox}
             <button 
-                class="import-btn"
+                class="btn btn--primary"
                 onclick={triggerFileImport}
                 disabled={isImporting}
                 title="Import Jupyter notebook (.ipynb file)"
@@ -380,7 +384,7 @@ $effect(() => {
     </div>
     
     {#if importError}
-        <div class="error-message">
+        <div class="message message--error">
             <span class="material-symbols-outlined">error</span>
             {importError}
         </div>
@@ -402,468 +406,178 @@ $effect(() => {
 {/each}
 
 <style>
-:root {
-    --color-accent-1: #ffa000;
-    --color-accent-2: #0095f2;
-}
+    /* Component-specific styles for CodyxNotebook */
 
-.error {
-    color: #d63031;
-    background: #fff5f5;
-    border: 1px solid #fab1a0;
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    margin: 1rem 0.5rem;
-    font-family: 'Raleway', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    box-shadow: 0 2px 8px rgba(214, 48, 49, 0.1);
-}
-
-.sandbox-banner {
-    background: linear-gradient(135deg, var(--color-accent-1), #ffb74d);
-    color: white;
-    text-align: center;
-    padding: 1rem 1.25rem;
-    margin: 0 0 2rem 0;
-    border-radius: 8px;
-    font-family: 'Raleway', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    box-shadow: 0 2px 12px rgba(255, 160, 0, 0.3);
-    border: 1px solid rgba(255, 183, 77, 0.5);
-}
-
-.pyodide-loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(248, 249, 250, 0.85);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 4rem;
-    border-radius: 12px;
-}
-
-.loading-content {
-    text-align: center;
-    max-width: 400px;
-    padding: 2rem;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e9ecef;
-}
-
-.loading-spinner {
-    margin-bottom: 1.5rem;
-}
-
-.loading-spinner .material-symbols-outlined {
-    font-size: 48px;
-    color: var(--color-accent-1);
-}
-
-.spinning {
-    animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.loading-text h3 {
-    margin: 0 0 0.5rem 0;
-    font-family: 'Raleway', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-}
-
-.loading-text p {
-    margin: 0 0 1.5rem 0;
-    font-family: 'Raleway', sans-serif;
-    font-size: 14px;
-    color: #666;
-}
-
-.loading-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-family: 'Raleway', sans-serif;
-    font-size: 12px;
-    color: #888;
-}
-
-.step {
-    padding: 0.25rem 0;
-    position: relative;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: stepAppear 0.5s ease-out forwards;
-}
-
-.step-1 {
-    animation-delay: 1.5s;
-}
-
-.step-2 {
-    animation-delay: 4s;
-}
-
-.step-3 {
-    animation-delay: 6s;
-}
-
-.step::before {
-    content: "⏳";
-    margin-right: 0.5rem;
-}
-
-@keyframes stepAppear {
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    /* Pyodide loading overlay - unique to notebook */
+    .pyodide-loading-overlay {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 500;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(var(--gray-50-rgb), 0.85);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: var(--space-16);
+        border-radius: var(--border-radius-lg);
     }
-}
 
-.notebook-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding: 0 0;
-}
+    .loading-content {
+        text-align: center;
+        max-width: 400px;
+        padding: var(--space-8);
+        background: white;
+        border-radius: var(--border-radius-xl);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--gray-200);
+        font-weight: 500;
 
-.notebook-name-section {
-    flex: 1;
-}
+    }
 
-.notebook-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-shrink: 0;
-    margin-left: 1rem;
-}
+    .loading-spinner {
+        margin-bottom: var(--space-6);
+    }
 
-.import-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--color-accent-1);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
+    .loading-spinner .material-symbols-outlined {
+        font-size: 48px;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
 
-.import-btn:hover:not(:disabled) {
-    background: #e6900a;
-    transform: translateY(-1px);
-}
+    .spinning {
+        animation: spin 2s linear infinite;
+    }
 
-.import-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 
-.error-message {
-    background: #fee;
-    border: 1px solid #fcc;
-    color: #c33;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-}
+    .loading-text h3 {
+        margin: 0 0 var(--space-2) 0;
+        color: var(--gray-900);
+        font-weight: 600;
+    }
 
-.notebook-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    width: 100%;
-}
+    .loading-text p {
+        margin: 0 0 var(--space-6) 0;
+        color: var(--gray-600);
+    }
 
-.notebook-container {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 0.75rem 1rem;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    max-width: fit-content;
-    transition: all 0.2s ease;
-}
+    .loading-steps {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        color: var(--gray-500);
+    }
 
-.notebook-container:hover {
-    background: #f1f3f4;
-    border-color: #dee2e6;
-}
+    .step {
+        padding: var(--space-1) 0;
+        position: relative;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: stepAppear 0.5s ease-out forwards;
+    }
 
-.notebook-name {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+    .step-1 {
+        animation-delay: 1.5s;
+    }
 
-.notebook-name:hover .notebook-title {
-    color: #e6900a;
-}
+    .step-2 {
+        animation-delay: 4s;
+    }
 
-.notebook-label {
-    color: #666;
-    font-family: 'Raleway', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-}
+    .step-3 {
+        animation-delay: 6s;
+    }
 
-.notebook-title {
-    color: var(--color-accent-1);
+    .step::before {
+        content: "⏳";
+        margin-right: var(--space-2);
+    }
 
-    font-family: 'Raleway', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-}
+    @keyframes stepAppear {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
-.edit-icon {
-    font-size: 16px !important;
-    color: #888;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.notebook-name:hover .edit-icon {
-    opacity: 1;
-}
-
-.view-link-section {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding-left: 1rem;
-    border-left: 1px solid #dee2e6;
-}
-
-.view-label {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-family: 'Raleway', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    color: #6c757d;
-    white-space: nowrap;
-}
-
-.view-label .material-symbols-outlined {
-    font-size: 12px;
-    color: #6c757d;
-}
-
-.view-url-container {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.view-url-text {
-    font-family: 'Cutive Mono', monospace;
-    font-size: 10px;
-    color: #495057;
-    background: white;
-    border: 1px solid #dee2e6;
-    border-radius: 3px;
-    padding: 0.25rem 0.4rem;
-    max-width: 280px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.view-copy-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    background: white;
-    border: 1px solid #dee2e6;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.view-copy-btn:hover {
-    background: var(--color-accent-1);
-    border-color: var(--color-accent-1);
-    color: white;
-    transform: translateY(-1px);
-}
-
-.view-copy-btn .material-symbols-outlined {
-    font-size: 10px;
-}
-
-.notebook-name-input {
-    padding: 0.5rem 0.75rem;
-    border: 2px solid #0095f2;
-    border-radius: 6px;
-    font-family: 'Raleway', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    background: white;
-    outline: none;
-    min-width: 200px;
-    max-width: 400px;
-}
-
-.notebook-name-input:focus {
-    box-shadow: 0 0 0 3px rgba(0, 149, 242, 0.1);
-}
-
-.notebook-editing-container {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.save-name-btn, .cancel-name-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.save-name-btn {
-    background: var(--color-accent-1);
-    color: white;
-}
-
-.save-name-btn:hover {
-    background: #e6900a;
-    transform: translateY(-1px);
-}
-
-.cancel-name-btn {
-    background: #f8f9fa;
-    color: #666;
-    border: 1px solid #dee2e6;
-}
-
-.cancel-name-btn:hover {
-    background: #e9ecef;
-    color: #495057;
-}
-
-.create-copy-option {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-family: 'Raleway', sans-serif;
-    font-size: 13px;
-    color: #666;
-    cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.create-copy-checkbox {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--color-accent-1);
-    cursor: pointer;
-}
-
-.create-copy-label {
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.create-copy-option:hover .create-copy-label {
-    color: var(--color-accent-1);
-}
-
-.notebook-url {
-    font-family: 'Cutive Mono', monospace;
-    font-size: 11px;
-    color: #aaa;
-    font-weight: 400;
-    margin-left: 0;
-    padding: 0;
-    opacity: 0.8;
-    word-break: break-all;
-    text-align: right;
-    flex-shrink: 0;
-    max-width: 60%;
-}
-
-.sandbox-url-inline {
-    margin-left: 6px;
-    color: #aaa;
-    font-weight: 400;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
+    /* Notebook header layout */
     .notebook-header {
-        flex-direction: column;
+        display: flex;
+        justify-content: space-between;
         align-items: flex-start;
-        gap: 1rem;
+        margin-bottom: var(--space-6);
+        gap: var(--space-4);
     }
-    
-    .notebook-actions {
-        margin-left: 0;
-        align-self: flex-end;
+
+    .notebook-header__content {
+        flex: 1;
     }
-    
-    .notebook-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-        max-width: 100%;
+
+    .notebook-header__actions {
+        display: flex;
+        gap: var(--space-2);
+        align-items: center;
+        flex-shrink: 0;
     }
-    
-    .view-link-section {
-        padding-left: 0;
-        border-left: none;
-        border-top: 1px solid #dee2e6;
-        padding-top: 0.5rem;
-        width: 100%;
+
+    /* Notebook editor form */
+    .notebook-editor {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        flex-wrap: wrap;
     }
-    
-    .view-url-text {
-        max-width: 220px;
+
+    .notebook-editor__input {
+        min-width: 200px;
+        max-width: 400px;
+        font-weight: 600;
     }
-}
+
+    .notebook-editor__copy-option {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .notebook-editor__copy-option:hover {
+        color: var(--color-primary);
+    }
+
+
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .notebook-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-4);
+        }
+        
+        .notebook-header__actions {
+            align-self: flex-end;
+        }
+
+        .notebook-editor {
+            gap: var(--space-2);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .notebook-editor__input {
+            min-width: 150px;
+        }
+    }
 </style>
