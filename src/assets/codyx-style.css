@@ -432,7 +432,6 @@
     border: 1px solid var(--gray-300);
     border-radius: 3px;
     padding: var(--space-1) var(--space-1);
-    max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -449,7 +448,7 @@
     word-break: break-all;
     text-align: right;
     flex-shrink: 0;
-    max-width: 60%;
+    max-width: 100%;
 }
 
 /* Content name display and editing */

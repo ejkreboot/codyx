@@ -331,56 +331,58 @@ $effect(() => {
                          tabindex="0"
                          aria-label="Click to edit notebook name">
                         <span class="content-info__name-text">{nb?.slug || 'Loading...'}</span>
-                    </div>
-                </div>
                 
-                {#if !nb?.isSandbox && nb?.sandboxSlug}
-                <div class="content-info__section">
-                    <div class="text-sm">
-                        <span class="text-sm material-symbols-outlined icon-text-align">visibility</span>
-                        View-only link:
+                        {#if !nb?.isSandbox && nb?.sandboxSlug}
+                        <div class="content-info__section">
+                            <div class="font-sans text-sm">
+                                <span class="text-sm material-symbols-outlined icon-text-align">visibility</span>
+                                View-only link:
+                            </div>
+                            <div class="content-info__url-container">
+                                <span class="content-info__url-text">{nb.getSandboxUrl()}</span>
+                                <button 
+                                    class="btn tertiary small icon-only"
+                                    onclick={() => navigator.clipboard.writeText(nb.getSandboxUrl())}
+                                    title="Copy view-only URL"
+                                >
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                            </div>
+                        </div>
+                        {/if}
                     </div>
-                    <div class="content-info__url-container">
-                        <span class="content-info__url-text">{nb.getSandboxUrl()}</span>
-                        <button 
-                            class="btn tertiary small icon-only"
-                            onclick={() => navigator.clipboard.writeText(nb.getSandboxUrl())}
-                            title="Copy view-only URL"
-                        >
-                            <span class="material-symbols-outlined">content_copy</span>
-                        </button>
-                    </div>
+                            <div class="notebook-header__actions">
+                    {#if !nb?.isSandbox}
+                    <button 
+                        class="btn primary"
+                        onclick={triggerFileImport}
+                        disabled={isImporting}
+                        title="Import Jupyter notebook (.ipynb file)"
+                    >
+                        {#if isImporting}
+                            <span class="material-symbols-outlined">hourglass_empty</span>
+                            Importing...
+                        {:else}
+                            <span class="material-symbols-outlined">place_item</span>
+                            Import
+                        {/if}
+
+                    </button>
+                    {/if}
+                    <input 
+                        bind:this={fileInputElement}
+                        type="file"
+                        accept=".ipynb"
+                        onchange={handleFileImport}
+                        style="display: none;"
+                    />
+        </div>
                 </div>
-                {/if}
+
             {/if}
         </div>
         
-        <div class="notebook-header__actions">
-            {#if !nb?.isSandbox}
-            <button 
-                class="btn btn--primary"
-                onclick={triggerFileImport}
-                disabled={isImporting}
-                title="Import Jupyter notebook (.ipynb file)"
-            >
-                {#if isImporting}
-                    <span class="material-symbols-outlined">hourglass_empty</span>
-                    Importing...
-                {:else}
-                    <span class="material-symbols-outlined">place_item</span>
-                    Import
-                {/if}
 
-            </button>
-            {/if}
-            <input 
-                bind:this={fileInputElement}
-                type="file"
-                accept=".ipynb"
-                onchange={handleFileImport}
-                style="display: none;"
-            />
-        </div>
     </div>
     
     {#if importError}
