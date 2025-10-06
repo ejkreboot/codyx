@@ -91,9 +91,7 @@
             // Update local cards array
             cards = cards.map(card => 
                 card.id === updatedCard.id ? updatedCard : card
-            );
-            
-            console.log('Card saved successfully');
+            );            
         } catch (err) {
             console.error('Failed to save card:', err);
             error = err.message;
@@ -109,8 +107,6 @@
             
             // Update local cards array
             cards = cards.filter(card => card.id !== cardToDelete.id);
-            
-            console.log('Card deleted successfully');
         } catch (err) {
             console.error('Failed to delete card:', err);
             error = err.message;
@@ -202,9 +198,7 @@
                     }
                     
                     // Refresh cards display
-                    cards = deck.cards;
-                    
-                    console.log(`Successfully imported ${successCount} cards`);
+                    cards = deck.cards;                    
                     
                 } catch (err) {
                     console.error('Import failed:', err);

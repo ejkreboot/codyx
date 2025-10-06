@@ -6,9 +6,7 @@
     let props = $props();
     let card = props.card ?? null;
     let showAnswer = props.showAnswer ?? false;
-    
     const dispatch = createEventDispatcher();
-    
     let isFlipped = $state(false);
     
     function flipCard() {

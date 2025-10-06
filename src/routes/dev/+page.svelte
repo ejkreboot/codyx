@@ -29,8 +29,6 @@
     let showAnswer = false;
     
     function handleScore(event) {
-        console.log('Card scored:', event.detail);
-        // Move to next card
         currentIndex = (currentIndex + 1) % sampleCards.length;
     }
     
@@ -50,13 +48,10 @@
     });
 
     function handleEditorSave(updatedCard) {
-        console.log('Card saved:', updatedCard);
         editorCard = { ...updatedCard };
     }
 
     function handleEditorDelete(card) {
-        console.log('Card deleted:', card);
-        // Reset to empty card
         editorCard = { id: 'editor-sample', question: '', answer: '' };
     }
 </script>

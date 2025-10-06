@@ -114,10 +114,48 @@
         editingNameValue = '';
     }
 
-    function saveNewName() {
-        // TODO: Implement deck renaming
-        console.log('Rename deck to:', editingNameValue);
-        isEditingName = false;
+    async function saveNewName() {
+        if (!deck || deck.isSandbox) return;
+        
+        const newSlug = editingNameValue.trim();
+        if (!newSlug || newSlug === deck.slug) {
+            isEditingName = false;
+            return;
+        }
+
+        try {
+            // Check if the new slug is available
+            const isAvailable = await deck.isSlugAvailable(newSlug);
+            if (!isAvailable) {
+                error = `Deck name "${newSlug}" is already taken`;
+                return;
+            }
+
+            // Update the deck slug
+            await deck.updateDeck(deck.deckId, { slug: newSlug });
+            
+            // Update local state
+            deck.slug = newSlug;
+            deckNameInput = newSlug;
+            
+            // Navigate to the new URL
+            await goto(`/flashcards?deck=${encodeURIComponent(newSlug)}`);
+            
+            isEditingName = false;
+        } catch (err) {
+            console.error('Failed to rename deck:', err);
+            error = err.message;
+        }
+    }
+
+    function handleNameKeydown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            saveNewName();
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            cancelEditingName();
+        }
     }
 
     // Load deck when slug changes
@@ -133,85 +171,120 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="preload" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link href="/src/assets/codyx-style.css" rel="stylesheet">
 </svelte:head>
 
 
 <div class="app-container">
     <main class="main-content">
-        <div class="flashcard-container">
+        <div class="main-container">
             {#if error}
-            <div class="error-banner">
+            <div class="message message--error">
                 <span class="material-symbols-outlined">error</span>
                 {error}
             </div>
             {/if}
 
             {#if isLoading}
-                <div class="loading-container">
-                    <div class="loading-spinner">
-                        <span class="material-symbols-outlined spinning">progress_activity</span>
+                <div class="loading">
+                    <div class="loading__spinner">
+                        <span class="material-symbols-outlined loading__spinner--spinning">progress_activity</span>
                     </div>
                     <p>Loading flashcard deck...</p>
                 </div>
             {/if}
 
-            <div class="deck-input-section">
-                <div class="deck-info">
-                    <div class="deck-container">
-                        <div class="deck-controls-row">
-                            <span class="deck-label">Deck Name:</span>
-                            <input 
-                                id="deck-name"
-                                type="text" 
-                                bind:value={deckNameInput}
-                                bind:this={deckNameInputElement}
-                                class="deck-name-input"
-                                placeholder="my-flashcard-deck"
-                                onkeydown={handleDeckNameKeydown}
-                                disabled={isLoading}
-                            />
+            <div class="content-info">
+                {#if deck}
+                    <span class="content-info__label">Deck:</span>
+                    {#if isEditingName}
+                        <input 
+                            type="text" 
+                            bind:value={editingNameValue}
+                            bind:this={nameInputElement}
+                            class="content-info__editor"
+                            onkeydown={handleNameKeydown}
+                            onblur={saveNewName}
+                        />
+                        <button class="btn primary small icon-only" onclick={saveNewName}>
+                            <span class="material-symbols-outlined">check</span>
+                        </button>
+                        <button class="btn tertiary small icon-only" onclick={cancelEditingName}>
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    {:else}
+                        <div class="content-info__name-display" class:content-info__name-display--editable={!deck.isSandbox}>
+                            <span class="content-info__name-text">{deck.slug}</span>
+                            {#if !deck.isSandbox}
+                                <button class="btn tertiary small icon-only transparent" onclick={startEditingName}>
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                            {/if}
+                        </div>
+                        <div class="content-info__actions">
+                            <button class="btn primary" disabled={isLoading}>
+                                <span class="material-symbols-outlined">place_item</span>
+                                Import
+                            </button>
+                        </div>
+                    {/if}
+                {:else}
+                    <!-- Initial deck input form -->
+                    <div class="content-info">
+                        <span class="form__label-text">Deck Name:</span>
+                        <input 
+                            id="deck-name"
+                            type="text" 
+                            bind:value={deckNameInput}
+                            bind:this={deckNameInputElement}
+                            class="form__input"
+                            placeholder="my-flashcard-deck"
+                            onkeydown={handleDeckNameKeydown}
+                            disabled={isLoading}
+                        />
+                        <div class="content-info__actions">
                             <button 
-                                class="open-deck-btn" 
+                                class="btn secondary" 
                                 onclick={openDeckByName}
                                 disabled={isLoading || !deckNameInput.trim()}
                             >
                                 <span class="material-symbols-outlined">folder_open</span>
                                 Open Deck
                             </button>
-                            <button class="create-new-btn" onclick={createNewDeck} disabled={isLoading}>
+                            <button class="btn secondary" onclick={createNewDeck} disabled={isLoading}>
                                 <span class="material-symbols-outlined">add</span>
                                 Create New Deck
                             </button>
-                            <button class="import-btn" disabled={isLoading}>
+                            <button class="btn primary" disabled={isLoading}>
                                 <span class="material-symbols-outlined">place_item</span>
                                 Import
                             </button>
                         </div>
+                    </div>
+                {/if}
 
-                        <!-- View-only link (shown when deck is loaded and not in sandbox) -->
-                        {#if deck && !deck.isSandbox && deck.sandbox_slug}
-                        <div class="view-info">
-                            <div class="view-label">
-                                <span class="material-symbols-outlined">visibility</span>
-                                View-only link:
-                            </div>
-                            <div class="view-url-container">
-                                <span class="view-url-text">{window.location.origin + deck.getSandboxUrl()}</span>
-                                <button 
-                                    class="view-copy-btn"
-                                    onclick={() => navigator.clipboard.writeText(window.location.origin + deck.getSandboxUrl())}
-                                >
-                                    <span class="material-symbols-outlined">content_copy</span>
-                                </button>
-                            </div>
-                        </div>
-                        {/if}
+                <!-- View-only link (shown when deck is loaded and not in sandbox) -->
+                {#if deck && !deck.isSandbox && deck.sandbox_slug}
+                <div class="content-info__section">
+                    <div class="text-sm">
+                        <span class="text-sm material-symbols-outlined">visibility</span>
+                        View-only link:
+                    </div>
+                    <div class="content-info__url-container">
+                        <span class="content-info__url-text">{window.location.origin + deck.getSandboxUrl()}</span>
+                        <button 
+                            class="btn tertiary small icon-only"
+                            onclick={() => navigator.clipboard.writeText(window.location.origin + deck.getSandboxUrl())}
+                        >
+                            <span class="material-symbols-outlined">content_copy</span>
+                        </button>
                     </div>
                 </div>
+                {/if}
             </div>
 
             {#if !deck}
-                <div class="flashcard-area">
+                <div class="content-area">
                     <FlashCard 
                         card={{
                             id: 'sample',
@@ -226,13 +299,13 @@
             {#if deck}
             
             {#if deck.isSandbox}
-                <div class="sandbox-banner">
+                <div class="message message--info">
                     🏖️ Sandbox Mode - Changes won't be saved
                 </div>
             {/if}
 
             <!-- Flashcard Display -->
-            <div class="flashcard-area">
+            <div class="content-area">
                 {#if currentCard} <!-- force refresh on async update -->
                 {#key currentCard.id} 
                 <FlashCard 
@@ -241,13 +314,13 @@
                 />
                 {/key}
                 {:else}
-                <div class="no-cards">
-                    <div class="no-cards-icon">
+                <div class="empty-state">
+                    <div class="empty-state__icon">
                         <span class="material-symbols-outlined">quiz</span>
                     </div>
-                    <h3>No cards to study!</h3>
+                    <h3 class="empty-state__title">No cards to study!</h3>
                     <p>Add some flashcards to get started with spaced repetition learning.</p>
-                    <button class="add-card-btn">
+                    <button class="btn secondary">
                         <span class="material-symbols-outlined">add</span>
                         Add First Card
                     </button>
@@ -282,441 +355,17 @@
         padding: 2rem 1rem;
     }
 
-    .flashcard-container {
-        padding: 20px 20px;
-        max-width: 900px;
-        margin: auto;
-        margin-top: 20px;
-        display: flex;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #e5e7eb;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-    }
-
     .main-content {
         padding: 1rem;
     }
 
-    /* Sandbox Banner */
-    .sandbox-banner {
-        background: linear-gradient(135deg, #ff8c00, #ffb74d);
-        color: white;
-        text-align: center;
-        padding: 1rem 1.25rem;
-        margin: 0 0 2rem 0;
-        border-radius: 8px;
-        font-family: 'Raleway', sans-serif;
-        font-size: 15px;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(255, 140, 0, 0.2);
-    }
-
-    /* Deck Info */
-    .deck-info {
-        margin-bottom: 2rem;
-    }
-
-    .deck-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem;
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .deck-controls-row {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 1rem;
-        flex-wrap: nowrap;
-    }
-
-    .deck-name {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-        border: none;
-        background: transparent;
-        width: fit-content;
-    }
-
-    .deck-name:hover:not(:disabled) {
-        background: #f8f9fa;
-    }
-
-    .deck-name:disabled {
-        cursor: default;
-    }
-
-    .deck-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #2c2c2c;
-    }
-
-    .edit-icon {
-        font-size: 18px;
-        color: #6c757d;
-    }
-
-    .deck-editing-container {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .deck-name-input {
-        flex: 1;
-        min-width: 200px;
-        padding: 0.5rem;
-        border: 2px solid #0ea5e9;
-        border-radius: 4px;
-        font-size: 1.1rem;
-        font-family: 'Raleway', sans-serif;
-        outline: none;
-    }
-
-    .save-name-btn, .cancel-name-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .save-name-btn {
-        background: #0ea5e9;
-        color: white;
-    }
-
-    .cancel-name-btn {
-        background: #f8f9fa;
-        color: #666;
-        border: 1px solid #dee2e6;
-    }
-
-    .view-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .view-label {
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        font-size: 11px;
-        font-weight: 500;
-        color: #6c757d;
-        flex-shrink: 0;
-    }
-
-    .view-label .material-symbols-outlined {
-        font-size: 14px;
-    }
-
-    .view-url-container {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        flex: 1;
-    }
-
-    .view-url-text {
-        font-family: 'Monaco', 'Consolas', monospace;
-        font-size: 10px;
-        color: #495057;
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 3px;
-        padding: 0.25rem 0.4rem;
-        flex: 1;
-    }
-
-    .view-copy-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 3px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .view-copy-btn .material-symbols-outlined {
-        font-size: 14px;
-    }
-
-    .view-copy-btn:hover {
-        background: #e9ecef;
-    }
-
-    /* Flashcard Area */
-    .flashcard-area {
-        min-width: 800px;   
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    /* States */
-    .loading-container, .no-cards {
-        text-align: center;
-        padding: 4rem 2rem;
-        color: #6c757d;
-    }
-
-    .loading-spinner, .no-cards-icon {
-        margin-bottom: 1.5rem;
-    }
-
-    .loading-spinner .material-symbols-outlined,
-    .no-cards-icon .material-symbols-outlined {
-        font-size: 64px;
-        color: #0ea5e9;
-    }
-
-    .spinning {
-        animation: spin 2s linear infinite;
-    }
-
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-
-    .no-cards h3 {
-        color: #2c2c2c;
-        margin-bottom: 1rem;
-    }
-
-    .add-card-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: #0ea5e9;
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: 8px;
-        font-family: 'Raleway', sans-serif;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        margin-top: 1rem;
-    }
-
-    .deck-input-section {
-        margin-bottom:32px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .deck-info {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .deck-container {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 1rem;
-        padding: 0.75rem 1rem;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        width: 100%;
-        max-width: 100%;
-        transition: all 0.2s ease;
-        box-sizing: border-box;
-    }
-
-    .deck-container:hover {
-        background: #f1f3f4;
-        border-color: #dee2e6;
-    }
-
-    .deck-label {
-        color: #666;
-        font-family: 'Raleway', sans-serif;
-        font-size: 14px;
-        font-weight: 500;
-        white-space: nowrap;
-        flex-shrink: 0;
-        display: inline-block;
-    }
-
-    .deck-name-input {
-        padding: 0.375rem 0.5rem;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        font-size: 14px;
-        font-family: 'Raleway', sans-serif;
-        transition: border-color 0.2s ease;
-        background: white;
-        width: 200px;
-        flex-shrink: 0;
-    }
-
-    .deck-name-input:focus {
-        outline: none;
-        border-color: #ffa000;
-    }
-
-    .deck-name-input:disabled {
-        background: #f9fafb;
-        color: #9ca3af;
-        cursor: not-allowed;
-    }
-
-    .open-deck-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #0ea5e9;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .open-deck-btn:hover:not(:disabled) {
-        background: #0284c7;
-        transform: translateY(-1px);
-    }
-
-    .open-deck-btn:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .create-new-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #0ea5e9;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .create-new-btn:hover:not(:disabled) {
-        background: #0284c7;
-        transform: translateY(-1px);
-    }
-
-    .create-new-btn:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        transform: none;
-    }
-    
-
-    .import-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #ffa000;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .import-btn:hover:not(:disabled) {
-        background: #e6900a;
-        transform: translateY(-1px);
-    }
-
-    .import-btn:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-
-
-    .create-deck-btn:hover, .add-card-btn:hover {
-        background: #0284c7;
-        transform: translateY(-2px);
-    }
-
-    .error-banner {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: #fee;
-        color: #d63384;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        border: 1px solid #f5c6cb;
-    }
-
-    /* Responsive */
+    /* Page-specific overrides and layout - most styles now in codyx-style.css */
     @media (max-width: 768px) {
-        .app-header {
-            padding: 1rem;
-        }
 
-        .header-content {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-        }
 
         .main-content {
             padding: 1rem;
         }
 
-        .deck-container {
-            padding: 1rem;
-        }
     }
 </style>
