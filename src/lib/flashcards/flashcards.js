@@ -11,7 +11,7 @@ export class FlashCardDeck {
         this.id = null;
         this.table = 'flashcards';
         this.slug = FlashCardDeck.haikunator.haikunate({tokenLength: 0});
-        this.sandbox_slug = FlashCardDeck.haikunator.haikunate({tokenLength: 0});
+        this.sandboxSlug = FlashCardDeck.haikunator.haikunate({tokenLength: 0});
         this.topic = '';
         this.description = '';
         this.user = null; // current user object
@@ -42,13 +42,11 @@ export class FlashCardDeck {
         if (data) {
             const isOwned = user && data.user_id === user;
             const isSandbox = requestedSlug === data.sandbox_slug;
-
             self.id = data.id;
             self.slug = data.slug;
-            self.sandbox_slug = data.sandbox_slug;
+            self.sandboxSlug = data.sandbox_slug;
             self.topic = data.topic;
             self.description = data.description;
-
             if (isSandbox) {
                 self.isSandbox = true;
             } else {
@@ -57,7 +55,6 @@ export class FlashCardDeck {
 
             self.cards = await self.getFlashcards(data.id);
             
-            // For sandbox mode, reset all cards to fresh state
             if (self.isSandbox) {
                 self.cards = self.cards.map(card => ({
                     ...card,
@@ -67,16 +64,12 @@ export class FlashCardDeck {
             }
         } else {
             self.slug = requestedSlug;
-            self.sandbox_slug = await self.#generateUniqueSlug(); 
-
-            // Create deck (public if user is null, owned if user exists)
+            self.sandboxSlug = await self.#generateUniqueSlug(); 
             const newDeck = await self.#addDeck(user, self.topic, self.description);
             self.isSandbox = false; 
             self.id = newDeck.id;
             self.topic = newDeck.topic;
             self.description = newDeck.description;
-
-            // Add intro card
             await self.#addIntroCard();
         }
 
@@ -139,7 +132,7 @@ export class FlashCardDeck {
                 topic, 
                 description, 
                 slug: this.slug,
-                sandbox_slug: this.sandbox_slug
+                sandboxSlug: this.sandboxSlug
             }])
             .select()
             .single();
@@ -184,10 +177,9 @@ export class FlashCardDeck {
      *  🔹 SLUG management (yum!) 
     ******************************************/
 
-    async #checkSlug(newSlug) {
+    async #checkIfSlugAvailable(newSlug) {
         if (newSlug === this.slug) return true; // no change, so it's "available"
         
-        // Check if slug exists in either 'slug' or 'sandbox_slug' columns
         const { data, error } = await supabase
             .from('flashcard_decks')
             .select('id')
@@ -227,6 +219,34 @@ export class FlashCardDeck {
         return `${FlashCardDeck.haikunator.haikunate({ tokenLength: 0 })}-${timestamp}`;
     }
 
+    async rename(newSlug) {
+        if (!newSlug) return;
+        const isAvailable = await this.#checkIfSlugAvailable(newSlug);
+        if (!isAvailable) {
+            throw new Error('That name is already taken');
+        }
+        const { error } = await supabase
+            .from('flashcard_decks')
+            .update({ slug: newSlug })
+            .eq('id', this.id);
+        if (error) throw error;
+        this.slug = newSlug;
+    }
+
+    async renameSandbox(newSlug) {
+        if (!newSlug) return;
+
+        const isAvailable = await this.#checkIfSlugAvailable(newSlug);
+        if (!isAvailable) {
+            throw new Error('That name is already taken');
+        }
+        const { error } = await supabase
+            .from('flashcard_decks')
+            .update({ sandbox_slug: newSlug })
+            .eq('id', this.id);
+        if (error) throw error;
+        this.sandboxSlug = newSlug;
+    }
 
     /******************************************
      *  🔹 Flash card CRUD 
@@ -483,7 +503,7 @@ export class FlashCardDeck {
     }
 
     getSandboxUrl() {
-        return `/flashcards?deck=${this.sandbox_slug}`;
+        return `/flashcards?deck=${this.sandboxSlug}`;
     }
 
     getEditUrl() {

@@ -44,7 +44,6 @@ export class Notebook {
             .from('notebooks')
             .select('id')
             .or(`slug.eq.${newSlug},sandbox_slug.eq.${newSlug}`);
-            
         if (error) {
             throw error;
         }

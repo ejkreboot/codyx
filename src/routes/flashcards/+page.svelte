@@ -16,6 +16,11 @@
     let editingNameValue = $state('');
     let nameInputElement = $state();
     
+    // Sandbox slug editing state
+    let isEditingSandbox = $state(false);
+    let editingSandboxValue = $state('');
+    let sandboxInputElement = $state();
+    
     let deckNameInput = $state('');
     let deckNameInputElement = $state();
 
@@ -66,7 +71,7 @@
     async function loadDeck(deckSlug) {
         if (!deckSlug) return;
         
-        if (deck && (deck.slug === deckSlug || deck.sandbox_slug === deckSlug)) {
+        if (deck && (deck.slug === deckSlug || deck.sandboxSlug === deckSlug)) {
             return;
         }
         
@@ -109,9 +114,21 @@
         setTimeout(() => nameInputElement?.focus(), 0);
     }
 
+    function startEditingSandbox() {
+        if (isSandbox) return;
+        isEditingSandbox = true;
+        editingSandboxValue = deck?.sandboxSlug || '';
+        setTimeout(() => sandboxInputElement?.focus(), 0);
+    }
+
     function cancelEditingName() {
         isEditingName = false;
         editingNameValue = '';
+    }
+
+    function cancelEditingSandbox() {
+        isEditingSandbox = false;
+        editingSandboxValue = '';
     }
 
     async function saveNewName() {
@@ -125,25 +142,37 @@
 
         try {
             // Check if the new slug is available
-            const isAvailable = await deck.isSlugAvailable(newSlug);
-            if (!isAvailable) {
-                error = `Deck name "${newSlug}" is already taken`;
-                return;
-            }
-
-            // Update the deck slug
-            await deck.updateDeck(deck.deckId, { slug: newSlug });
-            
-            // Update local state
+            await deck.rename(newSlug);
             deck.slug = newSlug;
             deckNameInput = newSlug;
-            
-            // Navigate to the new URL
             await goto(`/flashcards?deck=${encodeURIComponent(newSlug)}`);
-            
             isEditingName = false;
         } catch (err) {
             console.error('Failed to rename deck:', err);
+            error = "Could not rename deck...name already taken.";
+        }
+    }
+
+    async function saveNewSandbox() {
+        if (!deck || isSandbox) return;
+
+        const newSandboxSlug = editingSandboxValue.trim();
+        if (!newSandboxSlug || newSandboxSlug === deck.sandboxSlug) {
+            isEditingSandbox = false;
+            return;
+        }
+
+        try {
+            // Call deck.renameSandbox which validates availability and updates DB
+            await deck.renameSandbox(newSandboxSlug);
+
+            // Update local state and force reactivity
+            deck.sandboxSlug = newSandboxSlug;
+            deck = deck;
+
+            isEditingSandbox = false;
+        } catch (err) {
+            console.error('Failed to rename sandbox slug:', err);
             error = err.message;
         }
     }
@@ -155,6 +184,16 @@
         } else if (event.key === 'Escape') {
             event.preventDefault();
             cancelEditingName();
+        }
+    }
+
+    function handleSandboxKeydown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            saveNewSandbox();
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            cancelEditingSandbox();
         }
     }
 
@@ -194,7 +233,7 @@
                 </div>
             {/if}
 
-            <div class="content-info">
+            <div class="content-info compact">
                 {#if deck}
                     <span class="content-info__label">Deck:</span>
                     {#if isEditingName}
@@ -212,6 +251,7 @@
                         <button class="btn tertiary small icon-only" onclick={cancelEditingName}>
                             <span class="material-symbols-outlined">close</span>
                         </button>
+                        <div class="spacer"></div>
                     {:else}
                         <div class="content-info__name-display" class:content-info__name-display--editable={!isSandbox}>
                             <span class="content-info__name-text">{deck.slug}</span>
@@ -268,20 +308,40 @@
                 {/if}
 
                 <!-- View-only link (shown when deck is loaded and not in sandbox) -->
-                {#if deck && !isSandbox && deck.sandbox_slug}
+                {#if deck && !isSandbox && deck.sandboxSlug}
                 <div class="content-info__section">
                     <div class="text-sm">
                         <span class="text-sm material-symbols-outlined">visibility</span>
                         View-only link:
                     </div>
                     <div class="content-info__url-container">
-                        <span class="content-info__url-text">{window.location.origin + deck.getSandboxUrl()}</span>
-                        <button 
-                            class="btn tertiary small icon-only"
-                            onclick={() => navigator.clipboard.writeText(window.location.origin + deck.getSandboxUrl())}
-                        >
-                            <span class="material-symbols-outlined">content_copy</span>
-                        </button>
+                        {#if isEditingSandbox}
+                            <input
+                                type="text"
+                                bind:value={editingSandboxValue}
+                                bind:this={sandboxInputElement}
+                                class="form__input"
+                                onkeydown={handleSandboxKeydown}
+                                onblur={saveNewSandbox}
+                            />
+                            <button class="btn primary small icon-only" onclick={saveNewSandbox}>
+                                <span class="material-symbols-outlined">check</span>
+                            </button>
+                            <button class="btn tertiary small icon-only" onclick={cancelEditingSandbox}>
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        {:else}
+                            <span class="content-info__url-text">{window.location.origin + deck.getSandboxUrl()}</span>
+                            <button 
+                                class="btn tertiary small icon-only"
+                                onclick={() => navigator.clipboard.writeText(window.location.origin + deck.getSandboxUrl())}
+                            >
+                                <span class="material-symbols-outlined">content_copy</span>
+                            </button>
+                            <button class="btn tertiary small icon-only" title="Edit sandbox slug" onclick={startEditingSandbox}>
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                        {/if}
                     </div>
                 </div>
                 {/if}

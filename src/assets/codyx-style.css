@@ -86,6 +86,11 @@
     opacity: 0;
 }
 
+.no-padding-right {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+
 /* ================================ */
 /* TYPOGRAPHY SYSTEM                */
 /* ================================ */
@@ -207,6 +212,13 @@
     vertical-align: middle;
 }
 
+/* Flexible spacer that grows to take available space in a flex container */
+.spacer {
+    flex: 1;
+    width: 100%;
+    min-width: 0; /* allow it to shrink without causing overflow */
+}
+
 /* ================================ */
 /* BASE LAYOUT COMPONENTS           */
 /* ================================ */
@@ -236,16 +248,20 @@
 
 .content-info {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    margin-bottom: var(--space-6);
     gap: var(--space-6);
     padding: var(--space-3) var(--space-4);
+    margin-bottom: 40px;
     background: var(--gray-50);
     border: 1px solid var(--gray-200);
     border-radius: var(--border-radius-lg);
     max-width: var(--max-width);
     transition: var(--transition);
+}
+
+.compact {
+    gap: var(--space-2);
 }
 
 .content-info:has(.content-info__editor) {
@@ -261,8 +277,6 @@
     flex-shrink: 0;
     margin-left: var(--space-4);
 }
-
-
 
 /* ================================ */
 /* MESSAGE BLOCK                    */
@@ -361,12 +375,14 @@
 /* Small modifier */
 .btn.small {
     padding: var(--space-1) var(--space-2);
+    margin: 0px;
     font-size: var(--text-sm);
     min-height: var(--space-7);
 }
 
 /* Icon-only small buttons */
 .btn.small.icon-only {
+    margin: 0px;
     padding: var(--space-1);
     width: var(--space-7);
     height: var(--space-7);
@@ -455,9 +471,18 @@
 .content-info__name-display {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    flex: 1;
+    /* use margin on children for spacing instead of gap so spacing is only after items */
+    gap: 0;
+    flex: 0 1 auto;
     position: relative;
+}
+
+/* Apply right-margin to each child except the last so spacing is "after" items only */
+.content-info__name-display > * {
+    margin-right: var(--space-2);
+}
+.content-info__name-display > *:last-child {
+    margin-right: 0;
 }
 
 .content-info__name-display--editable:hover .transparent {
@@ -480,13 +505,16 @@
     padding: var(--space-2) var(--space-3);
     background: white;
     outline: none;
-    flex: 1;
+    /* keep the editor intrinsic-sized (no spreading); cap its maximum width */
+    flex: 0 0 auto;
+    width: min(200px, 60%);
     transition: border-color 0.2s ease;
 }
 
 .content-info__editor:focus {
     border-color: #1d4ed8;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    /* use an inset ring to avoid adding external visual spacing */
+    box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.08);
 }
 
 /* ================================ */
@@ -503,6 +531,11 @@
     background: white;
     width: 200px;
     flex-shrink: 0;
+}
+
+/* Ensure URL container stays compact and doesn't collapse on small screens */
+.content-info__url-container {
+    flex: 0 0 auto;
 }
 
 .form__input:focus {
