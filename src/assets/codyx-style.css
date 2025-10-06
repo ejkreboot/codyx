@@ -92,6 +92,107 @@
 }
 
 /* ================================ */
+/* LAYOUT & FLEX UTILITIES          */
+/* Small set of helpers for common row/column patterns used across the app */
+/* ================================ */
+
+/* Row: horizontal layout with gap and wrapping */
+.row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Column (vertical) layout */
+.col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Center content both axes */
+.center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Space-between helper */
+.space-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Allow element to take remaining space */
+.flex-1 {
+    flex: 1 1 0%;
+}
+
+/* Muted text helper (alias for gray color) */
+.muted {
+    color: var(--gray-600);
+}
+
+/* Text color helpers */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-secondary {
+    color: var(--secondary-color) !important;
+}
+
+/* ================================ */
+/* CARD UTILITY                     */
+/* Reusable card style for demo and app components */
+/* ================================ */
+.card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-lg);
+    padding: calc(var(--space-4));
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* Slightly stronger elevation when needed */
+.card--elevated {
+    box-shadow: var(--box-shadow);
+}
+
+/* ================================ */
+/* SWATCH / PALETTE HELPERS        */
+/* Small helpers to render color swatches in docs and components */
+/* ================================ */
+.palette {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.swatch {
+    width: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--gray-200);
+    background: white;
+}
+
+.swatch__color {
+    height: 72px;
+    width: 100%;
+}
+
+.swatch__label {
+    padding: 8px 10px;
+    font-size: var(--text-sm);
+    color: var(--gray-700);
+    background: #fff;
+}
+
+/* ================================ */
 /* TYPOGRAPHY SYSTEM                */
 /* ================================ */
 
