@@ -19,8 +19,14 @@ let isEditingName = $state(false);
 let editingNameValue = $state('');
 let createCopy = $state(false);
 
+// Sandbox slug editing state
+let isEditingSandboxSlug = $state(false);
+let editingSandboxValue = $state('');
+
 // svelte-ignore non_reactive_update
 let nameInputElement;
+// svelte-ignore non_reactive_update
+let sandboxInputElement;
 
 // Pyodide loading state
 let isPyodideLoading = $state(false);
@@ -115,6 +121,68 @@ function cancelEditingName() {
     isEditingName = false;
     editingNameValue = '';
     createCopy = false;
+}
+
+function startEditingSandboxSlug() {
+    if (!nb || nb.isSandbox) return;
+    error = null;
+    isEditingSandboxSlug = true;
+    editingSandboxValue = nb.sandboxSlug || '';
+    setTimeout(() => sandboxInputElement?.focus(), 0);
+}
+
+function cancelEditingSandboxSlug() {
+    isEditingSandboxSlug = false;
+    editingSandboxValue = '';
+}
+
+async function saveSandboxSlug() {
+    if (!nb || !editingSandboxValue.trim()) {
+        cancelEditingSandboxSlug();
+        return;
+    }
+    
+    const newSandboxSlug = editingSandboxValue.trim().toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')  // Replace non-alphanumeric with hyphens
+        .replace(/--+/g, '-')         // Replace multiple hyphens with single
+        .replace(/^-|-$/g, '');       // Remove leading/trailing hyphens
+    
+    if (newSandboxSlug === nb.sandboxSlug) {
+        cancelEditingSandboxSlug();
+        error = null;
+        return;
+    }
+    
+    try {
+        const isAvailable = await nb.checkIfSlugAvailable(newSandboxSlug);
+        
+        if (!isAvailable) {
+            error = `Sandbox slug "${newSandboxSlug}" is already taken. Please choose a different name.`;
+            return;
+        }
+        
+        await nb.renameSandbox(newSandboxSlug);
+        
+        // Force reactivity update by reassigning the notebook object
+        nb = nb;
+        
+        error = null;
+        cancelEditingSandboxSlug();
+        
+    } catch (err) {
+        console.error("Failed to save sandbox slug:", err);
+        error = err.message;
+    }
+}
+
+function handleSandboxKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        saveSandboxSlug();
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelEditingSandboxSlug();
+    }
 }
 
 async function saveNotebookName() {
@@ -331,15 +399,41 @@ $effect(() => {
                          tabindex="0"
                          aria-label="Click to edit notebook name">
                         <span class="content-info__name-text">{nb?.slug || 'Loading...'}</span>
-                
-                        {#if !nb?.isSandbox && nb?.sandboxSlug}
-                        <div class="content-info__section">
-                            <div class="font-sans text-sm">
-                                <span class="text-sm material-symbols-outlined icon-text-align">visibility</span>
-                                View-only link:
+                    </div>
+
+                    {#if !nb?.isSandbox && nb?.sandboxSlug}
+                    <div class="content-info__section">
+                        <div class="font-sans text-sm">
+                            <span class="text-sm material-symbols-outlined">visibility</span>
+                            View-only link:
+                        </div>
+                        
+                        {#if isEditingSandboxSlug}
+                            <div class="sandbox-editor icon-text-align">
+                                <input 
+                                    bind:this={sandboxInputElement}
+                                    bind:value={editingSandboxValue}
+                                    class="form__input"
+                                    onkeydown={handleSandboxKeydown}
+                                    placeholder="sandbox-slug-name"
+                                />
+                                <button class="btn tertiary small icon-only" onclick={saveSandboxSlug} title="Save sandbox slug">
+                                    <span class="material-symbols-outlined">check</span>
+                                </button>
+                                <button class="btn tertiary small icon-only" onclick={cancelEditingSandboxSlug} title="Cancel">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
                             </div>
+                        {:else}
                             <div class="content-info__url-container">
                                 <span class="content-info__url-text">{nb.getSandboxUrl()}</span>
+                                <button 
+                                    class="btn tertiary small icon-only"
+                                    onclick={startEditingSandboxSlug}
+                                    title="Edit sandbox slug"
+                                >
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
                                 <button 
                                     class="btn tertiary small icon-only"
                                     onclick={() => navigator.clipboard.writeText(nb.getSandboxUrl())}
@@ -348,9 +442,9 @@ $effect(() => {
                                     <span class="material-symbols-outlined">content_copy</span>
                                 </button>
                             </div>
-                        </div>
                         {/if}
                     </div>
+                    {/if}
                             <div class="notebook-header__actions">
                     {#if !nb?.isSandbox}
                     <button 
@@ -492,6 +586,18 @@ $effect(() => {
 
     .step-2 {
         animation-delay: 4s;
+    }
+
+    /* Sandbox slug editor styles */
+    .sandbox-editor {
+        gap: var(--space-2);
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .sandbox-editor .form__input {
+        min-width: 200px;
+        flex-shrink: 0;
     }
 
     .step-3 {

@@ -52,6 +52,24 @@ export class Notebook {
         return data && data.length === 0; // available if no rows found in either column
     }
     
+    async renameSandbox(newSlug) {
+        if (!newSlug) return;
+        
+        const isAvailable = await this.checkIfSlugAvailable(newSlug);
+        if (!isAvailable) {
+            throw new Error('That name is already taken');
+        }
+        
+        const { error } = await supabase
+            .from('notebooks')
+            .update({ sandbox_slug: newSlug })
+            .eq('id', this.id);
+            
+        if (error) throw error;
+        
+        this.sandboxSlug = newSlug;
+    }
+
     async rename(newSlug) {
         if (!newSlug) return;
         
