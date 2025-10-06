@@ -9,6 +9,7 @@
     let currentCard = $state(null);
     let error = $state(null);
     let isLoading = $state(false);
+    let isSandbox = $state(false);
     
     // Deck name editing state
     let isEditingName = $state(false);
@@ -45,7 +46,6 @@
         
         try {
             isLoading = true;
-            // Convert to URL-friendly slug (replace spaces with hyphens, lowercase)
             const slug = deckName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
             await goto(`/flashcards?deck=${encodeURIComponent(slug)}`);
         } catch (err) {
@@ -66,7 +66,6 @@
     async function loadDeck(deckSlug) {
         if (!deckSlug) return;
         
-        // Check if we already have this deck loaded (check both slug and sandbox_slug)
         if (deck && (deck.slug === deckSlug || deck.sandbox_slug === deckSlug)) {
             return;
         }
@@ -79,11 +78,12 @@
 
             // Update the deck name input to show current deck
             deckNameInput = deck.slug;
+            isSandbox = deck.isSandbox;
 
             // Get first card for study
             const studyCards = deck.getCardsForStudy(20);
             currentCard = studyCards.length > 0 ? studyCards[0] : null;
-            
+            console.log(deck);
         } catch (err) {
             console.error('Failed to load deck:', err);
             error = err.message;
@@ -103,7 +103,7 @@
     }
 
     function startEditingName() {
-        if (deck?.isSandbox) return;
+        if (isSandbox) return;
         isEditingName = true;
         editingNameValue = deck?.slug || '';
         setTimeout(() => nameInputElement?.focus(), 0);
@@ -115,7 +115,7 @@
     }
 
     async function saveNewName() {
-        if (!deck || deck.isSandbox) return;
+        if (!deck || isSandbox) return;
         
         const newSlug = editingNameValue.trim();
         if (!newSlug || newSlug === deck.slug) {
@@ -213,20 +213,28 @@
                             <span class="material-symbols-outlined">close</span>
                         </button>
                     {:else}
-                        <div class="content-info__name-display" class:content-info__name-display--editable={!deck.isSandbox}>
+                        <div class="content-info__name-display" class:content-info__name-display--editable={!isSandbox}>
                             <span class="content-info__name-text">{deck.slug}</span>
-                            {#if !deck.isSandbox}
+                            {#if !isSandbox}
                                 <button class="btn tertiary small icon-only transparent" onclick={startEditingName}>
                                     <span class="material-symbols-outlined">edit</span>
                                 </button>
                             {/if}
                         </div>
+                        {#if !isSandbox}
                         <div class="content-info__actions">
-                            <button class="btn primary" disabled={isLoading}>
-                                <span class="material-symbols-outlined">place_item</span>
-                                Import
+                            <button class="btn primary" disabled={isLoading} onclick={async () => {
+                                try {
+                                    await goto(`/flashcards/edit?deck=${encodeURIComponent(deck.slug)}`);
+                                } catch (err) {
+                                    console.error('Navigation error:', err);
+                                }
+                            }}>
+                                <span class="material-symbols-outlined">edit</span>
+                                Edit Deck
                             </button>
                         </div>
+                        {/if}
                     {/if}
                 {:else}
                     <!-- Initial deck input form -->
@@ -255,16 +263,12 @@
                                 <span class="material-symbols-outlined">add</span>
                                 Create New Deck
                             </button>
-                            <button class="btn primary" disabled={isLoading}>
-                                <span class="material-symbols-outlined">place_item</span>
-                                Import
-                            </button>
                         </div>
                     </div>
                 {/if}
 
                 <!-- View-only link (shown when deck is loaded and not in sandbox) -->
-                {#if deck && !deck.isSandbox && deck.sandbox_slug}
+                {#if deck && !isSandbox && deck.sandbox_slug}
                 <div class="content-info__section">
                     <div class="text-sm">
                         <span class="text-sm material-symbols-outlined">visibility</span>
@@ -298,14 +302,14 @@
 
             {#if deck}
             
-            {#if deck.isSandbox}
+            {#if isSandbox}
                 <div class="message message--info">
                     🏖️ Sandbox Mode - Changes won't be saved
                 </div>
             {/if}
 
             <!-- Flashcard Display -->
-            <div class="content-area">
+            <div class="content-area" style="margin-top: var(--space-10);">
                 {#if currentCard} <!-- force refresh on async update -->
                 {#key currentCard.id} 
                 <FlashCard 

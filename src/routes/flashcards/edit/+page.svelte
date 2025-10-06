@@ -16,6 +16,8 @@
     let isEditingDescription = $state(false);
     let topicText = $state('');
     let descriptionText = $state('');
+    let currentlyLoadingSlug = $state(null);
+    let lastLoadedSlug = $state(null);
 
     // Get slug from URL params
     let slug = $derived($page.url.searchParams.get('deck'));
@@ -62,15 +64,23 @@
     }
 
     async function loadDeck(deckSlug) {
-        if (!deckSlug || (deck && deck.slug === deckSlug)) return;
+        // Prevent race conditions
+        if (!deckSlug || currentlyLoadingSlug === deckSlug) return;
+        if (deck && (deck.slug === deckSlug || deck.sandbox_slug === deckSlug)) return;
         
         try {
+            currentlyLoadingSlug = deckSlug;
             isLoading = true;
             error = null;
-
-            deck = await FlashCardDeck.create(deckSlug, "none"); // Using "none" as user for now
-            cards = deck.cards; // Get all cards for editing
-            
+            deck = await FlashCardDeck.create(deckSlug, "none"); 
+            if(deck.isSandbox) {
+                error = "This is a sandbox deck. Editing is disabled."; 
+                deck = null;
+                cards = [];
+            } else {
+                cards = deck.cards;
+            }
+            lastLoadedSlug = deckSlug;
         } catch (err) {
             console.error('Failed to load deck:', err);
             error = err.message;
@@ -78,6 +88,7 @@
             cards = [];
         } finally {
             isLoading = false;
+            currentlyLoadingSlug = null;
         }
     }
 
@@ -306,7 +317,8 @@
 
     // Load deck when slug changes
     $effect(() => {
-        if (slug) {
+        console.log(slug);
+        if (slug && slug !== lastLoadedSlug) {
             loadDeck(slug);
         }
     });
@@ -314,10 +326,7 @@
 </script>
 
 <svelte:head>
-    <title>CODYX - Interactive Flashcards</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="preload" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Bowlby+One&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <title>CODYX - Edit Flashcards</title>
 </svelte:head>
 
 
@@ -325,7 +334,7 @@
     <main class="main-content">
         <div class="edit-container">
             {#if error}
-            <div class="error-banner">
+            <div class="message message--error">
                 <span class="material-symbols-outlined">error</span>
                 {error}
             </div>
@@ -334,7 +343,7 @@
             {#if isLoading}
             <div class="loading-container">
                 <div class="loading-spinner">
-                    <span class="material-symbols-outlined spinning">progress_activity</span>
+                    <span class="material-symbols-outlined icon--spinning">progress_activity</span>
                 </div>
                 <p>Loading flashcard deck...</p>
             </div>
@@ -343,26 +352,26 @@
             <div class="deck-input-section">
                 <div class="deck-info">
                     <div class="deck-input-controls">
-                        <span class="deck-label">Deck Name:</span>
+                        <span class="form__label-text">Deck Name:</span>
                         <input 
                             id="deck-name"
                             type="text" 
                             bind:value={deckNameInput}
                             bind:this={deckNameInputElement}
-                            class="deck-name-input"
+                            class="form__input"
                             placeholder="my-flashcard-deck"
                             onkeydown={handleDeckNameKeydown}
                             disabled={isLoading}
                         />
                         <button 
-                            class="open-deck-btn" 
+                            class="btn secondary" 
                             onclick={openDeckByName}
                             disabled={isLoading || !deckNameInput.trim()}
                         >
                             <span class="material-symbols-outlined">folder_open</span>
                             Open Deck
                         </button>
-                        <button class="create-new-btn" onclick={createNewDeck} disabled={isLoading}>
+                        <button class="btn secondary" onclick={createNewDeck} disabled={isLoading}>
                             <span class="material-symbols-outlined">add</span>
                             Create New Deck
                         </button>
@@ -374,15 +383,15 @@
             {#if deck}
             <div class="deck-editor-section">
                 <div class="deck-header">
-                    <h2 class="deck-title">Editing: {deck.slug}</h2>
+                    <h2 class="content-info__name-text">Editing: {deck.slug}</h2>
                     <div class="deck-stats">
-                        <span class="card-count">{cards.length} cards</span>
+                        <span class="font-sans text-base">{cards.length} cards</span>
                         <div class="deck-actions">
-                            <button class="add-card-btn" onclick={addNewCard} disabled={isLoading}>
+                            <button class="btn primary" onclick={addNewCard} disabled={isLoading}>
                                 <span class="material-symbols-outlined">add</span>
                                 Add New Card
                             </button>
-                            <button class="import-btn" onclick={importCards} disabled={isLoading}>
+                            <button class="btn primary" onclick={importCards} disabled={isLoading}>
                                 <span class="material-symbols-outlined">place_item</span>
                                 Import
                             </button>
@@ -393,60 +402,59 @@
                 <!-- Deck Metadata -->
                 <div class="deck-metadata">
                     <div class="metadata-field">
-                        <label class="metadata-label">Topic:</label>
+                        <label for="topic-input" class="form__label-text">Topic:</label>
                         {#if isEditingTopic}
-                            <div class="edit-field">
+                            <div class="edit-field" style="display: flex; flex-direction: row; align-items: center; gap: 8px;">
                                 <input 
+                                    id="topic-input"
                                     type="text" 
                                     bind:value={topicText}
-                                    class="metadata-input"
+                                    class="form__input"
+                                    style="flex: 1; min-width: 0;"
                                     placeholder="Enter topic (e.g., Mathematics, Science, History)"
                                     onkeydown={handleTopicKeydown}
-                                    autofocus
                                 />
-                                <div class="edit-actions">
-                                    <button class="save-btn" onclick={saveTopic} title="Save">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </button>
-                                    <button class="cancel-btn" onclick={cancelTopicEdit} title="Cancel">
-                                        <span class="material-symbols-outlined">close</span>
-                                    </button>
-                                </div>
+                                <button class="btn tertiary small icon-only" onclick={saveTopic} title="Save">
+                                    <span class="material-symbols-outlined">check</span>
+                                </button>
+                                <button class="btn tertiary small icon-only" onclick={cancelTopicEdit} title="Cancel">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
                             </div>
                         {:else}
-                            <div class="display-field" onclick={startEditingTopic}>
-                                <span class="field-value">{deck?.topic || 'Click to add topic'}</span>
-                                <span class="edit-icon material-symbols-outlined">edit</span>
-                            </div>
+                            <button type="button" class="display-field" onclick={startEditingTopic}>
+                                <span class="font-sans text-base">{deck?.topic || 'Click to add topic'}</span>
+                                <span class="material-symbols-outlined edit-icon">edit</span>
+                            </button>
                         {/if}
                     </div>
 
                     <div class="metadata-field">
-                        <label class="metadata-label">Description:</label>
+                        <label for="description-textarea" class="form__label-text">Description:</label>
                         {#if isEditingDescription}
                             <div class="edit-field">
                                 <textarea 
+                                    id="description-textarea"
                                     bind:value={descriptionText}
-                                    class="metadata-textarea"
+                                    class="form__textarea"
                                     placeholder="Enter description (Ctrl+Enter to save, Esc to cancel)"
                                     onkeydown={handleDescriptionKeydown}
                                     rows="3"
-                                    autofocus
                                 ></textarea>
                                 <div class="edit-actions">
-                                    <button class="save-btn" onclick={saveDescription} title="Save">
+                                    <button class="btn tertiary small icon-only" onclick={saveDescription} title="Save">
                                         <span class="material-symbols-outlined">check</span>
                                     </button>
-                                    <button class="cancel-btn" onclick={cancelDescriptionEdit} title="Cancel">
+                                    <button class="btn tertiary small icon-only" onclick={cancelDescriptionEdit} title="Cancel">
                                         <span class="material-symbols-outlined">close</span>
                                     </button>
                                 </div>
                             </div>
                         {:else}
-                            <div class="display-field" onclick={startEditingDescription}>
-                                <span class="field-value">{deck?.description || 'Click to add description'}</span>
-                                <span class="edit-icon material-symbols-outlined">edit</span>
-                            </div>
+                            <button type="button" class="display-field" onclick={startEditingDescription}>
+                                <span class="font-sans text-base">{deck?.description || 'Click to add description'}</span>
+                                <span class="material-symbols-outlined edit-icon">edit</span>
+                            </button>
                         {/if}
                     </div>
                 </div>
@@ -456,8 +464,8 @@
                         {#each cards as card, index (card.id)}
                             <div class="card-wrapper">
                                 <div class="card-header">
-                                    <div class="card-number">Card {index + 1}</div>
-                                    <button class="card-delete-btn" onclick={() => handleCardDelete(card)} title="Delete Card">
+                                    <div class="form__label-text">Card {index + 1}</div>
+                                    <button class="btn tertiary small icon-only" onclick={() => handleCardDelete(card)} title="Delete Card">
                                         <span class="material-symbols-outlined">delete</span>
                                     </button>
                                 </div>
@@ -469,12 +477,10 @@
                         {/each}
                     {:else}
                         <div class="empty-deck">
-                            <div class="empty-icon">
-                                <span class="material-symbols-outlined">quiz</span>
-                            </div>
+                            <span class="material-symbols-outlined icon--large">quiz</span>
                             <h3>No cards yet</h3>
                             <p>Add your first flashcard to get started.</p>
-                            <button class="add-first-card-btn" onclick={addNewCard}>
+                            <button class="btn primary" onclick={addNewCard}>
                                 <span class="material-symbols-outlined">add</span>
                                 Add First Card
                             </button>
@@ -489,98 +495,26 @@
 </div>  
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
-    
-    :global(body) {
-        margin: 0;
-        padding: 0;
-        font-family: 'Raleway', sans-serif;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        min-height: 100vh;
-    }
+    @import '../../../assets/codyx-style.css';
 
-    .app-container {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .main-content {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        padding: 2rem 1rem;
-        min-width: 900px;
-    }
-
+    /* Page-specific styles */
     .edit-container {
-        padding: 20px 20px;
+        padding: 20px;
         max-width: 900px;
-        width: 900px;
-        margin: auto;
-        margin-top: 20px;
-        display: flex;
-        min-height: 100vh;
+        width: 100%;
+        margin: 20px auto;
         display: flex;
         flex-direction: column;
         border: 1px solid #e5e7eb;
         background: white;
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-    }
-
-    .main-content {
-        padding: 1rem;
-    }
-
-    /* Deck Info */
-    /* Deck Info */
-    .deck-info {
-        margin-bottom: 2rem;
-    }
-
-    .deck-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem;
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .deck-name-input {
-        padding: 0.375rem 0.5rem;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        font-size: 14px;
-        font-family: 'Raleway', sans-serif;
-        transition: border-color 0.2s ease;
-        background: white;
-        width: 200px;
-        flex-shrink: 0;
-    }
-
-    .deck-name-input:focus {
-        outline: none;
-        border-color: #ffa000;
     }
 
     .deck-input-section {
         width: 100%;
         box-sizing: border-box;
-    }
-
-    .deck-info {
-        margin-bottom: 0px; 
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-        width: 100%;
-        box-sizing: border-box;
+        margin-bottom: 20px;
     }
 
     .deck-input-controls {
@@ -594,7 +528,6 @@
         border: 1px solid #e9ecef;
         border-radius: 8px;
         width: 100%;
-        max-width: 100%;
         transition: all 0.2s ease;
         flex-wrap: nowrap;
         box-sizing: border-box;
@@ -603,119 +536,6 @@
     .deck-input-controls:hover {
         background: #f1f3f4;
         border-color: #dee2e6;
-    }
-
-    .deck-label {
-        color: #666;
-        font-family: 'Raleway', sans-serif;
-        font-size: 14px;
-        font-weight: 500;
-        white-space: nowrap;
-        flex-shrink: 0;
-        display: inline-block;
-    }
-
-    .open-deck-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #0ea5e9;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .open-deck-btn:hover:not(:disabled) {
-        background: #0284c7;
-        transform: translateY(-1px);
-    }
-
-    .create-new-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #0ea5e9;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .create-new-btn:hover:not(:disabled) {
-        background: #0284c7;
-        transform: translateY(-1px);
-    }
-
-    .import-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #ffa000;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .import-btn:hover:not(:disabled) {
-        background: #e6900a;
-        transform: translateY(-1px);
-    }
-
-    .error-banner {
-        background: linear-gradient(135deg, #ff4757, #ff3742);
-        color: white;
-        padding: 16px;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        border-left: 4px solid #ff1744;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 500;
-    }
-
-    .error-banner .material-symbols-outlined {
-        font-size: 20px;
-    }
-
-    .loading-container {
-        text-align: center;
-        padding: 40px 20px;
-        color: #666;
-    }
-
-    .loading-spinner {
-        margin-bottom: 16px;
-    }
-
-    .spinning {
-        animation: spin 2s linear infinite;
-        font-size: 32px;
-        color: #ff4757;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
     }
 
     .deck-editor-section {
@@ -735,23 +555,10 @@
         border-left: 4px solid var(--brand-orange, #ff8c00);
     }
 
-    .deck-title {
-        margin: 0;
-        color: #2c3e50;
-        font-size: 16px;
-        font-weight: 600;
-    }
-
     .deck-stats {
         display: flex;
         align-items: center;
         gap: 15px;
-    }
-
-    .card-count {
-        color: #666;
-        font-size: 14px;
-        font-weight: 500;
     }
 
     .deck-actions {
@@ -777,14 +584,6 @@
         gap: 4px;
     }
 
-    .metadata-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
     .display-field {
         display: flex;
         align-items: center;
@@ -796,6 +595,10 @@
         cursor: pointer;
         transition: all 0.2s ease;
         min-height: 20px;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        font-size: inherit;
     }
 
     .display-field:hover {
@@ -803,16 +606,9 @@
         background: #f0f9ff;
     }
 
-    .field-value {
-        flex: 1;
-        color: #495057;
-        font-size: 14px;
-    }
-
-    .field-value:empty::before {
-        content: attr(placeholder);
-        color: #adb5bd;
-        font-style: italic;
+    .display-field:focus {
+        outline: 2px solid #0ea5e9;
+        outline-offset: 2px;
     }
 
     .edit-icon {
@@ -832,83 +628,10 @@
         gap: 8px;
     }
 
-    .metadata-input, .metadata-textarea {
-        padding: 8px 12px;
-        border: 2px solid #0ea5e9;
-        border-radius: 6px;
-        font-size: 14px;
-        font-family: inherit;
-        outline: none;
-        background: white;
-        resize: vertical;
-    }
-
     .edit-actions {
         display: flex;
         gap: 6px;
         align-self: flex-start;
-    }
-
-    .save-btn, .cancel-btn {
-        padding: 4px 8px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        font-size: 12px;
-        transition: all 0.2s ease;
-    }
-
-    .save-btn {
-        background: #28a745;
-        color: white;
-    }
-
-    .save-btn:hover {
-        background: #218838;
-        transform: translateY(-1px);
-    }
-
-    .cancel-btn {
-        background: #6c757d;
-        color: white;
-    }
-
-    .cancel-btn:hover {
-        background: #545b62;
-        transform: translateY(-1px);
-    }
-
-    .save-btn .material-symbols-outlined,
-    .cancel-btn .material-symbols-outlined {
-        font-size: 14px;
-    }
-
-    .add-card-btn, .add-first-card-btn {
-        background: linear-gradient(135deg, #28a745, #20c997);
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-    }
-
-    .add-card-btn:hover:not(:disabled), .add-first-card-btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    }
-
-    .add-card-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
     }
 
     .cards-container {
@@ -938,40 +661,6 @@
         border-bottom: 1px solid #e1e5e9;
     }
 
-    .card-number {
-        color: #666;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0;
-    }
-
-    .card-delete-btn {
-        background: none;
-        border: none;
-        color: #dc3545;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        opacity: 0.6;
-    }
-
-    .card-delete-btn:hover {
-        background: #dc3545;
-        color: white;
-        opacity: 1;
-        transform: translateY(-1px);
-    }
-
-    .card-delete-btn .material-symbols-outlined {
-        font-size: 16px;
-    }
-
     .empty-deck {
         text-align: center;
         padding: 60px 40px;
@@ -981,14 +670,7 @@
         border: 2px dashed #dee2e6;
     }
 
-    .empty-icon {
-        margin-bottom: 20px;
-    }
 
-    .empty-icon .material-symbols-outlined {
-        font-size: 48px;
-        color: #adb5bd;
-    }
 
     .empty-deck h3 {
         margin: 0 0 10px 0;
@@ -1000,18 +682,4 @@
         margin: 0 0 25px 0;
         font-size: 14px;
     }
-
-    button:disabled {
-        background: #dee2e6 !important;
-        opacity: 1;
-        cursor: not-allowed;
-        transform: none !important;
-    }
-
-    button:disabled:hover {
-        background: #dee2e6 !important;
-        transform: none !important;
-        box-shadow: none !important;
-    }
-
 </style>

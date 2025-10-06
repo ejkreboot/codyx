@@ -18,7 +18,7 @@
             <div class="brand-info">
                 <h1 class="app-name">CODYX</h1>
                 <div class="tagline">
-                    Collaborative Data Science Notebooks • No Logins Required
+                    Collaborative Learning and Research Tools • No Logins Required
                 </div>
             </div>
         </div>

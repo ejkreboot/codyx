@@ -49,10 +49,10 @@ export class FlashCardDeck {
             self.topic = data.topic;
             self.description = data.description;
 
-            if (isOwned) {
-                self.isSandbox = false;
-            } else if(isSandbox) {
+            if (isSandbox) {
                 self.isSandbox = true;
+            } else {
+                self.isSandbox = false;
             }
 
             self.cards = await self.getFlashcards(data.id);
