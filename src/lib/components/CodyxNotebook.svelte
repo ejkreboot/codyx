@@ -34,7 +34,7 @@
     // Import state
     let isImporting = $state(false);
     let importError = $state(null);
-    let fileInputElement;
+    let fileInputElement = $state(null);
     
     let handleCellEvent = async (e) => {
         const { type, ...args } = e.detail;
@@ -320,10 +320,6 @@
     });
     
 </script>
-
-<svelte:head>
-<link href="/src/assets/codyx-style.css" rel="stylesheet">
-</svelte:head>
 
 {#if error}
 <div class="message message--error">

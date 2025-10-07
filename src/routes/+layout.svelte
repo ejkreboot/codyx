@@ -1,5 +1,6 @@
 <script>
     import favicon from '$lib/assets/favicon.png';
+    import '../assets/codyx-style.css';
 
     let { children } = $props();
 </script>

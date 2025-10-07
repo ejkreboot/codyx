@@ -413,32 +413,6 @@
         font-family: monospace;
     }
 
-    .card-actions {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #e9ecef;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .delete-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .delete-btn:hover {
-        background: #c82333;
-        transform: translateY(-1px);
-    }
 
     /* Typography for rendered content */
     .rendered-content :global(h1),
