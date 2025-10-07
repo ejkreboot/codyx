@@ -264,7 +264,40 @@ export class Notebook {
                 this.#handleCellSync(payload.payload);
             })
         const sub = this.channel.subscribe();
-        await this.#wait_for_join(sub);
+        
+        const maxRetries = 5;
+        let attempt = 0;
+        
+        while (attempt < maxRetries) {
+            try {
+                await this.#wait_for_join(sub);
+                console.log(`✅ Realtime channel joined successfully${attempt > 0 ? ` (after ${attempt} retries)` : ''}`);
+                return; // Success! Exit the retry loop
+            } catch (error) {
+                attempt++;
+                console.log(`⚠️ Channel join attempt ${attempt} failed:`, error.message);
+                
+                if (attempt >= maxRetries) {
+                    console.error(`❌ Failed to join realtime channel after ${maxRetries} attempts`);
+                    throw new Error(`Failed to join realtime channel after ${maxRetries} attempts: ${error.message}`);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                try {
+                    this.channel?.unsubscribe();
+                } catch (cleanupError) {
+                    console.log('Note: Error during channel cleanup (expected):', cleanupError.message);
+                }
+                
+                this.channel = supabase.channel(channelName)
+                    .on('broadcast', { event: 'cell_sync' }, (payload) => {
+                        this.#handleCellSync(payload.payload);
+                    });
+                const newSub = this.channel.subscribe();
+                sub = newSub; 
+            }
+        }
     }
 
     async #handleCellSync(data) {
@@ -291,15 +324,16 @@ export class Notebook {
         }
         return new Promise((resolve, reject) => {
             const check = setInterval(() => {
-            if (sub.state === 'joined') {
-                clearInterval(check);
-                resolve(sub);
-            } else if (sub.state === 'closed' || sub.state === 'errored') {
-                clearInterval(check);
-                console.log(`Channel failed: ${sub.state}`);
-                reject(new Error(`Channel failed: ${sub.state}`));
-            }
-            }, 10); // check every 10ms
+                console.log(`Channel state: ${sub.state}`);
+                if (sub.state === 'joined') {
+                    clearInterval(check);
+                    resolve(sub);
+                } else if (sub.state === 'closed' || sub.state === 'errored') {
+                    clearInterval(check);
+                    console.log(`Channel failed: ${sub.state}`);
+                    reject(new Error(`Channel failed: ${sub.state}`));
+                }
+            }, 200); // check every 200ms
         });
     }
     

@@ -29,7 +29,7 @@
     let sandboxInputElement;
     
     // Pyodide loading state
-    let isPyodideLoading = $state(false);
+    let isPyodideLoading = $state(true);
     
     // Import state
     let isImporting = $state(false);
@@ -44,7 +44,6 @@
             switch(type) {
                 case "delete":
                 await nb.deleteCell(args.docId);
-                // No refresh needed - store updates automatically!
                 break;
                 case "addMarkdownCell":
                 const newMdCell = { type: 'md', content: 'New Markdown Cell' };
@@ -567,11 +566,20 @@
     }
     
     .step-1 {
-        animation-delay: 1.5s;
+        animation-delay: 0s;
     }
     
     .step-2 {
-        animation-delay: 4s;
+        animation-delay: 1s;
+    }
+    
+    .step-3 {
+        animation-delay: 3s;
+    }
+    
+    .step::before {
+        content: "⏳";
+        margin-right: var(--space-2);
     }
     
     /* Sandbox slug editor styles */
@@ -586,15 +594,7 @@
         flex-shrink: 0;
     }
     
-    .step-3 {
-        animation-delay: 6s;
-    }
-    
-    .step::before {
-        content: "⏳";
-        margin-right: var(--space-2);
-    }
-    
+
     @keyframes stepAppear {
         to {
             opacity: 1;
