@@ -15,45 +15,34 @@
   - main [ref=e13]:
     - main [ref=e15]:
       - generic [ref=e16]:
-        - generic [ref=e17]:
-          - generic [ref=e18]: error
-          - text: Could not rename deck...name already taken.
-        - generic [ref=e19]:
-          - generic [ref=e20]: "Deck:"
-          - textbox [ref=e21]: restless-math2
-          - button "check" [active] [ref=e22] [cursor=pointer]:
-            - generic [ref=e23]: check
-          - button "close" [ref=e24] [cursor=pointer]:
-            - generic [ref=e25]: close
-          - generic [ref=e26]:
-            - generic [ref=e27]:
-              - generic [ref=e28]: visibility
-              - text: "View-only link:"
-            - generic [ref=e29]:
-              - generic [ref=e30]: http://localhost:5173/flashcards?deck=shrill-disk
-              - button "content_copy" [ref=e31] [cursor=pointer]:
-                - generic [ref=e32]: content_copy
-              - button "edit" [ref=e33] [cursor=pointer]:
-                - generic [ref=e34]: edit
-        - button "Click to reveal answer" [ref=e37] [cursor=pointer]:
-          - generic [ref=e39]:
-            - generic [ref=e40]: Question
-            - paragraph [ref=e42]: Welcome to Your Flashcard Deck! 🎯
-            - generic [ref=e43]: Press Enter or Space to reveal answer
-          - generic [ref=e45]:
-            - paragraph [ref=e47]: Welcome to Your Flashcard Deck! 🎯
-            - generic [ref=e49]: Answer
-            - paragraph [ref=e51]: This is your first card. Edit or delete it as you like!
-  - contentinfo [ref=e52]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: "Deck Name:"
+          - textbox "my-flashcard-deck" [ref=e20]
+          - generic [ref=e21]:
+            - button "folder_open Open Deck" [disabled] [ref=e22]:
+              - generic [ref=e23]: folder_open
+              - text: Open Deck
+            - button "add Create New Deck" [active] [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]: add
+              - text: Create New Deck
+        - button "Click to reveal answer" [ref=e28] [cursor=pointer]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: Question
+            - paragraph [ref=e33]: What is spaced repetition?
+            - generic [ref=e34]: Press Enter or Space to reveal answer
+          - generic [ref=e36]:
+            - paragraph [ref=e38]: What is spaced repetition?
+            - generic [ref=e40]: Answer
+            - paragraph [ref=e42]: A learning technique that involves reviewing information at increasing intervals to improve long-term retention and memory.
+  - contentinfo [ref=e43]:
     - text: "© 2025 Eric J. Kort. License:"
-    - link "MIT" [ref=e53] [cursor=pointer]:
+    - link "MIT" [ref=e44] [cursor=pointer]:
       - /url: https://mit-license.org/
     - text: . Bugs? Suggestions? Open an issue on
-    - link "GitHub" [ref=e54] [cursor=pointer]:
+    - link "GitHub" [ref=e45] [cursor=pointer]:
       - /url: https://github.com/ejkreboot/codyx
     - text: . Created with lots of help from
-    - link "Claude Sonnet 4" [ref=e55] [cursor=pointer]:
+    - link "Claude Sonnet 4" [ref=e46] [cursor=pointer]:
       - /url: https://www.anthropic.com/claude/sonnet
     - text: .
-  - generic [ref=e56]: CODYX - Interactive Flashcards
 ```

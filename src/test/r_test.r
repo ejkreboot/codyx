@@ -162,8 +162,8 @@ print(matrix_data)
 
 row_sums <- apply(matrix_data, 1, sum)
 col_means <- apply(matrix_data, 2, mean)
-cat(sprintf("Row sums: [%s]\n", paste(row_sums, collapse = ", "))
-cat(sprintf("Column means: [%s]\n", paste(round(col_means, 2), collapse = ", "))
+cat(sprintf("Row sums: [%s]\n", paste(row_sums, collapse = ", ")))
+cat(sprintf("Column means: [%s]\n", paste(round(col_means, 2), collapse = ", ")))
 
 # Test 7: List Operations
 cat("\n📋 Test 7: List Operations\n")
