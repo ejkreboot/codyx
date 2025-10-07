@@ -51,7 +51,7 @@
                 await nb.insertCellAfter(newMdCell, thisCell);
                 break;
                 case "addCodeCell":
-                const newCodeCell = { type: 'code', content: '// New Code Cell' };
+                const newCodeCell = { type: 'code', content: '' };
                 await nb.insertCellAfter(newCodeCell, thisCell);
                 break;
                 case "addRCell":

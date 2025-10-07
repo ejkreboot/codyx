@@ -26,17 +26,11 @@ class WebRService {
             });
             
             await this.webR.init();            
-            await this.webR.installPackages([
-                'ggplot2', 
-                'dplyr',
-                'tidyr',      // Data reshaping - pivot_longer, pivot_wider
-                'plotly',     // Interactive plots! 🎉
-                'stringr',    // String manipulation - str_detect, str_replace
-                'lubridate'   // Date/time handling - ymd(), today()
-            ]);
-            await this.webR.installPackages(['ggplot2', 'dplyr']);
             
-            // Set default plot size (width=480, height=320 for 3:2 ratio)
+            // Don't pre-install packages - use lazy loading instead!
+            // This prevents the massive download at startup
+            
+            // Set default plot size (width=480, height=320 for 3:2 ratio)  
             await this.webR.evalR(`
                 options(repr.plot.width = 4.8, repr.plot.height = 3.2)
                 webr::canvas(width = 480, height = 320)
@@ -53,6 +47,9 @@ class WebRService {
         if (this.status !== 'ready') {
             await this.initialize();
         }
+
+        // Auto-install packages that are used in the code
+        await this.ensurePackagesLoaded(code);
 
         try {
             
@@ -102,6 +99,11 @@ class WebRService {
                             const dataUrl = canvas.toDataURL('image/png');
                             plots.push(dataUrl);
                             
+                            // MEMORY LEAK FIX: Release ImageBitmap and canvas
+                            imageBitmap.close(); // Release ImageBitmap memory
+                            canvas.width = 0;     // Clear canvas memory  
+                            canvas.height = 0;
+                            
                         }
                     }
                 }
@@ -132,6 +134,65 @@ class WebRService {
             return error.message;
         }
         return String(error);
+    }
+
+    // Auto-detect and install packages used in R code
+    async ensurePackagesLoaded(code) {
+        const commonPackages = {
+            'ggplot2': /\b(ggplot|geom_|aes\(|theme_)/,
+            'dplyr': /\b(filter\(|select\(|mutate\(|arrange\(|summarise\(|group_by\(|%>%)/,
+            'tidyr': /\b(pivot_longer|pivot_wider|gather|spread|separate|unite)/,
+            'plotly': /\b(ggplotly|plot_ly)/,
+            'stringr': /\b(str_detect|str_replace|str_extract|str_length)/,
+            'lubridate': /\b(ymd|mdy|dmy|today|now|year|month|day)/
+        };
+
+        const packagesToInstall = [];
+        
+        // Check which packages are used in the code
+        for (const [pkg, pattern] of Object.entries(commonPackages)) {
+            if (pattern.test(code)) {
+                packagesToInstall.push(pkg);
+            }
+        }
+
+        // Also check for library() calls
+        const libraryMatches = code.match(/library\s*\(\s*([^)]+)\s*\)/g);
+        if (libraryMatches) {
+            libraryMatches.forEach(match => {
+                const pkg = match.match(/library\s*\(\s*([^)]+)\s*\)/)[1].replace(/['"]/g, '');
+                if (!packagesToInstall.includes(pkg)) {
+                    packagesToInstall.push(pkg);
+                }
+            });
+        }
+
+        // Install packages that are needed but not yet installed
+        if (packagesToInstall.length > 0) {
+            console.log(`📦 Installing R packages: ${packagesToInstall.join(', ')}`);
+            try {
+                await this.webR.installPackages(packagesToInstall);
+                console.log(`✅ R packages installed successfully`);
+            } catch (error) {
+                console.log(`⚠️ Some R packages may not have installed correctly:`, error);
+            }
+        }
+    }
+
+    // Memory cleanup method
+    async cleanup() {
+        if (this.webR) {
+            try {
+                // Close WebR connection and clean up memory
+                await this.webR.close();
+            } catch (error) {
+                console.log('⚠️ WebR cleanup error:', error);
+            } finally {
+                this.webR = null;
+                this.status = 'not-started';
+                this.initPromise = null;
+            }
+        }
     }
 
     getStatus() {

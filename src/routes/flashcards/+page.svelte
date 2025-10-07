@@ -88,7 +88,6 @@
             // Get first card for study
             const studyCards = deck.getCardsForStudy(20);
             currentCard = studyCards.length > 0 ? studyCards[0] : null;
-            console.log(deck);
         } catch (err) {
             console.error('Failed to load deck:', err);
             error = err.message;

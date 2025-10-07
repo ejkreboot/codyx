@@ -11,9 +11,6 @@ test.describe('Notebook Creation E2E', () => {
     // Take a screenshot to see what's on the page
     await page.screenshot({ path: 'homepage-debug.png' });
     
-    // Debug: Let's see what buttons/links are available
-    console.log('Page title:', await page.title());
-    console.log('Current URL:', page.url());
     
     // Target the "New Notebook" button by its CSS class
     const createButton = page.locator('.create-btn');
@@ -22,14 +19,12 @@ test.describe('Notebook Creation E2E', () => {
     await expect(createButton).toBeVisible({ timeout: 5000 });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     
-    console.log('Found create-btn, clicking...');
     await createButton.click();
     
     let clickedButton = true;
     
     if (!clickedButton) {
       // If no button found, let's navigate directly to notebooks page
-      console.log('No "New Notebook" button found, navigating directly to /notebooks');
       await page.goto('/notebooks');
     }
     
@@ -79,7 +74,6 @@ test.describe('Notebook Creation E2E', () => {
       try {
         const cellElement = page.locator(selector).first();
         if (await cellElement.isVisible({ timeout: 2000 })) {
-          console.log(`Found cell with selector: ${selector}`);
           foundCell = true;
           break;
         }
@@ -89,7 +83,6 @@ test.describe('Notebook Creation E2E', () => {
     }
     
     // If we found the welcome text, that's good enough - the notebook is loaded
-    console.log(`Cell element found: ${foundCell}`);
   });
   
   test('should handle notebook creation without errors', async ({ page }) => {

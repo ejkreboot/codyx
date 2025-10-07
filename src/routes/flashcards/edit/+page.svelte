@@ -317,7 +317,6 @@
 
     // Load deck when slug changes
     $effect(() => {
-        console.log(slug);
         if (slug && slug !== lastLoadedSlug) {
             loadDeck(slug);
         }

@@ -30,10 +30,10 @@ class PyodideService {
                 indexURL: "https://cdn.jsdelivr.net/pyodide/v0.28.3/full/"
             });
             
-            // Load common packages
-            await this.pyodide.loadPackage(['micropip', 'matplotlib', 'numpy', 'pandas']);
+            // Load only essential packages for fast startup
+            await this.pyodide.loadPackage(['micropip']);
             
-            // Set up global output capture system and matplotlib support
+            // Set up global output capture system with lazy matplotlib loading
             await this.pyodide.runPython(`
                 import sys
                 from io import StringIO
@@ -59,42 +59,107 @@ class PyodideService {
 
                 _output_capture = OutputCapture()
                 
-                # Set up matplotlib for web output
-                import matplotlib
-                matplotlib.use('Agg')  # Use non-interactive backend
-                import matplotlib.pyplot as plt
-                import base64
-                from io import BytesIO
-                import warnings
+                # Global flag to track matplotlib loading state
+                _matplotlib_loaded = False
+                _matplotlib_loading = False
                 
-                # Suppress the non-interactive backend warning
-                warnings.filterwarnings('ignore', message='.*non-interactive.*', category=UserWarning)
+                async def ensure_matplotlib():
+                    """Lazy load matplotlib only when needed"""
+                    global _matplotlib_loaded, _matplotlib_loading
+                    
+                    if _matplotlib_loaded:
+                        return True
+                    
+                    if _matplotlib_loading:
+                        # Wait for ongoing load to complete
+                        import asyncio
+                        while _matplotlib_loading:
+                            await asyncio.sleep(0.1)
+                        return _matplotlib_loaded
+                    
+                    try:
+                        _matplotlib_loading = True
+                        print("📦 Loading matplotlib for plotting support...")
+                        
+                        # Check if matplotlib is already imported
+                        if 'matplotlib' not in sys.modules:
+                            import micropip
+                            await micropip.install('matplotlib')
+                        
+                        import matplotlib
+                        matplotlib.use('Agg')  # Use non-interactive backend
+                        import matplotlib.pyplot as plt
+                        import base64
+                        from io import BytesIO
+                        import warnings
+                        
+                        # Suppress the non-interactive backend warning
+                        warnings.filterwarnings('ignore', message='.*non-interactive.*', category=UserWarning)
+                        
+                        # Store in globals for capture function
+                        globals()['plt'] = plt
+                        globals()['base64'] = base64
+                        globals()['BytesIO'] = BytesIO
+                        
+                        _matplotlib_loaded = True
+                        print("✅ Matplotlib ready for plotting!")
+                        return True
+                        
+                    except Exception as e:
+                        print(f"❌ Failed to load matplotlib: {e}")
+                        return False
+                    finally:
+                        _matplotlib_loading = False
                 
                 def capture_matplotlib():
                     """Capture current matplotlib figure as base64 image"""
-                    if plt.get_fignums():  # Check if there are active figures
-                        buf = BytesIO()
-                        plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
-                        buf.seek(0)
-                        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-                        plt.close('all')  # Close all figures
-                        return f"__MATPLOTLIB_IMG__{img_base64}__END_IMG__"
+                    if not _matplotlib_loaded:
+                        return ""
+                    
+                    try:
+                        plt = globals().get('plt')
+                        if plt and plt.get_fignums():  # Check if there are active figures
+                            BytesIO = globals().get('BytesIO')
+                            base64 = globals().get('base64')
+                            
+                            buf = BytesIO()
+                            plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+                            buf.seek(0)
+                            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                            plt.close('all')  # Close all figures
+                            return f"__MATPLOTLIB_IMG__{img_base64}__END_IMG__"
+                    except Exception as e:
+                        print(f"Warning: Failed to capture plot: {e}")
+                    
                     return ""
+                
+                # Alternative: Support for lighter plotting libraries
+                def capture_plotly():
+                    """Capture Plotly figures if available"""
+                    try:
+                        import plotly.graph_objects as go
+                        import plotly.io as pio
+                        # Note: Plotly generates HTML/JS, not images
+                        # This would need different handling in the UI
+                        return ""
+                    except ImportError:
+                        return ""
                 
                 # Check what's available
                 import sys
                 print(f"📦 Python {sys.version}")
                 
-                available_modules = []
-                for module in ['numpy', 'pandas', 'matplotlib', 'micropip']:
+                available_modules = ['micropip']
+                for module in ['numpy', 'pandas']:
                     try:
                         __import__(module)
                         available_modules.append(module)
                     except ImportError:
                         pass
                 
-                print(f"📋 Available modules: {available_modules}")
+                print(f"📋 Pre-loaded modules: {available_modules}")
                 print("✅ Ready for Python code execution!")
+                print("💡 Tip: Import any package and get auto-install prompts from 250+ Pyodide packages!")
             `);
             
             this.isInitialized = true;
@@ -110,7 +175,7 @@ class PyodideService {
         }
     }
 
-    async executeCode(code) {
+    async executeCode(code, onProgress = null) {
         const py = await this.initialize();
         if (!py) {
             throw new Error('Pyodide not available');
@@ -126,11 +191,67 @@ class PyodideService {
             let plotData = null;
 
             try {
-                // Store the code in a Python variable to avoid escaping issues
-                py.globals.set('__user_code__', code);
                 
-                // Execute user code in the global namespace for variable persistence
-                await py.runPython('exec(__user_code__, globals())');
+                // Check if code uses matplotlib and auto-load if needed
+                const usesMatplotlib = /\b(matplotlib|plt\.|pyplot)\b/.test(code) || 
+                                     /\bfrom\s+matplotlib/.test(code) ||
+                                     /\bimport\s+matplotlib/.test(code);
+                
+                if (usesMatplotlib) {
+                        if (onProgress) onProgress('📊 Loading matplotlib for plotting support... (first time may take a moment)');
+                    await py.runPythonAsync('await ensure_matplotlib()');
+                    if (onProgress) onProgress('✅ Matplotlib ready - executing your code...');
+                }
+                
+                // Check for micropip installations and provide progress feedback
+                const hasMicropipInstall = /micropip\.install/.test(code);
+                if (hasMicropipInstall && onProgress) {
+                    // Extract package names from micropip.install calls with better regex
+                    let packages = [];
+                    
+                    // Match single package: micropip.install('package') or micropip.install("package")
+                    const singleMatches = code.match(/micropip\.install\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g);
+                    if (singleMatches) {
+                        singleMatches.forEach(match => {
+                            const pkg = match.match(/['"`]([^'"`]+)['"`]/)[1];
+                            packages.push(pkg);
+                        });
+                    }
+                    
+                    // Match array format: micropip.install(['pkg1', 'pkg2'])
+                    const arrayMatches = code.match(/micropip\.install\s*\(\s*\[([^\]]+)\]\s*\)/g);
+                    if (arrayMatches) {
+                        arrayMatches.forEach(match => {
+                            const arrayContent = match.match(/\[([^\]]+)\]/)[1];
+                            const arrayPackages = arrayContent.split(',')
+                                .map(pkg => pkg.trim().replace(/['"`]/g, ''))
+                                .filter(pkg => pkg);
+                            packages = packages.concat(arrayPackages);
+                        });
+                    }
+                    
+                    if (packages.length > 0) {
+                        const uniquePackages = [...new Set(packages)];
+                        if (uniquePackages.length === 1) {
+                            onProgress(`📦 Installing ${uniquePackages[0]}... (this may take a moment)`);
+                        } else {
+                            onProgress(`📦 Installing ${uniquePackages.length} packages: ${uniquePackages.join(', ')}... (this may take a moment)`);
+                        }
+                    } else {
+                        onProgress('📦 Installing packages... (this may take a moment)');
+                    }
+                }
+                
+                // Check if code contains await - if so, use runPythonAsync
+                const hasAwait = /\bawait\s+/.test(code);
+                
+                if (hasAwait) {
+                    // Execute async code directly using runPythonAsync
+                    await py.runPythonAsync(code);
+                } else {
+                    // Execute regular code using runPython
+                    await py.runPython(code);
+                }
                 
                 // Capture any matplotlib plots
                 const plotOutput = await py.runPython('capture_matplotlib()');
@@ -205,6 +326,20 @@ except:
                     // Ignore cleanup errors
                 }
                 
+                // Only clean up on severe errors that might contaminate the environment
+                try {
+                    const isRecursionError = executionError.message?.includes('RecursionError') || 
+                                           executionError.message?.includes('maximum recursion depth') ||
+                                           String(executionError).includes('RecursionError');
+                    
+                    if (isRecursionError) {
+                        console.log('🔥 Recursion error detected - suggesting manual reset');
+                        // Don't auto-cleanup, let user decide to reset manually
+                    }
+                } catch (cleanupError) {
+                    console.log('⚠️ Error analysis failed:', cleanupError);
+                }
+                
                 // Extract meaningful Python error message
                 let errorMessage = executionError.message || String(executionError) || 'Python execution failed';
                 
@@ -240,8 +375,13 @@ except:
                     }
                 }
                 
-                // Set the error and output for this execution
-                error = errorMessage || 'Python execution error';
+                // Enhanced error messages for specific cases
+                if (errorMessage?.includes('RecursionError') || errorMessage?.includes('maximum recursion depth')) {
+                    error = `${errorMessage}\n\n💡 Tip: Click the "🧹 Reset" button to completely restart the Python environment.`;
+                } else {
+                    error = errorMessage || 'Python execution error';
+                }
+                
                 output = capturedOutput; // Include any partial output
             }
 
@@ -259,6 +399,44 @@ except:
         }
     }
 
+    // Manual cleanup method for users - NUCLEAR RESET
+    async resetEnvironment() {
+        console.log('� Nuclear reset: Completely restarting Pyodide engine...');
+        
+        try {
+            // Completely destroy the current Pyodide instance
+            this.pyodide = null;
+            this.isInitialized = false;
+            this.initPromise = null;
+            
+            // Force garbage collection to clean up memory
+            if (typeof window !== 'undefined' && window.gc) {
+                window.gc();
+            }
+            
+            console.log('💥 Pyodide engine destroyed - reinitializing...');
+            
+            // Reinitialize from scratch (like a fresh page load)
+            await this.initialize();
+            
+            return { 
+                output: "🔥 Python environment completely restarted. Fresh engine with no previous state.", 
+                error: null, 
+                hasPlot: false, 
+                plotData: null 
+            };
+            
+        } catch (error) {
+            console.error('❌ Nuclear reset failed:', error);
+            return { 
+                output: null, 
+                error: `Reset failed: ${error.message}. Try reloading the page.`, 
+                hasPlot: false, 
+                plotData: null 
+            };
+        }
+    }
+
     // Optional: Warm up Pyodide in the background
     warmUp() {
         if (!this.initPromise && !this.isInitialized) {
@@ -268,7 +446,30 @@ except:
         }
     }
 
+    // Legacy cleanup method - now deprecated in favor of nuclear reset
+    // This method is kept for backwards compatibility but does minimal cleanup
+    async cleanNamespace(aggressive = false) {
+        console.log('⚠️ cleanNamespace is deprecated - use resetEnvironment() for full reset');
+        // Do nothing - nuclear reset is the preferred method now
+    }
+    
     // Get initialization status for UI feedback
+    // Memory cleanup method
+    async cleanup() {
+        if (this.pyodide) {
+            try {
+                console.log('🧹 Pyodide service cleanup - destroying engine');
+                // Just destroy the engine completely
+                this.pyodide = null;
+                this.isInitialized = false;
+                this.initPromise = null;
+                console.log('✅ Pyodide service cleaned up');
+            } catch (error) {
+                console.log('⚠️ Pyodide cleanup error:', error);
+            }
+        }
+    }
+
     getStatus() {
         if (this.isInitialized) return 'ready';
         if (this.initPromise) return 'initializing';

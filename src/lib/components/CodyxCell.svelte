@@ -6,6 +6,7 @@
     import { processEnhancedMarkdown, collapsibleScript } from '$lib/util/enhanced-markdown.js';
     import PythonArea from '$lib/components/PythonArea.svelte';
     import RArea from '$lib/components/RArea.svelte';
+    import pyodidePackagesData from '$lib/classes/pyodide-packages.json';
 	
     let props = $props();
     let initialText = props.initialText ?? '';
@@ -34,7 +35,42 @@
 
     const dispatch = createEventDispatcher();
 
+    // Import suggestion state
+    let importSuggestions = $state([]);
+    
+    // Create comprehensive package mapping from Pyodide packages
+    const createPackageMapping = () => {
+        const mapping = {};
+        
+        // Add all Pyodide packages (most use the same name for import and install)
+        pyodidePackagesData.packages.forEach(pkg => {
+            mapping[pkg] = pkg;
+        });
+        
+        // Add common import aliases and special cases
+        const specialMappings = {
+            'sklearn': 'scikit-learn',
+            'cv2': 'opencv-python',
+            'PIL': 'Pillow', 
+            'bs4': 'beautifulsoup4',
+            'yaml': 'pyyaml',
+            'Image': 'Pillow',  // from PIL import Image
+            'requests': 'requests'
+        };
+        
+        // Override with special mappings where import name differs from install name
+        Object.assign(mapping, specialMappings);
+        
+        return mapping;
+    };
+    
+    const commonPackages = createPackageMapping();
+
     let liveTextUpdater = null;
+    
+    // Debug: Track text changes
+    $effect(() => {
+    });
     
     // svelte-ignore non_reactive_update
     function handleInput(e) {
@@ -43,6 +79,158 @@
       } else {
         return;
       }
+      
+      // Auto-resize textarea for code cells (both Python and R)
+      if ((type === 'code' || type === 'r') && e.target) {
+          autoResizeTextarea(e.target);
+      }
+      
+      // Update import suggestions for Python cells
+      if (type === 'code') {
+          updateImportSuggestions();
+      }
+    }
+    
+    // Auto-resize textarea to fit content
+    function autoResizeTextarea(textarea) {
+        // Reset height to auto to get the correct scrollHeight
+        textarea.style.height = 'auto';
+        
+        // Set minimum height
+        const minHeight = 60; // About 3 lines
+        
+        // Use different max heights based on cell type
+        // R and Python (code) cells often have longer code blocks
+        const maxHeight = (type === 'r' || type === 'code') ? 800 : 400;
+        
+        // Calculate new height based on scroll height
+        const newHeight = Math.max(minHeight, Math.min(maxHeight, textarea.scrollHeight));
+        
+        textarea.style.height = newHeight + 'px';
+    }
+    
+    // Detect imports and suggest package installations
+    function updateImportSuggestions() {
+        if (type !== 'code') {
+            importSuggestions = [];
+            return;
+        }
+        
+        const suggestions = [];
+        const lines = text.split('\n');
+        const suggestedPackages = new Set(); // Prevent duplicate suggestions
+        
+        lines.forEach((line, lineIndex) => {
+            const trimmed = line.trim();
+            
+            // Skip comments and empty lines
+            if (trimmed.startsWith('#') || trimmed === '') {
+                return;
+            }
+            
+            // Match various import patterns
+            const importPatterns = [
+                // Standard imports: import package
+                /^import\s+([a-zA-Z_][a-zA-Z0-9_]*)/,
+                // From imports: from package import ...
+                /^from\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+import/,
+                // Multiple imports: import package1, package2
+                /^import\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\s*,\s*[a-zA-Z_][a-zA-Z0-9_]*)*)/,
+            ];
+            
+            for (const pattern of importPatterns) {
+                const match = trimmed.match(pattern);
+                if (match && match[1]) {
+                    // Handle multiple imports separated by commas
+                    const packageNames = match[1].split(',').map(name => name.trim());
+                    
+                    for (const packageName of packageNames) {
+                        // Check if it's in our Pyodide packages list
+                        if (commonPackages[packageName] && !suggestedPackages.has(packageName)) {
+                            // Check if this package is already being installed via micropip
+                            const installName = commonPackages[packageName];
+                            const isAlreadyInstalling = lines.some(l => {
+                                const trimmedLine = l.trim();
+                                const installPattern = new RegExp(
+                                    `micropip\\.install\\s*\\(\\s*['"\`]${installName}['"\`]\\s*\\)|` +
+                                    `micropip\\.install\\s*\\(\\s*\\[.*['"\`]${installName}['"\`].*\\]\\s*\\)`
+                                );
+                                return installPattern.test(trimmedLine);
+                            });
+                            
+                            // Only suggest if not already installing
+                            if (!isAlreadyInstalling) {
+                                suggestions.push({
+                                    line: lineIndex,
+                                    packageName: packageName,
+                                    installName: installName,
+                                    originalLine: line
+                                });
+                                suggestedPackages.add(packageName);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        importSuggestions = suggestions;
+    }
+    
+    // Insert micropip installation code
+    function insertInstallCode(suggestion) {
+        
+        const lines = text.split('\n');
+        
+        // Check if micropip import already exists
+        const hasMicropipImport = lines.some(line => 
+            line.trim().match(/^import\s+micropip\s*$/) || 
+            line.trim().match(/^from\s+micropip\s+import/)
+        );
+        
+        // Check if this package is already being installed via micropip
+        const isAlreadyInstalling = lines.some(line => {
+            const trimmed = line.trim();
+            // Look for patterns like: await micropip.install('package') or micropip.install(['package1', 'package2'])
+            const installPattern = new RegExp(
+                `micropip\\.install\\s*\\(\\s*['"\`]${suggestion.installName}['"\`]\\s*\\)|` +
+                `micropip\\.install\\s*\\(\\s*\\[.*['"\`]${suggestion.installName}['"\`].*\\]\\s*\\)`
+            );
+            return installPattern.test(trimmed);
+        });
+        
+        // If the package is already being installed, don't add the installation code
+        if (isAlreadyInstalling) {
+            // Just remove the suggestion since it's already handled
+            importSuggestions = importSuggestions.filter(s => s !== suggestion);
+            return;
+        }
+        
+        // Build the install code - only add micropip import if not present
+        let installCode = '';
+        if (!hasMicropipImport) {
+            installCode += 'import micropip\n';
+        }
+        installCode += `await micropip.install('${suggestion.installName}')`;
+        
+        // Insert before the import line
+        lines.splice(suggestion.line, 0, installCode);
+        text = lines.join('\n');
+        
+        
+        // Remove this suggestion since we've handled it
+        importSuggestions = importSuggestions.filter(s => s !== suggestion);
+        
+        // Trigger text update
+        if (liveTextUpdater) {
+            liveTextUpdater({ target: { value: text } });
+        }
+        
+        // Auto-resize textarea after content update
+        if (textareaElement) {
+            // Use setTimeout to ensure the DOM has updated with new content
+            setTimeout(() => autoResizeTextarea(textareaElement), 0);
+        }
     }
 
     function onPatched(e) { 
@@ -108,6 +296,24 @@
             const script = document.createElement('script');
             script.textContent = collapsibleScript;
             document.head.appendChild(script);
+        }
+
+        // Check for import suggestions on mount
+        if (type === 'code') {
+            updateImportSuggestions();
+        }
+        
+        // Auto-resize textarea on mount if it has content (for both Python and R)
+        if ((type === 'code' || type === 'r') && textareaElement && text) {
+            setTimeout(() => autoResizeTextarea(textareaElement), 0);
+        }
+    });
+    
+    // Reactive effect to auto-resize when text changes (for both Python and R)
+    $effect(() => {
+        if ((type === 'code' || type === 'r') && textareaElement && text !== undefined) {
+            // Use setTimeout to ensure DOM is updated
+            setTimeout(() => autoResizeTextarea(textareaElement), 0);
         }
     });
 
@@ -209,6 +415,33 @@
             onblur={stopEditing}
             class="cell-textarea"
           ></textarea>
+          
+          {#if importSuggestions.length > 0}
+            <div class="import-suggestions">
+              <div class="suggestions-header">
+                <span class="font-sans text-sm suggestions-info">
+                  📦 {importSuggestions.length} package{importSuggestions.length > 1 ? 's' : ''} available from Pyodide
+                </span>
+              </div>
+              {#each importSuggestions as suggestion}
+                <div class="import-suggestion">
+                  <span class="font-sans text-sm suggestion-text">
+                    Install <code>{suggestion.packageName}</code>
+                    {#if suggestion.installName !== suggestion.packageName}
+                      <span class="install-name">({suggestion.installName})</span>
+                    {/if}
+                  </span>
+                  <button 
+                    class="suggestion-btn"
+                    onclick={() => insertInstallCode(suggestion)}
+                    title="Click to add: await micropip.install('{suggestion.installName}')"
+                  >
+                    Add install
+                  </button>
+                </div>
+              {/each}
+            </div>
+          {/if}
           
           <PythonArea 
             code={text}
@@ -447,17 +680,20 @@
 
   .cell-textarea {
     width: 100%;
-    min-height: 120px;
+    min-height: 60px;
+    max-height: 800px; /* Increased for longer code blocks */
     padding: 1rem;
     border: none;
     outline: none;
-    resize: vertical;
+    resize: none; /* Disable manual resize since we auto-resize */
+    overflow-y: auto; /* Allow scrolling if content exceeds max-height */
     font-family: 'Cutive Mono', monospace;
     font-size: 14px;
     line-height: 1.5;
     color: #555958;
     background: transparent;
     box-sizing: border-box;
+    transition: height 0.1s ease; /* Smooth height transitions */
   }
 
   .markdown-preview {
@@ -661,5 +897,68 @@
   .rendered-markdown :global(.katex .base) {
     display: inline-block;
     vertical-align: middle;
+  }
+
+  /* Import Suggestion Styles - Subtle & Minimal */
+  .import-suggestions {
+    margin: var(--space-1) 0 var(--space-2) 0;
+    font-size: 12px;
+  }
+
+  .import-suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    margin: 2px 0;
+    background: rgba(250, 163, 54, 0.04);
+    border-radius: 4px;
+    border-left: 2px solid rgba(250, 163, 54, 0.3);
+    opacity: 0.85;
+    transition: all 0.2s ease;
+  }
+
+  .import-suggestion:hover {
+    opacity: 1;
+    background: rgba(250, 163, 54, 0.08);
+  }
+
+  .suggestion-text {
+    flex: 1;
+    font-family: 'Raleway', sans-serif;
+    color: var(--gray-600);
+    font-size: 11px;
+  }
+
+  .suggestion-text code {
+    background: transparent;
+    color: var(--primary-color);
+    padding: 0 2px;
+    font-family: 'Cutive Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .suggestion-btn {
+    background: transparent;
+    color: var(--primary-color);
+    border: 1px solid rgba(250, 163, 54, 0.3);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+  }
+
+  .suggestion-btn:hover {
+    background: rgba(250, 163, 54, 0.1);
+    border-color: var(--primary-color);
+    text-decoration-color: var(--primary-color);
   }
 </style>

@@ -1,8 +1,43 @@
 <script>
+    import { onMount, onDestroy } from 'svelte';
     import favicon from '$lib/assets/favicon.png';
     import '../assets/codyx-style.css';
+    import { pyodideService } from '$lib/classes/pyodide-service.js';
+    import webRService from '$lib/classes/webr-service.js';
 
     let { children } = $props();
+
+    // Global cleanup to prevent memory leaks
+    onMount(() => {
+
+        const handleBeforeUnload = async () => {
+            console.log('🧹 Page unloading - cleaning up services...');
+            try {
+                await pyodideService.cleanup();
+                await webRService.cleanup();
+            } catch (error) {
+                console.log('⚠️ Cleanup error:', error);
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    });
+
+    onDestroy(async () => {
+        // Cleanup services when layout is destroyed
+        console.log('🧹 Layout destroyed - cleaning up services...');
+                
+        try {
+            await pyodideService.cleanup();
+            await webRService.cleanup();
+        } catch (error) {
+            console.log('⚠️ Layout cleanup error:', error);
+        }
+    });
 </script>
 
 <svelte:head>

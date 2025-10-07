@@ -1,4 +1,5 @@
 <script>
+    import { onDestroy } from 'svelte';
     import webRService from '$lib/classes/webr-service.js';
 
     let {
@@ -62,6 +63,18 @@
     // Auto-initialize WebR when component mounts
     $effect(() => {
         webRService.initialize().catch(console.error);
+    });
+
+    onDestroy(() => {
+        // Clean up any ongoing executions
+        isRunning = false;
+        
+        // Clear any retained data that might cause memory leaks
+        output = '';
+        error = null;
+        plots = [];
+        
+        console.log('🧹 RArea component destroyed');
     });
 </script>
 
