@@ -1,0 +1,66 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - img "CODYX Logo" [ref=e6]
+        - generic [ref=e7]:
+          - heading "CODYX" [level=1] [ref=e8]
+          - generic [ref=e9]: Collaborative Learning and Research Tools • No Logins Required
+      - button "add New Notebook" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: add
+        - text: New Notebook
+  - main [ref=e13]:
+    - main [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]: "Notebook:"
+          - button "Click to edit notebook name" [ref=e19]:
+            - generic [ref=e20]: default-notebook
+          - button "place_item Import" [ref=e22] [cursor=pointer]:
+            - generic [ref=e23]: place_item
+            - text: Import
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [ref=e26]: visibility
+              - text: "View-only link:"
+            - generic [ref=e27]:
+              - generic [ref=e28]: http://localhost:5173/notebooks?slug=raspy-leaf
+              - button "edit" [ref=e29] [cursor=pointer]:
+                - generic [ref=e30]: edit
+              - button "content_copy" [ref=e31] [cursor=pointer]:
+                - generic [ref=e32]: content_copy
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e36]: markdown
+            - generic [ref=e37]: "[1]"
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - button "keyboard_arrow_up" [ref=e40] [cursor=pointer]:
+                - generic [ref=e41]: keyboard_arrow_up
+              - button "keyboard_arrow_down" [ref=e42] [cursor=pointer]:
+                - generic [ref=e43]: keyboard_arrow_down
+              - button "markdown" [ref=e44] [cursor=pointer]:
+                - generic [ref=e45]: markdown
+              - button "Py" [ref=e46] [cursor=pointer]:
+                - generic [ref=e47]: Py
+              - button "R" [ref=e48] [cursor=pointer]:
+                - generic [ref=e49]: R
+              - button "delete" [ref=e50] [cursor=pointer]:
+                - generic [ref=e51]: delete
+            - button "Welcome to your new notebook!" [ref=e52] [cursor=pointer]:
+              - paragraph [ref=e53]: Welcome to your new notebook!
+  - contentinfo [ref=e54]:
+    - text: "© 2025 Eric J. Kort. License:"
+    - link "MIT" [ref=e55] [cursor=pointer]:
+      - /url: https://mit-license.org/
+    - text: . Bugs? Suggestions? Open an issue on
+    - link "GitHub" [ref=e56] [cursor=pointer]:
+      - /url: https://github.com/ejkreboot/codyx
+    - text: . Created with lots of help from
+    - link "Claude Sonnet 4" [ref=e57] [cursor=pointer]:
+      - /url: https://www.anthropic.com/claude/sonnet
+    - text: .
+```

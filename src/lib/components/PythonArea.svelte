@@ -6,7 +6,8 @@
         code = '', 
         cellId = '', 
         executePython = $bindable(),
-        clearOutput = $bindable() 
+        clearOutput = $bindable(),
+        variables = $bindable({})
     } = $props();
 
     let isLoading = $state(false);
@@ -17,10 +18,16 @@
     let hasPlot = $state(false);
     let plotData = $state(null);
     let hasRun = $state(false);
+    let userVariables = $state({});
 
     // Expose functions to parent using bindable
     executePython = execute;
     clearOutput = clear;
+    
+    // Reactive effect to sync userVariables to parent
+    $effect(() => {
+        variables = userVariables;
+    });
 
     // Execute Python code using shared service
     async function execute() {
@@ -72,6 +79,7 @@
                 error = result.error;
                 hasPlot = result.hasPlot;
                 plotData = result.plotData;
+                userVariables = result.userVariables || {};
             }
             
             hasRun = true;
@@ -95,6 +103,7 @@
         hasPlot = false;
         plotData = null;
         hasRun = false;
+        userVariables = {};
     }
 
     // Reset Python environment (clear all variables and imports)
@@ -195,6 +204,28 @@
                     </div>
                 </div>
             {/if}
+        </div>
+    {/if}
+
+    <!-- Variables Display -->
+    {#if Object.keys(userVariables).length > 0}
+        <div class="variables-section">
+            <div class="variables-header">
+                <span class="material-symbols-outlined">data_object</span>
+                Variables in Memory
+                <span class="variable-count">({Object.keys(userVariables).length})</span>
+            </div>
+            <div class="variables-grid">
+                {#each Object.entries(userVariables) as [name, info]}
+                    <div class="variable-item">
+                        <div class="variable-name" title={`${info.type}: ${info.value}`}>
+                            <code>{name}</code>
+                        </div>
+                        <div class="variable-type">{info.type}</div>
+                        <div class="variable-value" title={info.value}>{info.value}</div>
+                    </div>
+                {/each}
+            </div>
         </div>
     {/if}
 </div>
@@ -346,4 +377,97 @@
         white-space: pre-wrap;
         word-wrap: break-word;
     }
+
+    /* Variables Display Styles */
+    .variables-section {
+        margin: 0.5rem;
+        background: #f0f4ff;
+        border: 1px solid #d1e7ff;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .variables-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: #e3f2fd;
+        border-bottom: 1px solid #d1e7ff;
+        font-family: 'Raleway', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        color: #1976d2;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .variables-header .material-symbols-outlined {
+        font-size: 14px;
+    }
+
+    .variable-count {
+        color: #666;
+        font-weight: normal;
+        text-transform: none;
+    }
+
+    .variables-grid {
+        padding: 0.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 0.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .variable-item {
+        display: grid;
+        grid-template-columns: 1fr auto 2fr;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.4rem 0.6rem;
+        background: white;
+        border: 1px solid #e1ecf4;
+        border-radius: 4px;
+        font-size: 12px;
+        transition: border-color 0.2s ease;
+    }
+
+    .variable-item:hover {
+        border-color: #90caf9;
+    }
+
+    .variable-name {
+        font-weight: 600;
+    }
+
+    .variable-name code {
+        background: transparent;
+        color: #1976d2;
+        font-family: 'Cutive Mono', monospace;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .variable-type {
+        font-family: 'Raleway', sans-serif;
+        font-size: 10px;
+        font-weight: 500;
+        color: #666;
+        background: #f5f5f5;
+        padding: 0.1rem 0.3rem;
+        border-radius: 3px;
+        text-transform: lowercase;
+    }
+
+    .variable-value {
+        font-family: 'Cutive Mono', monospace;
+        font-size: 11px;
+        color: #444;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
 </style>
