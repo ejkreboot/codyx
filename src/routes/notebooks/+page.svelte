@@ -1,6 +1,6 @@
 <script>
-    import CodyxNotebook from '$lib/CodyxNotebook.svelte';
-    import { supabase } from '$lib/supabase-client.js';
+    import CodyxNotebook from '$lib/components/CodyxNotebook.svelte';
+    import { supabase } from '$lib/util/supabase-client.js';
 </script>
 
 <svelte:head>

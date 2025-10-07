@@ -1,5 +1,5 @@
 <script>
-    import webRService from './webr-service.js';
+    import webRService from '$lib/classes/webr-service.js';
 
     let {
         code = '',

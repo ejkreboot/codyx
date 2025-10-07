@@ -1,4 +1,4 @@
-import { supabase } from "$lib/supabase-client";
+import { supabase } from "$lib/util/supabase-client";
 import { writable, get } from 'svelte/store';
 import Haikunator from "haikunator";
 

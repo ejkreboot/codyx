@@ -1,6 +1,6 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
-    import { pyodideService } from './pyodide-service.js';
+    import { pyodideService } from '$lib/classes/pyodide-service.js';
 
     let { 
         code = '', 

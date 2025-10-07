@@ -1,5 +1,5 @@
-import { supabase } from '$lib/supabase-client.js';
-import { LexaKey } from './lexasort.js';
+import { supabase } from '$lib/util/supabase-client.js';
+import { LexaKey } from '$lib/classes/lexasort.js';
 import { writable } from 'svelte/store';
 import Haikunator from 'haikunator'
 
@@ -548,5 +548,9 @@ export class Notebook {
             await supabase.removeChannel(this.channel);
             this.channel = null;
         }
+        
+        // Reset the notebook state
+        this.initialized = false;
+        this.cellsStore.set([]);
     }
 }

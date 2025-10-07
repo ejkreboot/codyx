@@ -3,11 +3,11 @@
     import { writable } from 'svelte/store';
     import { page } from '$app/stores';
     import { goto, invalidateAll } from '$app/navigation';
-    import { Notebook } from '$lib/notebook.js'
+    import { Notebook } from '$lib/classes/notebook.js'
     import Haikunator from 'haikunator'
-    import CodyxCell from './CodyxCell.svelte';
-    import { pyodideService } from '$lib/pyodide-service.js';
-    import { parseIpynbFile, validateIpynbFile } from '$lib/ipynb-parser.js';
+    import CodyxCell from '$lib/components/CodyxCell.svelte';
+    import { pyodideService } from '$lib/classes/pyodide-service.js';
+    import { parseIpynbFile, validateIpynbFile } from '$lib/util/ipynb-parser.js';
     
     let error = $state(null);
     let nb = $state(null);
@@ -625,5 +625,132 @@
     
     @media (max-width: 480px) {
 
+
+    /* Component-specific styles for CodyxNotebook */
+
+    /* Pyodide loading overlay - unique to notebook */
+    .pyodide-loading-overlay {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 500;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(var(--gray-50-rgb), 0.85);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: var(--space-16);
+        border-radius: var(--border-radius-lg);
+    }
+
+    .loading-content {
+        text-align: center;
+        max-width: 400px;
+        padding: var(--space-8);
+        background: white;
+        border-radius: var(--border-radius-xl);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--gray-200);
+        font-weight: 500;
+
+    }
+
+    .loading-spinner {
+        margin-bottom: var(--space-6);
+    }
+
+    .loading-spinner .material-symbols-outlined {
+        font-size: 48px;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+
+    .spinning {
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .loading-text h3 {
+        margin: 0 0 var(--space-2) 0;
+        color: var(--gray-900);
+        font-weight: 600;
+    }
+
+    .loading-text p {
+        margin: 0 0 var(--space-6) 0;
+        color: var(--gray-600);
+    }
+
+    .loading-steps {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        color: var(--gray-500);
+    }
+
+    .step {
+        padding: var(--space-1) 0;
+        position: relative;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: stepAppear 0.5s ease-out forwards;
+    }
+
+    .step-1 {
+        animation-delay: 1.5s;
+    }
+
+    .step-2 {
+        animation-delay: 4s;
+    }
+
+    /* Sandbox slug editor styles */
+    .sandbox-editor {
+        gap: var(--space-2);
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .sandbox-editor .form__input {
+        min-width: 200px;
+        flex-shrink: 0;
+    }
+
+    .step-3 {
+        animation-delay: 6s;
+    }
+
+    .step::before {
+        content: "⏳";
+        margin-right: var(--space-2);
+    }
+
+    @keyframes stepAppear {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    
+    }
+
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        
+        .notebook-header__actions {
+            align-self: flex-end;
+        }
+    }
+
+    @media (max-width: 480px) {
+    }
     }
 </style>

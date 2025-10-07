@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { LexaOrderKey, LexaKey } from './lexasort.js';
+import { LexaOrderKey, LexaKey } from '$lib/classes/lexasort.js';
 
 describe('LexaOrderKey', () => {
   let lexaKey;
