@@ -78,7 +78,7 @@ export class CellRenderer {
     // These have default implementations but can be overridden
     
     /**
-     * Get variables defined in this cell
+     * Get variables defined in current environment
      * @returns {Array} Array of variable objects
      */
     getVariables() {

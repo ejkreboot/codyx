@@ -1,13 +1,14 @@
 <script>
     import { processEnhancedMarkdown } from '$lib/util/enhanced-markdown.js';
 
-    let props = $props();
-    let renderer = props.renderer;
-    let textareaElement = $state(props.textareaElement);
-    let onInput = props.onInput;
-    let onStartEditing = props.onStartEditing;
-    let onStopEditing = props.onStopEditing;
-    let onKeydown = props.onKeydown;
+    let {
+        renderer,
+        textareaElement = $bindable(),
+        onInput,
+        onStartEditing,
+        onStopEditing,
+        onKeydown
+    } = $props();
 </script>
 
 {#if renderer.isEditing}
@@ -15,7 +16,7 @@
         bind:this={textareaElement}
         bind:value={renderer.text} 
         oninput={onInput}
-        onblur={onStopEditing}
+        onblur={() => onStopEditing?.()}
         class="cell-textarea"
         placeholder="Enter markdown..."
     ></textarea>
@@ -27,8 +28,8 @@
 {:else}
     <div 
         class="rendered-markdown" 
-        onclick={onStartEditing} 
-        onkeydown={onKeydown} 
+        onclick={() => onStartEditing?.()} 
+        onkeydown={(e) => onKeydown?.(e)} 
         role="button" 
         tabindex="0"
     >

@@ -76,6 +76,7 @@
     
     function startEditing() {
         if (sandboxed) return;
+        console.log('startEditing called, renderer:', renderer);
         renderer?.startEditing();
     }
 
@@ -247,14 +248,15 @@
 
         <!-- Universal Cell Rendering -->
         {#if renderer}
-            {@const renderConfig = renderer.render()}
+            {@const renderConfig = renderer.render({
+                onInput: handleInput,
+                onStartEditing: startEditing,
+                onStopEditing: stopEditing,
+                onKeydown: handleKeydown
+            })}
             <renderConfig.component 
                 {...renderConfig.props}
-                {textareaElement}
-                onInput={handleInput}
-                onStartEditing={startEditing}
-                onStopEditing={stopEditing}
-                onKeydown={handleKeydown}
+                bind:textareaElement
             />
         {:else}
             <div class="temp-fallback">

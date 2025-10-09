@@ -15,11 +15,12 @@ export class MarkdownRenderer extends CellRenderer {
      * Render the markdown cell - returns Svelte component instance
      * @returns {Object} Render configuration with component and props
      */
-    render() {
+    render(callbacks = {}) {
         return {
             component: MarkdownCellRenderer,
             props: {
-                renderer: this
+                renderer: this,
+                ...callbacks
             }
         };
     }

@@ -1,5 +1,6 @@
 import { CellRenderer } from './CellRenderer.svelte.js';
 import RCellRenderer from '$lib/components/renderers/RCellRenderer.svelte';
+import webRService from '$lib/classes/webr-service.js';
 
 /**
  * R-specific renderer with execution capabilities
@@ -16,17 +17,18 @@ export class RRenderer extends CellRenderer {
      * Render the R cell - returns Svelte component instance
      * @returns {Object} Render configuration with component and props
      */
-    render() {
+    render(callbacks = {}) {
         return {
             component: RCellRenderer,
             props: {
-                renderer: this
+                renderer: this,
+                ...callbacks
             }
         };
     }
 
     /**
-     * Execute R code
+     * Execute R code using WebR service
      * @returns {Promise<Object>} Execution result
      */
     async execute() {
@@ -38,15 +40,54 @@ export class RRenderer extends CellRenderer {
         this.output = null;
 
         try {
-            // Mock R execution for now - replace with actual R WebAssembly when available
-            const result = await this.mockRExecution(this.text);
+            // Check WebR service status
+            const status = webRService.getStatus();
+            if (status === 'error') {
+                throw new Error('WebR service failed to initialize. Please refresh the page and try again.');
+            }
+
+            const result = await webRService.executeCode(this.text);
             
-            this.output = {
-                type: result.type,
-                content: result.content,
-                columns: result.columns,
-                rows: result.rows
-            };
+            if (result.error) {
+                this.output = {
+                    type: 'error',
+                    content: result.error
+                };
+                this.isExecuting = false;
+                return { success: false, error: result.error };
+            }
+
+            // Handle different output types - support both plots and text
+            const hasPlots = result.plots && result.plots.length > 0;
+            const hasText = result.output && result.output.trim();
+            
+            if (hasPlots && hasText) {
+                // Both plots and text output
+                this.output = {
+                    type: 'mixed',
+                    textContent: result.output,
+                    plots: result.plots
+                };
+            } else if (hasPlots) {
+                // Only plots
+                this.output = {
+                    type: 'plot',
+                    content: result.plots[0], // Show first plot for backward compatibility
+                    plots: result.plots // Keep all plots available
+                };
+            } else if (hasText) {
+                // Only text output
+                this.output = {
+                    type: 'text',
+                    content: result.output
+                };
+            } else {
+                // No visible output
+                this.output = {
+                    type: 'text',
+                    content: '(No output)'
+                };
+            }
             
             this.isExecuting = false;
             return { success: true, output: this.output };
@@ -54,49 +95,27 @@ export class RRenderer extends CellRenderer {
         } catch (error) {
             this.output = {
                 type: 'error',
-                content: error.message
+                content: error.message || String(error)
             };
             this.isExecuting = false;
-            return { success: false, error: error.message };
+            return { success: false, error: error.message || String(error) };
         }
     }
 
+
+
     /**
-     * Mock R execution - replace with actual R WebAssembly
-     * @param {string} code - R code to execute
-     * @returns {Promise<Object>} Mock execution result
+     * Start editing mode
      */
-    async mockRExecution(code) {
-        // Simulate execution delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        const lowerCode = code.toLowerCase().trim();
-        
-        // Mock different types of R output
-        if (lowerCode.includes('plot') || lowerCode.includes('ggplot')) {
-            return {
-                type: 'plot',
-                content: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' // 1x1 placeholder
-            };
-        } else if (lowerCode.includes('data.frame') || lowerCode.includes('head(')) {
-            return {
-                type: 'data',
-                columns: ['Name', 'Age', 'Score'],
-                rows: [
-                    ['Alice', '25', '95.5'],
-                    ['Bob', '30', '87.2'],
-                    ['Charlie', '22', '92.8']
-                ]
-            };
-        } else if (lowerCode.includes('error') || lowerCode.includes('stop(')) {
-            throw new Error('Simulated R error: object not found');
-        } else {
-            // Text output
-            return {
-                type: 'text',
-                content: `> ${code}\n[1] "R output: ${Math.random().toFixed(4)}"`
-            };
-        }
+    startEditing() {
+        this.isEditing = true;
+    }
+
+    /**
+     * Stop editing mode  
+     */
+    stopEditing() {
+        this.isEditing = false;
     }
 
     /**
@@ -133,8 +152,15 @@ export class RRenderer extends CellRenderer {
      * Get variables (R environments not implemented yet)
      * @returns {Array} Empty array for now
      */
-    getVariables() {
-        return [];
+    async getVariables() {
+        const var_text = await webRService.executeCode('ls()');
+        if(var_text?.output.includes("character(0)")) {
+            return [];
+        }
+        const vars = var_text.output.replace(/\[1\]\s*/, '')
+                             .split(/"\s+"/)
+                             .map(c => c.replace(/"/g,""));
+        return vars;
     }
 
     /**
