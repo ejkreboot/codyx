@@ -157,7 +157,6 @@
         
         liveText.addEventListener('typing', (e) => {
             typing = e.detail.typing;
-            console.log('LiveText typing event:', e.detail);
         });
 
         if (!sandboxed) {

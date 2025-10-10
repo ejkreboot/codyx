@@ -19,7 +19,6 @@
             await renderer.execute();
             // Update variables after execution since new ones might be created
             vars = await renderer.getVariables();
-            console.log('Variables after execution:', vars);
         }
     }
 
@@ -28,7 +27,6 @@
             onStartEditing();
         }
         vars = await renderer.getVariables();
-        console.log('Current R variables:', vars);
     }
 
     async function handleBlur() {
@@ -72,8 +70,12 @@
             oninput={onInput}
             onblur={handleBlur}
             onfocus={handleFocus}
+            width="100%"
+            minHeight="80px"
+            maxHeight="600px"
             class="r-textarea"
           ></CodeEdytor>
+        </div>
     </div>
 
     {#if renderer.output}
@@ -144,7 +146,6 @@
         </div>
     {/if}
 </div>
-</div>
 
 <style>
     @import 'material-symbols';
@@ -152,75 +153,72 @@
     .r-cell-container {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 0;
+        width: 100%;
     }
     
     .r-input-container {
         display: flex;
-        align-items: flex-start;
-        gap: 0;
+        align-items: stretch;
+        width: 100%;
+        background: transparent;
     }
     
     .r-sub-gutter {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 40px;
-        min-width: 40px;
+        justify-content: flex-start;
+        width: 32px;
+        min-width: 32px;
         padding: 8px 4px;
-        background: rgba(255, 255, 255);
-        border-right: none;
+        background: transparent;
+    }
+    
+    .code-cell-main {
+        flex: 1;
+        display: flex;
+        width: 100%;
     }
     
     :global(.r-textarea) {
-        flex: 1;
-        min-height: 80px;
-        max-height: 600px;
-        padding: 0.75rem 1rem;
-        border: none;
-        outline: none;
-        resize: none;
-        overflow-y: auto;
+        width: 100% !important;
+        border: none !important;
         font-family: 'Cutive Mono', monospace;
         font-size: 14px;
         line-height: 1.5;
         color: #555958;
-        background: transparent;
-        box-sizing: border-box;
-        transition: height 0.1s ease;
+        background: transparent !important;
+        resize: none;
     }
     
     .r-input-container:focus-within .r-sub-gutter {
-        background: rgba(255, 255, 255, 0.08);
-        border-right-color: #054ba4;
-    }
-    
-    :global(.r-textarea:focus) {
-        background-color: rgba(5, 75, 164, 0.03);
+        background: rgba(5, 75, 164, 0.05);
     }
     
     .run-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 16px;
-        min-width: 16px;
-        height: 16px;
-        margin-top: 10px;
+        width: 20px;
+        min-width: 20px;
+        height: 20px;
         font-family: Material Symbols Outlined;
-        line-height: 16px;
-        font-size: 12px;
+        line-height: 20px;
+        font-size: 14px;
         font-feature-settings: "liga";
-        color: var(--color-accent-2);
-        background: #f2f2f2;
-        border: 1.5px solid var(--color-accent-2);
+        color: #054ba4;
+        background: white;
+        border: 1.5px solid #054ba4;
         border-radius: 50%;
         cursor: pointer;
         transition: all 0.15s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .run-btn:hover:not(:disabled) {
-        background: #043a82;
+        background: #054ba4;
+        color: white;
         box-shadow: 0 2px 6px rgba(5, 75, 164, 0.4);
         transform: scale(1.1);
     }
@@ -244,10 +242,13 @@
 
     
     .r-output {
-        background: #f8f9fa;
-        border-radius: 6px;
-        border: 1px solid #e9ecef;
+        width: calc(100% - 40px);
+        margin-left: 40px;
+        margin-top: 0;
+        background: rgba(250, 163, 54, 0.08);
         overflow: hidden;
+        max-height: 80vh;
+        overflow-y: auto;
     }
     
     .r-text-output {
@@ -257,26 +258,20 @@
         font-size: 13px;
         line-height: 1.4;
         color: #495057;
-        background: white;
+        background: transparent;
         white-space: pre-wrap;
         overflow-x: auto;
-        border-bottom: 1px solid #f0f0f0;
     }
     
-    .r-text-output:last-child {
-        border-bottom: none;
-    }
+
     
     .r-plot-output {
         padding: 1rem;
         text-align: center;
-        background: white;
-        border-bottom: 1px solid #f0f0f0;
+        background: transparent;
     }
     
-    .r-plot-output:last-child {
-        border-bottom: none;
-    }
+
     
     .r-plot-output img {
         max-width: 100%;
@@ -287,7 +282,7 @@
     
     .r-data-output {
         padding: 1rem;
-        background: white;
+        background: transparent;
         overflow-x: auto;
     }
     
@@ -373,6 +368,7 @@
     /* R syntax highlighting hints */
     :global(.r-textarea::placeholder) {
         color: #054ba4;
-        opacity: 0.6;
+        opacity: 0.5;
+        font-style: italic;
     }
 </style>

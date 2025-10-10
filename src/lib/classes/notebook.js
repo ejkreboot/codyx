@@ -324,13 +324,11 @@ export class Notebook {
         }
         return new Promise((resolve, reject) => {
             const check = setInterval(() => {
-                console.log(`Channel state: ${sub.state}`);
                 if (sub.state === 'joined') {
                     clearInterval(check);
                     resolve(sub);
                 } else if (sub.state === 'closed' || sub.state === 'errored') {
                     clearInterval(check);
-                    console.log(`Channel failed: ${sub.state}`);
                     reject(new Error(`Channel failed: ${sub.state}`));
                 }
             }, 200); // check every 200ms

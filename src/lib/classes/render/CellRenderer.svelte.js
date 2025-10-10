@@ -126,8 +126,7 @@ export class CellRenderer {
      * @param {string} newText - New text content
      */
     updateText(newText) {
-        console.log(`Updating text for cell ${this.cellId}: ${newText}`);
-        this.text = newText;
+       this.text = newText;
         this.isDirty = true;
     }
     

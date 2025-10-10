@@ -11,6 +11,9 @@
 
     let vars = $state([]);
     let text = $derived(renderer ? renderer.text : '');
+    
+    // Make import suggestions reactive to renderer changes
+    let importSuggestions = $derived(renderer ? renderer.importSuggestions : []);
 
     // Execute function - run Python code
     async function executePython() {
@@ -18,7 +21,6 @@
             await renderer.execute();
             // Update variables after execution since new ones might be created
             vars = await renderer.getVariables();
-            console.log('Variables after Python execution:', vars);
         }
     }
     
@@ -27,7 +29,6 @@
             onStartEditing();
         }
         vars = await renderer.getVariables();
-        console.log('Current Python variables:', vars);
     }
 
     async function handleBlur() {
@@ -44,6 +45,18 @@
             executePython();
         } else if (onKeydown && typeof onKeydown === 'function') {
             onKeydown(event);
+        }
+    }
+
+    function handleInput(event) {
+        // Call the renderer's handleInput method to trigger import suggestions
+        if (renderer && renderer.handleInput) {
+            renderer.handleInput(event);
+        }
+        
+        // Call the parent's onInput if it exists
+        if (onInput) {
+            onInput(event);
         }
     }
 
@@ -65,16 +78,52 @@
         </div>
         
         <div class="code-cell-main">
-          <CodeEdytor editorClass={PythonCodeEdytor} 
+        <CodeEdytor 
+            editorClass={PythonCodeEdytor}
             bind:this={codeEditor}
-            bind:value={text} 
+            bind:value={text}
+            width="100%"
+            minHeight="80px"  
+            maxHeight="600px"
             availableVariables={vars}
-            oninput={onInput}
-            onblur={handleBlur}
+            oninput={handleInput}
             onfocus={handleFocus}
+            onblur={handleBlur}
             class="python-textarea"
-          ></CodeEdytor>
+        />
+        </div>
     </div>
+
+    {#if importSuggestions && importSuggestions.length > 0}
+        <div class="import-suggestions">
+            {#each importSuggestions as suggestion}
+                <div class="suggestion-item">
+                    <div class="suggestion-content">
+                        <span class="material-symbols-outlined">download</span>
+                        <span class="suggestion-text">
+                            Install <strong>{suggestion.installName}</strong> for <code>{suggestion.packageName}</code>?
+                        </span>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button 
+                            class="install-btn"
+                            onclick={() => renderer.insertInstallCode(suggestion)}
+                        >
+                            Install
+                        </button>
+                        <button 
+                            class="dismiss-btn"
+                            onclick={() => {
+                                renderer.importSuggestions = renderer.importSuggestions.filter(s => s !== suggestion);
+                            }}
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    {/if}
 
     {#if renderer.output}
         <div class="python-output">
@@ -144,7 +193,7 @@
         </div>
     {/if}
 </div>
-</div>
+
 
 <style>
     @import 'material-symbols';
@@ -152,82 +201,79 @@
     .python-cell-container {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 0;
+        width: 100%;
     }
     
     .python-input-container {
         display: flex;
-        align-items: flex-start;
-        gap: 0;
+        align-items: stretch;
+        width: 100%;
+        background: transparent;
     }
     
     .python-sub-gutter {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 40px;
-        min-width: 40px;
+        justify-content: flex-start;
+        width: 32px;
+        min-width: 32px;
         padding: 8px 4px;
-        background: rgba(255, 255, 255);
-        border-right: none;
+        background: transparent;
+    }
+    
+    .code-cell-main {
+        flex: 1;
+        display: flex;
+        width: 100%;
     }
     
     :global(.python-textarea) {
-        flex: 1;
-        min-height: 80px;
-        max-height: 600px;
-        padding: 0.75rem 1rem;
-        border: none;
-        outline: none;
-        resize: none;
-        overflow-y: auto;
+        width: 100% !important;
+        border: none !important;
         font-family: 'Cutive Mono', monospace;
         font-size: 14px;
         line-height: 1.5;
         color: #555958;
-        background: transparent;
-        box-sizing: border-box;
-        transition: height 0.1s ease;
+        background: transparent !important;
+        resize: none;
     }
     
     .python-input-container:focus-within .python-sub-gutter {
-        background: rgba(255, 255, 255, 0.08);
-        border-right-color: #054ba4;
-    }
-    
-    :global(.python-textarea:focus) {
-        background-color: rgba(5, 75, 164, 0.03);
+        background: rgba(55, 118, 171, 0.05);
     }
     
     .run-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 16px;
-        min-width: 16px;
-        height: 16px;
-        margin-top: 10px;
+        width: 20px;
+        min-width: 20px;
+        height: 20px;
         font-family: Material Symbols Outlined;
-        line-height: 16px;
-        font-size: 12px;
+        line-height: 20px;
+        font-size: 14px;
         font-feature-settings: "liga";
-        color: var(--color-accent-2);
-        background: #f2f2f2;
-        border: 1.5px solid var(--color-accent-2);
+        color: #3776ab;
+        background: white;
+        border: 1.5px solid #3776ab;
         border-radius: 50%;
         cursor: pointer;
         transition: all 0.15s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .run-btn:hover:not(:disabled) {
-        background: #043a82;
-        box-shadow: 0 2px 6px rgba(5, 75, 164, 0.4);
+        background: #3776ab;
+        color: white;
+        box-shadow: 0 2px 6px rgba(55, 118, 171, 0.4);
         transform: scale(1.1);
     }
     
     .run-btn:active:not(:disabled) {
         transform: scale(0.95);
-        box-shadow: 0 1px 3px rgba(5, 75, 164, 0.3);
+        box-shadow: 0 1px 3px rgba(55, 118, 171, 0.3);
     }
     
     .run-btn:disabled {
@@ -244,10 +290,13 @@
 
     
     .python-output {
-        background: #f8f9fa;
-        border-radius: 6px;
-        border: 1px solid #e9ecef;
+        width: calc(100% - 40px);
+        margin-left: 40px;
+        margin-top: 0;
+        background: rgba(250, 163, 54, 0.08);
         overflow: hidden;
+        max-height: 80vh;
+        overflow-y: auto;
     }
     
     .python-text-output {
@@ -257,26 +306,20 @@
         font-size: 13px;
         line-height: 1.4;
         color: #495057;
-        background: white;
+        background: transparent;
         white-space: pre-wrap;
         overflow-x: auto;
-        border-bottom: 1px solid #f0f0f0;
     }
     
-    .python-text-output:last-child {
-        border-bottom: none;
-    }
+
     
     .python-plot-output {
         padding: 1rem;
         text-align: center;
-        background: white;
-        border-bottom: 1px solid #f0f0f0;
+        background: transparent;
     }
     
-    .python-plot-output:last-child {
-        border-bottom: none;
-    }
+
     
     .python-plot-output img {
         max-width: 100%;
@@ -287,7 +330,7 @@
     
     .python-data-output {
         padding: 1rem;
-        background: white;
+        background: transparent;
         overflow-x: auto;
     }
     
@@ -370,9 +413,102 @@
         to { transform: rotate(360deg); }
     }
     
+    /* Import suggestions styling */
+    .import-suggestions {
+        width: calc(100% - 40px);
+        margin-left: 40px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .suggestion-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        border-radius: 6px;
+        font-family: 'Raleway', sans-serif;
+        font-size: 14px;
+    }
+    
+    .suggestion-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #856404;
+    }
+    
+    .suggestion-content .material-symbols-outlined {
+        font-size: 18px;
+        color: #ffc107;
+    }
+    
+    .suggestion-text {
+        flex: 1;
+    }
+    
+    .suggestion-text code {
+        background: rgba(255, 193, 7, 0.2);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Cutive Mono', monospace;
+        font-size: 13px;
+        color: #856404;
+    }
+    
+    .suggestion-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .install-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-family: 'Raleway', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    
+    .install-btn:hover {
+        background: #218838;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    }
+    
+    .dismiss-btn {
+        background: transparent;
+        color: #6c757d;
+        border: 1px solid #6c757d;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-family: 'Raleway', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    
+    .dismiss-btn:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+    }
+
     /* Python syntax highlighting hints */
     :global(.python-textarea::placeholder) {
-        color: #054ba4;
-        opacity: 0.6;
+        color: #3776ab;
+        opacity: 0.5;
+        font-style: italic;
     }
 </style>

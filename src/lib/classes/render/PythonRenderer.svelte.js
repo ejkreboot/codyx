@@ -133,13 +133,9 @@ export class PythonRenderer extends CellRenderer {
         this.isEditing = false;
     }
     
-    handleInput(event) {
-        const newText = event.target ? event.target.value : event;
-        this.updateText(newText);
-        if (event.target) {
-            this.autoResizeTextarea(event.target);
-        }
+    handleInput = (event) => {
         this.updateImportSuggestions();
+        console.log('Import suggestions:', this.importSuggestions); 
     }
     
     /**
@@ -181,9 +177,7 @@ print(user_vars)
                     
                     const vars = listContent.split(',')
                         .map(item => item.trim().replace(/['"]/g, '')) // Remove quotes
-                        .filter(item => item.length > 0);
-                        
-                    console.log('Current Python variables:', vars);
+                        .filter(item => item.length > 0);                        
                     return vars;
                 } catch (parseError) {
                     console.warn('Failed to parse Python variables output:', output);
