@@ -1,0 +1,5109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset='utf-8'>
+  <title>codyx 0.0.1 | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='assets/bass.css' rel='stylesheet'>
+  <link href='assets/style.css' rel='stylesheet'>
+  <link href='assets/github.css' rel='stylesheet'>
+  <link href='assets/split.css' rel='stylesheet'>
+</head>
+<body class='documentation m0'>
+    <div class='flex'>
+      <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'>codyx</h3>
+          <div class='mb1'><code>0.0.1</code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block input'
+            spellcheck='false'
+            autocapitalize='off'
+            autocorrect='off'
+            type='text' />
+          <div id='toc'>
+            <ul class='list-reset h5 py1-ul'>
+              
+                
+                <li><a
+                  href='#'
+                  class="">
+                  
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#codyx'
+                  class="">
+                  Codyx
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#cellcontroller'
+                  class=" toggle-sibling">
+                  CellController
+                  <span class='icon'>▸</span>
+                </a>
+                
+                <div class='toggle-target display-none'>
+                  
+                  
+                    <ul class='list-reset py1-ul pl1'>
+                      <li class='h5'><span>Instance members</span></li>
+                      
+                      <li><a
+                        href='#cellcontrollervalidateimplementation'
+                        class='regular pre-open'>
+                        #validateImplementation
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerrender'
+                        class='regular pre-open'>
+                        #render
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerexecute'
+                        class='regular pre-open'>
+                        #execute
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerclear'
+                        class='regular pre-open'>
+                        #clear
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerhandleinput'
+                        class='regular pre-open'>
+                        #handleInput
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollergetvariables'
+                        class='regular pre-open'>
+                        #getVariables
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerupdatehighlighting'
+                        class='regular pre-open'>
+                        #updateHighlighting
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollergetexecutionbindings'
+                        class='regular pre-open'>
+                        #getExecutionBindings
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerupdatetext'
+                        class='regular pre-open'>
+                        #updateText
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollersetediting'
+                        class='regular pre-open'>
+                        #setEditing
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollermarkclean'
+                        class='regular pre-open'>
+                        #markClean
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollergetmetadata'
+                        class='regular pre-open'>
+                        #getMetadata
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerdebounce'
+                        class='regular pre-open'>
+                        #debounce
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollergetuniqueid'
+                        class='regular pre-open'>
+                        #getUniqueId
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerclone'
+                        class='regular pre-open'>
+                        #clone
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollertojson'
+                        class='regular pre-open'>
+                        #toJSON
+                      </a></li>
+                      
+                      <li><a
+                        href='#cellcontrollerondestroy'
+                        class='regular pre-open'>
+                        #onDestroy
+                      </a></li>
+                      
+                    </ul>
+                  
+                  
+                  
+                </div>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#markdowncellcontroller'
+                  class=" toggle-sibling">
+                  MarkdownCellController
+                  <span class='icon'>▸</span>
+                </a>
+                
+                <div class='toggle-target display-none'>
+                  
+                  
+                    <ul class='list-reset py1-ul pl1'>
+                      <li class='h5'><span>Instance members</span></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerrender'
+                        class='regular pre-open'>
+                        #render
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerexecute'
+                        class='regular pre-open'>
+                        #execute
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerclear'
+                        class='regular pre-open'>
+                        #clear
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerhandleinput'
+                        class='regular pre-open'>
+                        #handleInput
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerstartediting'
+                        class='regular pre-open'>
+                        #startEditing
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerstopediting'
+                        class='regular pre-open'>
+                        #stopEditing
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollergeticonconfig'
+                        class='regular pre-open'>
+                        #getIconConfig
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollergetvariables'
+                        class='regular pre-open'>
+                        #getVariables
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerupdatehighlighting'
+                        class='regular pre-open'>
+                        #updateHighlighting
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollergetexecutionbindings'
+                        class='regular pre-open'>
+                        #getExecutionBindings
+                      </a></li>
+                      
+                      <li><a
+                        href='#markdowncellcontrollerondestroy'
+                        class='regular pre-open'>
+                        #onDestroy
+                      </a></li>
+                      
+                    </ul>
+                  
+                  
+                  
+                </div>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#pythoncellcontroller'
+                  class=" toggle-sibling">
+                  PythonCellController
+                  <span class='icon'>▸</span>
+                </a>
+                
+                <div class='toggle-target display-none'>
+                  
+                  
+                    <ul class='list-reset py1-ul pl1'>
+                      <li class='h5'><span>Instance members</span></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollerexecute'
+                        class='regular pre-open'>
+                        #execute
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollerstartediting'
+                        class='regular pre-open'>
+                        #startEditing
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollerstopediting'
+                        class='regular pre-open'>
+                        #stopEditing
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollergetvariables'
+                        class='regular pre-open'>
+                        #getVariables
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollergeticonconfig'
+                        class='regular pre-open'>
+                        #getIconConfig
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollersubscribetoglobalvariables'
+                        class='regular pre-open'>
+                        #subscribeToGlobalVariables
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollercreatepackagemapping'
+                        class='regular pre-open'>
+                        #createPackageMapping
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollerupdateimportsuggestions'
+                        class='regular pre-open'>
+                        #updateImportSuggestions
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollerinsertinstallcode'
+                        class='regular pre-open'>
+                        #insertInstallCode
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollergethighlightedcode'
+                        class='regular pre-open'>
+                        #getHighlightedCode
+                      </a></li>
+                      
+                      <li><a
+                        href='#pythoncellcontrollerondestroy'
+                        class='regular pre-open'>
+                        #onDestroy
+                      </a></li>
+                      
+                    </ul>
+                  
+                  
+                  
+                </div>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#rcellcontroller'
+                  class=" toggle-sibling">
+                  RCellController
+                  <span class='icon'>▸</span>
+                </a>
+                
+                <div class='toggle-target display-none'>
+                  
+                  
+                    <ul class='list-reset py1-ul pl1'>
+                      <li class='h5'><span>Instance members</span></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerrender'
+                        class='regular pre-open'>
+                        #render
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerexecute'
+                        class='regular pre-open'>
+                        #execute
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerstartediting'
+                        class='regular pre-open'>
+                        #startEditing
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerstopediting'
+                        class='regular pre-open'>
+                        #stopEditing
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerclear'
+                        class='regular pre-open'>
+                        #clear
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerhandleinput'
+                        class='regular pre-open'>
+                        #handleInput
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollergeticonconfig'
+                        class='regular pre-open'>
+                        #getIconConfig
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollergetvariables'
+                        class='regular pre-open'>
+                        #getVariables
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerupdatehighlighting'
+                        class='regular pre-open'>
+                        #updateHighlighting
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollergetexecutionbindings'
+                        class='regular pre-open'>
+                        #getExecutionBindings
+                      </a></li>
+                      
+                      <li><a
+                        href='#rcellcontrollerondestroy'
+                        class='regular pre-open'>
+                        #onDestroy
+                      </a></li>
+                      
+                    </ul>
+                  
+                  
+                  
+                </div>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#lexaorderkey'
+                  class="">
+                  LexaOrderKey
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#lexakey'
+                  class="">
+                  LexaKey
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#livetext'
+                  class="">
+                  LiveText
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#notebook'
+                  class="">
+                  Notebook
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#pyodideservice'
+                  class="">
+                  PyodideService
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#webrservice'
+                  class="">
+                  WebRService
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#codyxcell'
+                  class="">
+                  CodyxCell
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#codyxnotebook'
+                  class="">
+                  CodyxNotebook
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#markdowncellrenderer'
+                  class="">
+                  MarkdownCellRenderer
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#pythoncellrenderer'
+                  class="">
+                  PythonCellRenderer
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#rcellrenderer'
+                  class="">
+                  RCellRenderer
+                  
+                </a>
+                
+                </li>
+              
+            </ul>
+          </div>
+          <div class='mt1 h6 quiet'>
+            <a href='https://documentation.js.org/reading-documentation.html'>Need help reading this?</a>
+          </div>
+        </div>
+      </div>
+      <div id='split-right' class='relative overflow-auto height-viewport-100'>
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id=''>
+      
+    </h3>
+    
+    
+  </div>
+  
+
+  <h1>Codyx API Reference</h1>
+<p>Welcome to the <strong>Codyx API Reference</strong>! This comprehensive documentation covers all the classes, methods, and interfaces that power Codyx's interactive computing environment.</p>
+<h2>About Codyx</h2>
+<p><strong>Codyx</strong> is a browser-based collaborative notebook platform that lets you execute Python and R code seamlessly, interleaved with markdown documentation. Built with modern web technologies, it brings the power of data science to your browser with no installation required.</p>
+<h3>Key Features</h3>
+<ul>
+<li><strong>🐍 Python Support</strong> - Full Pyodide integration with popular data science libraries</li>
+<li><strong>📊 R Integration</strong> - Complete WebR environment with statistical computing capabilities</li>
+<li><strong>📝 Rich Documentation</strong> - Enhanced markdown with live preview and editing</li>
+<li><strong>🔄 Real-time Collaboration</strong> - Multiple users can edit simultaneously</li>
+<li><strong>🌐 Browser-native</strong> - Runs entirely in your browser, no server required</li>
+</ul>
+<h2>🏗️ Architecture Overview</h2>
+<p>Codyx follows a clean <strong>Model-View-Controller (MVC)</strong> architecture:</p>
+<ul>
+<li><strong>📋 Controllers</strong> - Handle business logic, execution, and state management</li>
+<li><strong>🎨 Components</strong> - Manage UI rendering and user interactions</li>
+<li><strong>⚙️ Services</strong> - Provide external integrations (Python/R runtimes)</li>
+<li><strong>🛠️ Utilities</strong> - Support text processing and data management</li>
+</ul>
+<h2>📚 Documentation Sections</h2>
+<h3>Controllers (Business Logic)</h3>
+<p>The heart of Codyx's notebook functionality, managing code execution, variable tracking, and cell lifecycle.</p>
+<h3>Core Infrastructure</h3>
+<p>Essential classes that orchestrate notebook operations, persistence, and collaboration features.</p>
+<h3>Runtime Services</h3>
+<p>Integrations with Pyodide (Python) and WebR (R) that bring computational power to the browser.</p>
+<h3>Utilities</h3>
+<p>Helper classes for text processing, variable highlighting, and data management.</p>
+<h3>UI Components</h3>
+<p>Svelte 5 components that provide the interactive user interface with reactive state management.</p>
+<h2>🎯 Quick Navigation Tips</h2>
+<ul>
+<li><strong>Search</strong> - Use the search box to quickly find classes or methods</li>
+<li><strong>Navigation</strong> - Click on class names in the sidebar for instant access</li>
+<li><strong>Examples</strong> - Most methods include practical code examples</li>
+<li><strong>Types</strong> - Comprehensive parameter and return type information</li>
+</ul>
+<h2>🔗 Related Resources</h2>
+<ul>
+<li><strong><a href="https://github.com/ejkreboot/codyx">Project Repository</a></strong> - Source code and contributions</li>
+<li><strong><a href="../../../README.md">User Documentation</a></strong> - Getting started guides and tutorials</li>
+<li><strong><a href="https://codyx.dev">Live Demo</a></strong> - Try Codyx in your browser</li>
+</ul>
+<hr>
+<p><em>This documentation is auto-generated from JSDoc comments in the source code using DocumentationJS.</em></p>
+
+    <div class='pre p1 fill-light mt0'></div>
+  
+  
+
+  
+  <div>Version: 1.0.0</div>
+  
+  <div>Author: Codyx Team</div>
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='codyx'>
+      Codyx
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>The main Codyx application namespace containing all core functionality for interactive computing in the browser.</p>
+
+    <div class='pre p1 fill-light mt0'>Codyx</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='cellcontroller'>
+      CellController
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Abstract base class for cell controllers
+Defines the interface and common functionality for all cell types</p>
+<p>Note: Despite the historical "Renderer" naming, these classes handle
+business logic and state management, not UI rendering.
+UI rendering is handled by the corresponding Svelte components.</p>
+
+    <div class='pre p1 fill-light mt0'>new CellController()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// CellController is abstract - extend it to create specific cell types</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MyCustomController</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_ inherited__">CellController</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">cellId, cellIndex, initialText</span>) {
+    <span class="hljs-variable language_">super</span>(cellId, cellIndex, initialText, <span class="hljs-string">&#x27;custom&#x27;</span>);
+  }
+  
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">execute</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">return</span> { <span class="hljs-attr">output</span>: <span class="hljs-string">&#x27;Custom execution result&#x27;</span> };
+  }
+  
+  <span class="hljs-title function_">render</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">return</span> { <span class="hljs-attr">component</span>: <span class="hljs-title class_">MyCustomRenderer</span>, <span class="hljs-attr">props</span>: {} };
+  }
+}</pre>
+    
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Instance Members</div>
+    <div class="clearfix">
+  
+    <div class='border-bottom' id='cellcontrollervalidateimplementation'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>validateImplementation()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Validate that required methods are implemented by subclasses</p>
+
+    <div class='pre p1 fill-light mt0'>validateImplementation()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerrender'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>render()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Render the cell content</p>
+
+    <div class='pre p1 fill-light mt0'>render(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Render configuration
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerexecute'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>execute()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Execute the cell</p>
+
+    <div class='pre p1 fill-light mt0'>execute(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></code>:
+        Execution result
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerclear'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>clear()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Clear the cell content</p>
+
+    <div class='pre p1 fill-light mt0'>clear()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerhandleinput'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>handleInput(event)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Handle input events</p>
+
+    <div class='pre p1 fill-light mt0'>handleInput(event: <a href="https://developer.mozilla.org/docs/Web/API/Event">Event</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>event</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/API/Event">Event</a>)</code>
+	    Input event
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollergetvariables'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getVariables()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get variables defined in current environment</p>
+
+    <div class='pre p1 fill-light mt0'>getVariables(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+        Array of variable objects
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerupdatehighlighting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>updateHighlighting()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Update syntax highlighting</p>
+
+    <div class='pre p1 fill-light mt0'>updateHighlighting()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollergetexecutionbindings'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getExecutionBindings()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get execution bindings for this cell</p>
+
+    <div class='pre p1 fill-light mt0'>getExecutionBindings(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Execution bindings
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerupdatetext'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>updateText(newText)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Update text content and mark as dirty</p>
+
+    <div class='pre p1 fill-light mt0'>updateText(newText: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>newText</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    New text content
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollersetediting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>setEditing(editing)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Set editing state</p>
+
+    <div class='pre p1 fill-light mt0'>setEditing(editing: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>editing</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>)</code>
+	    Whether cell is being edited
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollermarkclean'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>markClean()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Mark cell as clean (not dirty)</p>
+
+    <div class='pre p1 fill-light mt0'>markClean()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollergetmetadata'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getMetadata()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get cell metadata</p>
+
+    <div class='pre p1 fill-light mt0'>getMetadata(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Cell metadata
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerdebounce'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>debounce(func, wait)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Helper method to debounce function calls</p>
+
+    <div class='pre p1 fill-light mt0'>debounce(func: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>, wait: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>func</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>)</code>
+	    Function to debounce
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>wait</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)</code>
+	    Wait time in milliseconds
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a></code>:
+        Debounced function
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollergetuniqueid'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getUniqueId()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get a unique identifier for this cell</p>
+
+    <div class='pre p1 fill-light mt0'>getUniqueId(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        Unique cell identifier
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerclone'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>clone(newCellId, newCellIndex)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Create a clone of the cell with new ID</p>
+
+    <div class='pre p1 fill-light mt0'>clone(newCellId: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, newCellIndex: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>): <a href="#cellcontroller">CellController</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>newCellId</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    New cell ID
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>newCellIndex</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)</code>
+	    New cell index
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="#cellcontroller">CellController</a></code>:
+        New cell instance
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollertojson'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>toJSON()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Serialize cell to JSON</p>
+
+    <div class='pre p1 fill-light mt0'>toJSON(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Serialized cell data
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='cellcontrollerondestroy'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>onDestroy()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Cleanup when controller is destroyed</p>
+
+    <div class='pre p1 fill-light mt0'>onDestroy()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+</div>
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='markdowncellcontroller'>
+      MarkdownCellController
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Markdown Cell Controller - Manages rich text formatting and documentation</p>
+<p>Handles markdown text rendering with edit/preview modes, supports enhanced
+markdown features, and provides seamless integration for documentation cells.</p>
+
+    <div class='pre p1 fill-light mt0'>new MarkdownCellController()</div>
+  
+  
+    <p>
+      Extends
+      
+        <a href="#cellcontroller">CellController</a>
+      
+    </p>
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Create a new markdown cell controller</span>
+<span class="hljs-keyword">const</span> controller = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MarkdownCellController</span>(<span class="hljs-string">&#x27;cell-1&#x27;</span>, <span class="hljs-number">0</span>, <span class="hljs-string">&#x27;# Hello World\n\nThis is **bold** text.&#x27;</span>);
+
+<span class="hljs-comment">// Toggle preview mode</span>
+controller.<span class="hljs-title function_">togglePreview</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(controller.<span class="hljs-property">isPreviewMode</span>); <span class="hljs-comment">// true</span>
+
+<span class="hljs-comment">// Execute (render) markdown</span>
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> controller.<span class="hljs-title function_">execute</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(result.<span class="hljs-property">output</span>); <span class="hljs-comment">// Rendered HTML</span></pre>
+    
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Instance Members</div>
+    <div class="clearfix">
+  
+    <div class='border-bottom' id='markdowncellcontrollerrender'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>render(callbacks)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Render the markdown cell - returns Svelte component instance</p>
+
+    <div class='pre p1 fill-light mt0'>render(callbacks: any): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>callbacks</span> <code class='quiet'>(any
+            = <code>{}</code>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Render configuration with component and props
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollerexecute'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>execute()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Execute cell - toggles preview mode for markdown</p>
+
+    <div class='pre p1 fill-light mt0'>execute(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></code>:
+        Execution result
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollerclear'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>clear()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Clear cell content and reset state</p>
+
+    <div class='pre p1 fill-light mt0'>clear()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollerhandleinput'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>handleInput(event)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Handle input events</p>
+
+    <div class='pre p1 fill-light mt0'>handleInput(event: <a href="https://developer.mozilla.org/docs/Web/API/Event">Event</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>event</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/API/Event">Event</a>)</code>
+	    Input event
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollerstartediting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>startEditing()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Start editing mode</p>
+
+    <div class='pre p1 fill-light mt0'>startEditing()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollerstopediting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>stopEditing()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Stop editing mode</p>
+
+    <div class='pre p1 fill-light mt0'>stopEditing()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollergeticonconfig'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getIconConfig()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get icon configuration for markdown cells</p>
+
+    <div class='pre p1 fill-light mt0'>getIconConfig(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Icon configuration
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollergetvariables'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getVariables()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get variables (markdown cells don't have variables)</p>
+
+    <div class='pre p1 fill-light mt0'>getVariables(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+        Empty array
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollerupdatehighlighting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>updateHighlighting()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Update highlighting (no-op for markdown)</p>
+
+    <div class='pre p1 fill-light mt0'>updateHighlighting()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollergetexecutionbindings'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getExecutionBindings()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get execution bindings (no-op for markdown)</p>
+
+    <div class='pre p1 fill-light mt0'>getExecutionBindings(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Empty object
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='markdowncellcontrollerondestroy'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>onDestroy()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Cleanup resources</p>
+
+    <div class='pre p1 fill-light mt0'>onDestroy()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+</div>
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='pythoncellcontroller'>
+      PythonCellController
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Python Cell Controller - Manages Python code execution and environment</p>
+<p>Handles Python code execution using Pyodide, tracks variables for syntax highlighting,
+and provides intelligent import suggestions with automatic package installation.</p>
+
+    <div class='pre p1 fill-light mt0'>new PythonCellController()</div>
+  
+  
+    <p>
+      Extends
+      
+        <a href="#cellcontroller">CellController</a>
+      
+    </p>
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Create a new Python cell controller</span>
+<span class="hljs-keyword">const</span> controller = <span class="hljs-keyword">new</span> <span class="hljs-title class_">PythonCellController</span>(<span class="hljs-string">&#x27;cell-1&#x27;</span>, <span class="hljs-number">0</span>, <span class="hljs-string">&#x27;import pandas as pd\nprint(&quot;Hello World&quot;)&#x27;</span>);
+
+<span class="hljs-comment">// Execute the code</span>
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> controller.<span class="hljs-title function_">execute</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(result.<span class="hljs-property">output</span>); <span class="hljs-comment">// Python execution output</span>
+
+<span class="hljs-comment">// Get available variables for syntax highlighting</span>
+<span class="hljs-keyword">const</span> vars = <span class="hljs-keyword">await</span> controller.<span class="hljs-title function_">getVariables</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(vars); <span class="hljs-comment">// [&#x27;pd&#x27;] - available variables</span></pre>
+    
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Instance Members</div>
+    <div class="clearfix">
+  
+    <div class='border-bottom' id='pythoncellcontrollerexecute'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>execute()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Execute Python code using Pyodide service</p>
+<p>Runs the Python code in the browser using Pyodide, handles various output types
+(text, plots, data tables, errors), and updates the cell's output state.</p>
+
+    <div class='pre p1 fill-light mt0'>execute(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></code>:
+        Execution result object
+
+      
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code>:
+        result.success - Whether execution was successful
+
+      
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        [result.output] - Execution output (text, plots, data, or error)
+
+      
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        [result.error] - Error message if execution failed
+
+      
+    
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Throws</div>
+    <ul>
+      
+        <li><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>: If Pyodide service is not initialized
+</li>
+      
+    </ul>
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Execute simple Python code</span>
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> controller.<span class="hljs-title function_">execute</span>();
+<span class="hljs-keyword">if</span> (result.<span class="hljs-property">success</span>) {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;Output:&#x27;</span>, result.<span class="hljs-property">output</span>);
+}</pre>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Handle different output types</span>
+<span class="hljs-keyword">await</span> controller.<span class="hljs-title function_">execute</span>();
+<span class="hljs-keyword">if</span> (controller.<span class="hljs-property">output</span>.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;plot&#x27;</span>) {
+  <span class="hljs-title function_">displayPlot</span>(controller.<span class="hljs-property">output</span>.<span class="hljs-property">content</span>);
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (controller.<span class="hljs-property">output</span>.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;error&#x27;</span>) {
+  <span class="hljs-title function_">showError</span>(controller.<span class="hljs-property">output</span>.<span class="hljs-property">content</span>);
+}</pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollerstartediting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>startEditing()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Start editing mode</p>
+
+    <div class='pre p1 fill-light mt0'>startEditing()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollerstopediting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>stopEditing()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Stop editing mode</p>
+
+    <div class='pre p1 fill-light mt0'>stopEditing()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollergetvariables'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getVariables()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get variables from Python environment</p>
+
+    <div class='pre p1 fill-light mt0'>getVariables(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>></code>:
+        Array of user-defined variable names
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollergeticonconfig'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getIconConfig()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get icon configuration for Python cells</p>
+
+    <div class='pre p1 fill-light mt0'>getIconConfig(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Icon configuration
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollersubscribetoglobalvariables'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>subscribeToGlobalVariables()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Subscribe to global variable changes from PyodideService</p>
+
+    <div class='pre p1 fill-light mt0'>subscribeToGlobalVariables()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollercreatepackagemapping'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>createPackageMapping(packages)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Create mapping from import names to package names</p>
+
+    <div class='pre p1 fill-light mt0'>createPackageMapping(packages: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>packages</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>)</code>
+	    Available packages
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Package mapping
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollerupdateimportsuggestions'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>updateImportSuggestions()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Update import suggestions based on current text</p>
+
+    <div class='pre p1 fill-light mt0'>updateImportSuggestions()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollerinsertinstallcode'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>insertInstallCode(suggestion)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Insert package installation code at the appropriate line</p>
+
+    <div class='pre p1 fill-light mt0'>insertInstallCode(suggestion: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>suggestion</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    Import suggestion object
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollergethighlightedcode'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getHighlightedCode(code, variables)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Generate highlighted code with variable highlighting</p>
+
+    <div class='pre p1 fill-light mt0'>getHighlightedCode(code: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, variables: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>code</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Source code
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>variables</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    Variables to highlight
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        HTML with highlighted variables
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='pythoncellcontrollerondestroy'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>onDestroy()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Cleanup when controller is destroyed</p>
+
+    <div class='pre p1 fill-light mt0'>onDestroy()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+</div>
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='rcellcontroller'>
+      RCellController
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>R Cell Controller - Manages R statistical computing code execution</p>
+<p>Handles R code execution using WebR, manages R packages, and provides
+statistical computing capabilities directly in the browser.</p>
+
+    <div class='pre p1 fill-light mt0'>new RCellController()</div>
+  
+  
+    <p>
+      Extends
+      
+        <a href="#cellcontroller">CellController</a>
+      
+    </p>
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Create a new R cell controller</span>
+<span class="hljs-keyword">const</span> controller = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RCellController</span>(<span class="hljs-string">&#x27;cell-1&#x27;</span>, <span class="hljs-number">0</span>, <span class="hljs-string">&#x27;data &lt;- c(1,2,3,4,5)\nmean(data)&#x27;</span>);
+
+<span class="hljs-comment">// Execute R code</span>
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> controller.<span class="hljs-title function_">execute</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(result.<span class="hljs-property">output</span>); <span class="hljs-comment">// R execution output</span>
+
+<span class="hljs-comment">// Install R packages</span>
+<span class="hljs-keyword">await</span> controller.<span class="hljs-title function_">installPackages</span>([<span class="hljs-string">&#x27;ggplot2&#x27;</span>, <span class="hljs-string">&#x27;dplyr&#x27;</span>]);</pre>
+    
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Instance Members</div>
+    <div class="clearfix">
+  
+    <div class='border-bottom' id='rcellcontrollerrender'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>render(callbacks)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Render the R cell - returns Svelte component instance</p>
+
+    <div class='pre p1 fill-light mt0'>render(callbacks: any): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>callbacks</span> <code class='quiet'>(any
+            = <code>{}</code>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Render configuration with component and props
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollerexecute'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>execute()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Execute R code using WebR service</p>
+
+    <div class='pre p1 fill-light mt0'>execute(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></code>:
+        Execution result
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollerstartediting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>startEditing()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Start editing mode</p>
+
+    <div class='pre p1 fill-light mt0'>startEditing()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollerstopediting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>stopEditing()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Stop editing mode</p>
+
+    <div class='pre p1 fill-light mt0'>stopEditing()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollerclear'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>clear()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Clear cell content and reset state</p>
+
+    <div class='pre p1 fill-light mt0'>clear()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollerhandleinput'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>handleInput(event)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Handle input events</p>
+
+    <div class='pre p1 fill-light mt0'>handleInput(event: <a href="https://developer.mozilla.org/docs/Web/API/Event">Event</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>event</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/API/Event">Event</a>)</code>
+	    Input event
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollergeticonconfig'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getIconConfig()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get icon configuration for R cells</p>
+
+    <div class='pre p1 fill-light mt0'>getIconConfig(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        Icon configuration
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollergetvariables'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getVariables()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get variables from R environment</p>
+
+    <div class='pre p1 fill-light mt0'>getVariables(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>></code>:
+        Array of R variable names
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollerupdatehighlighting'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>updateHighlighting()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Update highlighting (R syntax highlighting not implemented yet)</p>
+
+    <div class='pre p1 fill-light mt0'>updateHighlighting()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollergetexecutionbindings'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getExecutionBindings()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get execution bindings for R</p>
+
+    <div class='pre p1 fill-light mt0'>getExecutionBindings(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>:
+        R execution bindings
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='rcellcontrollerondestroy'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>onDestroy()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Cleanup resources</p>
+
+    <div class='pre p1 fill-light mt0'>onDestroy()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+</div>
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='lexaorderkey'>
+      LexaOrderKey
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Lexicographic ordering key generator for sortable identifiers</p>
+<p>Generates lexicographically sortable keys that maintain order when sorted
+as strings. Useful for creating sortable identifiers, fractional indexing,
+and maintaining insertion order in databases.</p>
+
+    <div class='pre p1 fill-light mt0'>new LexaOrderKey()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Create lexicographic keys</span>
+<span class="hljs-keyword">const</span> lexa = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LexaOrderKey</span>();
+
+<span class="hljs-comment">// Generate keys that sort correctly</span>
+<span class="hljs-keyword">const</span> key1 = lexa.<span class="hljs-title function_">getKey</span>();      <span class="hljs-comment">// &#x27;1&#x27;</span>
+<span class="hljs-keyword">const</span> key2 = lexa.<span class="hljs-title function_">getKey</span>();      <span class="hljs-comment">// &#x27;2&#x27; </span>
+<span class="hljs-keyword">const</span> between = lexa.<span class="hljs-title function_">between</span>(key1, key2); <span class="hljs-comment">// &#x27;1g&#x27;</span>
+
+<span class="hljs-comment">// Keys sort lexicographically: [&#x27;1&#x27;, &#x27;1g&#x27;, &#x27;2&#x27;]</span>
+[key1, between, key2].<span class="hljs-title function_">sort</span>(); <span class="hljs-comment">// Maintains correct order</span>
+
+<span class="hljs-comment">// Custom alphabet</span>
+<span class="hljs-keyword">const</span> custom = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LexaOrderKey</span>(<span class="hljs-string">&#x27;ABCDEFG&#x27;</span>);
+<span class="hljs-keyword">const</span> customKey = custom.<span class="hljs-title function_">getKey</span>(); <span class="hljs-comment">// &#x27;B&#x27;</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='lexakey'>
+      LexaKey
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Default LexaOrderKey instance for convenient key generation</p>
+
+    <div class='pre p1 fill-light mt0'>LexaKey</div>
+  
+    <p>
+      Type:
+      <a href="#lexaorderkey">LexaOrderKey</a>
+    </p>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">import</span> { <span class="hljs-title class_">LexaKey</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./lexasort.js&#x27;</span>;
+
+<span class="hljs-keyword">const</span> key1 = <span class="hljs-title class_">LexaKey</span>.<span class="hljs-title function_">getKey</span>();
+<span class="hljs-keyword">const</span> key2 = <span class="hljs-title class_">LexaKey</span>.<span class="hljs-title function_">getKey</span>();  
+<span class="hljs-keyword">const</span> between = <span class="hljs-title class_">LexaKey</span>.<span class="hljs-title function_">between</span>(key1, key2);</pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='livetext'>
+      LiveText
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Real-time collaborative text editing using operational transformation</p>
+<p>Provides live text synchronization between multiple clients using diff-match-patch
+algorithm for operational transformation. Handles conflict resolution, typing
+indicators, and real-time updates via Supabase real-time channels.</p>
+
+    <div class='pre p1 fill-light mt0'>new LiveText()</div>
+  
+  
+    <p>
+      Extends
+      
+        <a href="https://developer.mozilla.org/docs/Web/API/EventTarget">EventTarget</a>
+      
+    </p>
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Create collaborative text editor</span>
+<span class="hljs-keyword">const</span> liveText = <span class="hljs-keyword">await</span> <span class="hljs-title class_">LiveText</span>.<span class="hljs-title function_">create</span>(<span class="hljs-string">&#x27;Initial content&#x27;</span>, <span class="hljs-string">&#x27;doc-123&#x27;</span>, supabase, <span class="hljs-string">&#x27;user-456&#x27;</span>);
+
+<span class="hljs-comment">// Listen for text changes</span>
+liveText.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">&#x27;textchange&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">event</span>) =&gt;</span> {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;Text updated:&#x27;</span>, event.<span class="hljs-property">detail</span>.<span class="hljs-property">text</span>);
+});
+
+<span class="hljs-comment">// Update text (will sync to other clients)</span>
+liveText.<span class="hljs-title function_">updateText</span>(<span class="hljs-string">&#x27;New content here&#x27;</span>);
+
+<span class="hljs-comment">// Handle typing indicators</span>
+liveText.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">&#x27;typing&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">event</span>) =&gt;</span> {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;User typing:&#x27;</span>, event.<span class="hljs-property">detail</span>.<span class="hljs-property">clientId</span>);
+});</pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='notebook'>
+      Notebook
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Notebook management class for Codyx interactive notebooks</p>
+<p>Handles notebook persistence, cell management, collaboration features,
+and integration with Supabase backend. Provides CRUD operations for
+notebooks and manages sandbox/sharing functionality.</p>
+
+    <div class='pre p1 fill-light mt0'>new Notebook()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Create a new notebook</span>
+<span class="hljs-keyword">const</span> notebook = <span class="hljs-keyword">await</span> <span class="hljs-title class_">Notebook</span>.<span class="hljs-title function_">create</span>(<span class="hljs-string">&#x27;my-notebook-slug&#x27;</span>);
+
+<span class="hljs-comment">// Load an existing notebook</span>
+<span class="hljs-keyword">const</span> existing = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Notebook</span>(<span class="hljs-string">&#x27;existing-slug&#x27;</span>);
+<span class="hljs-keyword">await</span> existing.<span class="hljs-title function_">load</span>();
+
+<span class="hljs-comment">// Add cells to the notebook</span>
+<span class="hljs-keyword">const</span> cellId = <span class="hljs-keyword">await</span> notebook.<span class="hljs-title function_">addCell</span>(<span class="hljs-string">&#x27;python&#x27;</span>, <span class="hljs-string">&#x27;print(&quot;Hello World&quot;)&#x27;</span>);
+
+<span class="hljs-comment">// Save changes</span>
+<span class="hljs-keyword">await</span> notebook.<span class="hljs-title function_">save</span>();
+
+<span class="hljs-comment">// Create a sandbox for experimentation</span>
+<span class="hljs-keyword">const</span> sandbox = <span class="hljs-keyword">await</span> notebook.<span class="hljs-title function_">createSandbox</span>();</pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='pyodideservice'>
+      PyodideService
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Python runtime service using Pyodide WebAssembly</p>
+<p>Manages Python code execution in the browser via Pyodide. Handles package
+installation, variable tracking, import suggestions, and provides a complete
+Python environment without server dependencies.</p>
+
+    <div class='pre p1 fill-light mt0'>new PyodideService()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Initialize Python environment</span>
+<span class="hljs-keyword">const</span> pyodide = <span class="hljs-keyword">new</span> <span class="hljs-title class_">PyodideService</span>();
+<span class="hljs-keyword">await</span> pyodide.<span class="hljs-title function_">initialize</span>();
+
+<span class="hljs-comment">// Execute Python code</span>
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> pyodide.<span class="hljs-title function_">runPython</span>(<span class="hljs-string">&#x27;print(&quot;Hello from Python!&quot;)&#x27;</span>);
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(result.<span class="hljs-property">output</span>); <span class="hljs-comment">// &quot;Hello from Python!&quot;</span>
+
+<span class="hljs-comment">// Install packages</span>
+<span class="hljs-keyword">await</span> pyodide.<span class="hljs-title function_">installPackage</span>(<span class="hljs-string">&#x27;numpy&#x27;</span>);
+
+<span class="hljs-comment">// Get available variables for syntax highlighting</span>
+<span class="hljs-keyword">const</span> variables = pyodide.<span class="hljs-title function_">getGlobalVariables</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(variables); <span class="hljs-comment">// { &#x27;numpy&#x27;: {...}, ... }</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='webrservice'>
+      WebRService
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>R statistical computing service using WebR WebAssembly</p>
+<p>Provides R statistical computing capabilities in the browser via WebR.
+Handles R code execution, package management, data analysis, and statistical
+computations without requiring an R server.</p>
+
+    <div class='pre p1 fill-light mt0'>new WebRService()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// Initialize R environment</span>
+<span class="hljs-keyword">const</span> webR = <span class="hljs-keyword">new</span> <span class="hljs-title class_">WebRService</span>();
+<span class="hljs-keyword">await</span> webR.<span class="hljs-title function_">initialize</span>();
+
+<span class="hljs-comment">// Execute R code</span>
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> webR.<span class="hljs-title function_">executeCode</span>(<span class="hljs-string">&#x27;data &lt;- c(1,2,3,4,5); mean(data)&#x27;</span>);
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(result.<span class="hljs-property">output</span>); <span class="hljs-comment">// [1] 3</span>
+
+<span class="hljs-comment">// Install R packages</span>
+<span class="hljs-keyword">await</span> webR.<span class="hljs-title function_">installPackages</span>([<span class="hljs-string">&#x27;ggplot2&#x27;</span>, <span class="hljs-string">&#x27;dplyr&#x27;</span>]);
+
+<span class="hljs-comment">// Check available packages</span>
+<span class="hljs-keyword">const</span> packages = <span class="hljs-keyword">await</span> webR.<span class="hljs-title function_">getInstalledPackages</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(packages); <span class="hljs-comment">// [&#x27;base&#x27;, &#x27;stats&#x27;, &#x27;ggplot2&#x27;, ...]</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='codyxcell'>
+      CodyxCell
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Universal cell container with lifecycle management</p>
+<p>A flexible cell component that can render different cell types (Python, R, Markdown)
+through pluggable controllers. Handles cell execution, editing states, drag-and-drop
+reordering, and provides consistent UI for all cell types.</p>
+
+    <div class='pre p1 fill-light mt0'>CodyxCell</div>
+  
+  
+
+  
+  
+  
+  
+  
+  <div>Since: 1.0.0</div>
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>controller</span> <code class='quiet'>(<a href="#cellcontroller">CellController</a>)</code>
+	    Cell controller instance (Python, R, or Markdown)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>cellId</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Unique identifier for this cell instance
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>index</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)</code>
+	    Position index in the notebook (0-based)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>focused</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Whether this cell has focus for keyboard navigation
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>initiallyEditing</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Start the cell in editing mode
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>readOnly</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Prevent editing (sandbox mode)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>class</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
+	    Additional CSS classes to apply
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>&lt;!-- <span class="hljs-title class_">Python</span> cell --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CodyxCell</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{pythonController}</span>
+  <span class="hljs-attr">cellId</span>=<span class="hljs-string">&quot;cell-001&quot;</span>
+  <span class="hljs-attr">index</span>=<span class="hljs-string">{0}</span>
+  <span class="hljs-attr">on:execute</span>=<span class="hljs-string">{handleExecute}</span>
+  <span class="hljs-attr">on:delete</span>=<span class="hljs-string">{handleDelete}</span>
+/&gt;</span></span>
+
+&lt;!-- R cell <span class="hljs-keyword">with</span> custom styling --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CodyxCell</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{rController}</span>
+  <span class="hljs-attr">cellId</span>=<span class="hljs-string">&quot;cell-002&quot;</span> 
+  <span class="hljs-attr">index</span>=<span class="hljs-string">{1}</span>
+  <span class="hljs-attr">focused</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;custom-cell-style&quot;</span>
+/&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Markdown</span> cell <span class="hljs-keyword">in</span> edit mode --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CodyxCell</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{markdownController}</span>
+  <span class="hljs-attr">cellId</span>=<span class="hljs-string">&quot;cell-003&quot;</span>
+  <span class="hljs-attr">index</span>=<span class="hljs-string">{2}</span>
+  <span class="hljs-attr">initiallyEditing</span>=<span class="hljs-string">{true}</span>
+/&gt;</span></span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='codyxnotebook'>
+      CodyxNotebook
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Main notebook container and orchestrator</p>
+<p>The primary component that manages an entire Codyx notebook, including
+cell creation, deletion, reordering, persistence, collaboration, and
+integration with various runtime services (Python, R, Markdown).</p>
+
+    <div class='pre p1 fill-light mt0'>CodyxNotebook</div>
+  
+  
+
+  
+  
+  
+  
+  
+  <div>Since: 1.0.0</div>
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>slug</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
+	    Notebook identifier for persistence and collaboration
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>collaborative</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Enable real-time collaboration features
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>userId</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
+	    User identifier for collaboration and ownership
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>importFile</span> <code class='quiet'>(File?)</code>
+	    Jupyter notebook (.ipynb) file to import
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>sandboxMode</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Run in sandbox mode (read-only, no persistence)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>owner</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>?)</code>
+	    Owner identifier for shared notebooks
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>&lt;!-- <span class="hljs-title class_">Basic</span> notebook --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CodyxNotebook</span> /&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Notebook</span> <span class="hljs-keyword">with</span> specific slug --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CodyxNotebook</span> <span class="hljs-attr">slug</span>=<span class="hljs-string">&quot;data-analysis-2024&quot;</span> /&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Collaborative</span> notebook --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CodyxNotebook</span> 
+  <span class="hljs-attr">slug</span>=<span class="hljs-string">&quot;team-project&quot;</span> 
+  <span class="hljs-attr">collaborative</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">userId</span>=<span class="hljs-string">&quot;user-123&quot;</span>
+/&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Import</span> <span class="hljs-title class_">Jupyter</span> notebook --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CodyxNotebook</span> 
+  <span class="hljs-attr">importFile</span>=<span class="hljs-string">{jupyterFile}</span>
+  <span class="hljs-attr">onImportComplete</span>=<span class="hljs-string">{(notebook)</span> =&gt;</span> console.log(&#x27;Imported:&#x27;, notebook)}
+/&gt;</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='markdowncellrenderer'>
+      MarkdownCellRenderer
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Rich text editing interface with live preview</p>
+<p>Specialized cell renderer for Markdown content with enhanced editing capabilities.
+Provides live preview, edit/preview mode toggling, and integration with enhanced
+markdown features for rich documentation and narrative text.</p>
+
+    <div class='pre p1 fill-light mt0'>MarkdownCellRenderer</div>
+  
+  
+
+  
+  
+  
+  
+  
+  <div>Since: 1.0.0</div>
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>controller</span> <code class='quiet'>(<a href="#markdowncellcontroller">MarkdownCellController</a>)</code>
+	    Markdown cell controller instance
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>editing</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>true</code>)</code>
+	    Whether cell is in edit mode (vs preview)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>initialPreview</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Start in preview mode instead of edit
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>enableMath</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>true</code>)</code>
+	    Enable LaTeX math rendering
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>enableTables</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>true</code>)</code>
+	    Enable table syntax support
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>enableCodeBlocks</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>true</code>)</code>
+	    Enable syntax-highlighted code blocks
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>readOnly</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Prevent editing (preview only)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>theme</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>
+            = <code>&#39;default&#39;</code>)</code>
+	    Editor and preview theme
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>&lt;!-- <span class="hljs-title class_">Basic</span> <span class="hljs-title class_">Markdown</span> cell --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">MarkdownCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{markdownController}</span>
+  <span class="hljs-attr">on:previewToggle</span>=<span class="hljs-string">{handlePreviewToggle}</span>
+/&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Markdown</span> cell <span class="hljs-keyword">in</span> preview mode --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">MarkdownCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{markdownController}</span>
+  <span class="hljs-attr">initialPreview</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">enableMath</span>=<span class="hljs-string">{true}</span>
+/&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Markdown</span> cell <span class="hljs-keyword">with</span> enhanced features --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">MarkdownCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{markdownController}</span>
+  <span class="hljs-attr">enableTables</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">enableCodeBlocks</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">enableMath</span>=<span class="hljs-string">{true}</span>
+/&gt;</span></span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='pythoncellrenderer'>
+      PythonCellRenderer
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Python code execution interface with intelligent features</p>
+<p>Specialized cell renderer for Python code with Pyodide integration. Provides
+syntax highlighting, variable tracking, import suggestions, package installation,
+and rich output display for plots, data tables, and execution results.</p>
+
+    <div class='pre p1 fill-light mt0'>PythonCellRenderer</div>
+  
+  
+
+  
+  
+  
+  
+  
+  <div>Since: 1.0.0</div>
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>controller</span> <code class='quiet'>(<a href="#pythoncellcontroller">PythonCellController</a>)</code>
+	    Python cell controller instance
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>editing</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Whether cell is in edit mode
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>showImportSuggestions</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>true</code>)</code>
+	    Show intelligent import suggestions
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>highlightVariables</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>true</code>)</code>
+	    Enable variable syntax highlighting
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>variables</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>
+            = <code>[]</code>)</code>
+	    Available variables for highlighting
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>readOnly</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Prevent code editing
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>theme</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>
+            = <code>&#39;default&#39;</code>)</code>
+	    Code editor theme
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>&lt;!-- <span class="hljs-title class_">Basic</span> <span class="hljs-title class_">Python</span> cell --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">PythonCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{pythonController}</span>
+  <span class="hljs-attr">on:execute</span>=<span class="hljs-string">{handleExecution}</span>
+/&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Python</span> cell <span class="hljs-keyword">with</span> <span class="hljs-keyword">import</span> suggestions --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">PythonCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{pythonController}</span>
+  <span class="hljs-attr">showImportSuggestions</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">on:packageInstall</span>=<span class="hljs-string">{handlePackageInstall}</span>
+/&gt;</span></span>
+
+&lt;!-- <span class="hljs-title class_">Python</span> cell <span class="hljs-keyword">with</span> variable highlighting --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">PythonCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{pythonController}</span>
+  <span class="hljs-attr">highlightVariables</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">variables</span>=<span class="hljs-string">{[</span>&#x27;<span class="hljs-attr">df</span>&#x27;, &#x27;<span class="hljs-attr">plt</span>&#x27;, &#x27;<span class="hljs-attr">np</span>&#x27;]}
+/&gt;</span></span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='rcellrenderer'>
+      RCellRenderer
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>R statistical computing interface with WebR integration</p>
+<p>Specialized cell renderer for R statistical computing with WebR runtime.
+Provides R syntax highlighting, package management, statistical output
+rendering, and integration with popular R libraries like ggplot2 and tidyverse.</p>
+
+    <div class='pre p1 fill-light mt0'>RCellRenderer</div>
+  
+  
+
+  
+  
+  
+  
+  
+  <div>Since: 1.0.0</div>
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>controller</span> <code class='quiet'>(<a href="#rcellcontroller">RCellController</a>)</code>
+	    R cell controller instance
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>editing</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Whether cell is in edit mode
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>showPlots</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>true</code>)</code>
+	    Display R plot outputs
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>plotWidth</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>
+            = <code>500</code>)</code>
+	    Default plot width in pixels
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>plotHeight</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>
+            = <code>350</code>)</code>
+	    Default plot height in pixels
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>availablePackages</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>
+            = <code>[]</code>)</code>
+	    Available R packages for installation
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>readOnly</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+            = <code>false</code>)</code>
+	    Prevent code editing
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>theme</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>
+            = <code>&#39;default&#39;</code>)</code>
+	    Code editor theme
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>&lt;!-- <span class="hljs-title class_">Basic</span> R cell --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">RCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{rController}</span>
+  <span class="hljs-attr">on:execute</span>=<span class="hljs-string">{handleExecution}</span>
+/&gt;</span></span>
+
+&lt;!-- R cell <span class="hljs-keyword">with</span> package installation --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">RCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{rController}</span>
+  <span class="hljs-attr">availablePackages</span>=<span class="hljs-string">{[</span>&#x27;<span class="hljs-attr">ggplot2</span>&#x27;, &#x27;<span class="hljs-attr">dplyr</span>&#x27;, &#x27;<span class="hljs-attr">tidyr</span>&#x27;]}
+  <span class="hljs-attr">on:packageInstall</span>=<span class="hljs-string">{handleRPackageInstall}</span>
+/&gt;</span></span>
+
+&lt;!-- R cell <span class="hljs-keyword">with</span> plot output --&gt;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">RCellRenderer</span> 
+  <span class="hljs-attr">controller</span>=<span class="hljs-string">{rController}</span>
+  <span class="hljs-attr">showPlots</span>=<span class="hljs-string">{true}</span>
+  <span class="hljs-attr">plotWidth</span>=<span class="hljs-string">{600}</span>
+  <span class="hljs-attr">plotHeight</span>=<span class="hljs-string">{400}</span>
+/&gt;</span></span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+      </div>
+    </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/split.js'></script>
+  <script src='assets/site.js'></script>
+</body>
+</html>

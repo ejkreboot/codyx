@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - img "CODYX Logo" [ref=e6]
+        - generic [ref=e7]:
+          - heading "CODYX" [level=1] [ref=e8]
+          - generic [ref=e9]: Collaborative Learning and Research Tools • No Logins Required
+      - button "add New Notebook" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: add
+        - text: New Notebook
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - main [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - heading "Create Interactive Data Science Notebooks" [level=1] [ref=e18]:
+              - text: Create Interactive
+              - text: Data Science Notebooks
+            - paragraph [ref=e19]:
+              - text: Markdown, Python and R code in your browser.
+              - text: Share your analyses instantly with a simple link.
+            - generic [ref=e21]:
+              - textbox "notebook-name" [ref=e22]
+              - button "Open" [disabled] [ref=e23]
+              - button "add New Notebook" [active] [ref=e24] [cursor=pointer]:
+                - generic [ref=e25]: add
+                - text: New Notebook
+          - img "CODYX Desktop Application" [ref=e28]
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e33]: lock_open
+          - heading "No Login Required" [level=3] [ref=e34]
+          - paragraph [ref=e35]: Share notebooks with a simple URL. Perfect for classrooms and collaboration.
+        - generic [ref=e36]:
+          - generic [ref=e38]: cloud
+          - heading "Browser-Based" [level=3] [ref=e39]
+          - paragraph [ref=e40]: Markdown, Python, and R code in your browser, backed by an industrial strength database.
+        - generic [ref=e41]:
+          - generic [ref=e43]: diversity_3
+          - heading "Real-time Collaboration" [level=3] [ref=e44]
+          - paragraph [ref=e45]: Multiple users can edit the same notebook simultaneously with live updates.
+  - contentinfo [ref=e46]:
+    - text: "© 2025 Eric J. Kort. License:"
+    - link "MIT" [ref=e47] [cursor=pointer]:
+      - /url: https://mit-license.org/
+    - text: . Bugs? Suggestions? Open an issue on
+    - link "GitHub" [ref=e48] [cursor=pointer]:
+      - /url: https://github.com/ejkreboot/codyx
+    - text: . Created with lots of help from
+    - link "Claude Sonnet 4" [ref=e49] [cursor=pointer]:
+      - /url: https://www.anthropic.com/claude/sonnet
+    - text: .
+```

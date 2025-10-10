@@ -1,7 +1,7 @@
 <script>
     import {CodeEdytor, RCodeEdytor} from 'code-edytor';
     let {
-        renderer,
+        controller,
         codeEditor = $bindable(),
         onInput,
         onStartEditing,
@@ -10,15 +10,15 @@
     } = $props();
 
     let vars = $state([]);
-    let text = $derived(renderer ? renderer.text : '');
+    let text = $derived(controller ? controller.text : '');
 
 
     // Execute function - run R code
     async function executeR() {
-        if (renderer && typeof renderer.execute === 'function') {
-            await renderer.execute();
+        if (controller && typeof controller.execute === 'function') {
+            await controller.execute();
             // Update variables after execution since new ones might be created
-            vars = await renderer.getVariables();
+            vars = await controller.getVariables();
         }
     }
 
@@ -26,7 +26,7 @@
         if (onStartEditing && typeof onStartEditing === 'function') {
             onStartEditing();
         }
-        vars = await renderer.getVariables();
+        vars = await controller.getVariables();
     }
 
     async function handleBlur() {
@@ -34,7 +34,7 @@
             onStopEditing();
         }
         // Optionally update variables on blur to catch any changes
-        vars = await renderer.getVariables();
+        vars = await controller.getVariables();
     }
 
     function handleKeydown(event) {
@@ -45,6 +45,13 @@
             onKeydown(event);
         }
     }
+
+    function handleInput(event) {
+        // Call the parent's onInput if it exists
+        if (onInput) {
+            onInput(event);
+        }
+    }
 </script>
 
 <div class="r-cell-container">
@@ -53,11 +60,11 @@
             <button 
                 class="run-btn" 
                 onclick={executeR}
-                disabled={renderer.isExecuting || !renderer.text.trim()}
+                disabled={controller.isExecuting || !controller.text.trim()}
                 title="Run R code (Shift+Enter)"
             >
                 <span class="material-symbols-outlined">
-                    {renderer.isExecuting ? 'hourglass_empty' : 'play_arrow'}
+                    {controller.isExecuting ? 'hourglass_empty' : 'play_arrow'}
                 </span>
             </button>
         </div>
@@ -67,7 +74,7 @@
             bind:this={codeEditor}
             bind:value={text} 
             availableVariables={vars}
-            oninput={onInput}
+            oninput={handleInput}
             onblur={handleBlur}
             onfocus={handleFocus}
             width="100%"
@@ -78,46 +85,46 @@
         </div>
     </div>
 
-    {#if renderer.output}
+    {#if controller.output}
         <div class="r-output">
-            {#if renderer.output.type === 'text'}
-                <pre class="r-text-output">{renderer.output.content}</pre>
-            {:else if renderer.output.type === 'plot'}
-                {#if renderer.output.plots && renderer.output.plots.length > 0}
-                    {#each renderer.output.plots as plot, index}
+            {#if controller.output.type === 'text'}
+                <pre class="r-text-output">{controller.output.content}</pre>
+            {:else if controller.output.type === 'plot'}
+                {#if controller.output.plots && controller.output.plots.length > 0}
+                    {#each controller.output.plots as plot, index}
                         <div class="r-plot-output">
                             <img src={plot} alt="R Plot {index + 1}" />
                         </div>
                     {/each}
                 {:else}
                     <div class="r-plot-output">
-                        <img src={renderer.output.content} alt="R Plot" />
+                        <img src={controller.output.content} alt="R Plot" />
                     </div>
                 {/if}
-            {:else if renderer.output.type === 'mixed'}
+            {:else if controller.output.type === 'mixed'}
                 <!-- Mixed output: both text and plots -->
-                {#if renderer.output.textContent && renderer.output.textContent.trim()}
-                    <pre class="r-text-output">{renderer.output.textContent}</pre>
+                {#if controller.output.textContent && controller.output.textContent.trim()}
+                    <pre class="r-text-output">{controller.output.textContent}</pre>
                 {/if}
-                {#if renderer.output.plots && renderer.output.plots.length > 0}
-                    {#each renderer.output.plots as plot, index}
+                {#if controller.output.plots && controller.output.plots.length > 0}
+                    {#each controller.output.plots as plot, index}
                         <div class="r-plot-output">
                             <img src={plot} alt="R Plot {index + 1}" />
                         </div>
                     {/each}
                 {/if}
-            {:else if renderer.output.type === 'data'}
+            {:else if controller.output.type === 'data'}
                 <div class="r-data-output">
                     <table class="r-table">
                         <thead>
                             <tr>
-                                {#each renderer.output.columns as col}
+                                {#each controller.output.columns as col}
                                     <th>{col}</th>
                                 {/each}
                             </tr>
                         </thead>
                         <tbody>
-                            {#each renderer.output.rows as row}
+                            {#each controller.output.rows as row}
                                 <tr>
                                     {#each row as cell}
                                         <td>{cell}</td>
@@ -127,19 +134,19 @@
                         </tbody>
                     </table>
                 </div>
-            {:else if renderer.output.type === 'error'}
+            {:else if controller.output.type === 'error'}
                 <div class="r-error-output">
                     <div class="error-header">
                         <span class="material-symbols-outlined">error</span>
                         R Error
                     </div>
-                    <pre class="error-content">{renderer.output.content}</pre>
+                    <pre class="error-content">{controller.output.content}</pre>
                 </div>
             {/if}
         </div>
     {/if}
         
-    {#if renderer.isExecuting}
+    {#if controller.isExecuting}
         <div class="r-executing">
             <span class="material-symbols-outlined spinning">sync</span>
             Executing R code...

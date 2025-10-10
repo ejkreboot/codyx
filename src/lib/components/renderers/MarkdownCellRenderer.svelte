@@ -2,27 +2,61 @@
     import { processEnhancedMarkdown } from '$lib/util/enhanced-markdown.js';
 
     let {
-        renderer,
+        controller,
         textareaElement = $bindable(),
         onInput,
         onStartEditing,
         onStopEditing,
         onKeydown
     } = $props();
+
+    function handleInput(event) {
+        // Auto-resize the textarea
+        autoResizeTextarea(event.target);
+        
+        // Call the parent's onInput if it exists
+        if (onInput) {
+            onInput(event);
+        }
+    }
+
+    /**
+     * Auto-resize textarea based on content
+     * @param {HTMLElement} textarea - Textarea element to resize
+     */
+    function autoResizeTextarea(textarea) {
+        if (!textarea || !textarea.style) return;
+        
+        // Reset height to auto to get the correct scrollHeight
+        textarea.style.height = 'auto';
+        
+        // Set height based on scroll height with some padding
+        const newHeight = Math.max(textarea.scrollHeight + 4, 80); // 80px minimum
+        textarea.style.height = newHeight + 'px';
+        
+        // Ensure max height constraint
+        const maxHeight = 600;
+        if (newHeight > maxHeight) {
+            textarea.style.height = maxHeight + 'px';
+            textarea.style.overflowY = 'scroll';
+        } else {
+            textarea.style.overflowY = 'hidden';
+        }
+    }
 </script>
 
-{#if renderer.isEditing}
+{#if controller.isEditing}
     <textarea 
         bind:this={textareaElement}
-        bind:value={renderer.text} 
-        oninput={onInput}
+        bind:value={controller.text} 
+        oninput={handleInput}
         onblur={() => onStopEditing?.()}
         class="cell-textarea"
         placeholder="Enter markdown..."
     ></textarea>
     <div class="markdown-preview">
         <div class="rendered-markdown">
-            {@html processEnhancedMarkdown(renderer.text)}
+            {@html processEnhancedMarkdown(controller.text)}
         </div>
     </div>
 {:else}
@@ -33,7 +67,7 @@
         role="button" 
         tabindex="0"
     >
-        {@html processEnhancedMarkdown(renderer.text)}
+        {@html processEnhancedMarkdown(controller.text)}
     </div>
 {/if}
 

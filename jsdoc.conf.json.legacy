@@ -1,0 +1,44 @@
+{
+  "source": {
+    "include": [
+      "./src/lib/classes/cells/CellController.svelte.js",
+      "./src/lib/classes/cells/PythonCellController.svelte.js",
+      "./src/lib/classes/cells/RCellController.svelte.js", 
+      "./src/lib/classes/cells/MarkdownCellController.svelte.js",
+      "./src/lib/classes/notebook.js",
+      "./src/lib/classes/pyodide-service.js",
+      "./src/lib/classes/webr-service.js",
+      "./src/lib/classes/live-text.js",
+      "./src/lib/classes/lexasort.js"
+    ],
+    "includePattern": "\\.js$",
+    "exclude": [
+      "./src/lib/classes/cells/index.js"
+    ]
+  },
+  "opts": {
+    "destination": "./docs/reference/notebook/html/",
+    "recurse": true,
+    "readme": "./src/lib/classes/README.md"
+  },
+  "sourceType": "module",
+  "plugins": ["plugins/markdown"],
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false,
+    "systemName": "Codyx API Reference",
+    "footer": "Generated with JSDoc for <strong>Codyx</strong> - Interactive Computing Platform | Built with ❤️ using Svelte 5, Pyodide, and WebR",
+    "copyright": "Copyright © 2025 Codyx Project - Bringing Python & R to the Browser",
+    "theme": "default",
+    "linenums": true,
+    "default": {
+      "staticFiles": {
+        "include": ["./docs/templates/jsdoc-custom/"]
+      }
+    }
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
+  }
+}

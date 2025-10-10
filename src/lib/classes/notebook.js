@@ -3,14 +3,40 @@ import { LexaKey } from '$lib/classes/lexasort.js';
 import { writable } from 'svelte/store';
 import Haikunator from 'haikunator'
 
-
-// create a notebook class that interacts with supabase
-// Usage: const nb = await Notebook.create(slug).
-
+/**
+ * Notebook management class for Codyx interactive notebooks
+ * 
+ * Handles notebook persistence, cell management, collaboration features,
+ * and integration with Supabase backend. Provides CRUD operations for
+ * notebooks and manages sandbox/sharing functionality.
+ * 
+ * @class Notebook
+ * @example
+ * // Create a new notebook
+ * const notebook = await Notebook.create('my-notebook-slug');
+ * 
+ * // Load an existing notebook
+ * const existing = new Notebook('existing-slug');
+ * await existing.load();
+ * 
+ * // Add cells to the notebook
+ * const cellId = await notebook.addCell('python', 'print("Hello World")');
+ * 
+ * // Save changes
+ * await notebook.save();
+ * 
+ * // Create a sandbox for experimentation
+ * const sandbox = await notebook.createSandbox();
+ */
 export class Notebook {
 
     static haikunator = new Haikunator();
 
+    /**
+     * Create a new Notebook instance
+     * @param {string} slug - Unique identifier for the notebook
+     * @param {string} [owner='public'] - Owner of the notebook (user ID or 'public')
+     */
     constructor(slug, owner = 'public') {
         this.slug = slug;
         this.owner = owner ?? 'public';

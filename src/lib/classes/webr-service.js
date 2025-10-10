@@ -1,6 +1,34 @@
 import { WebR } from 'webr';
 
+/**
+ * R statistical computing service using WebR WebAssembly
+ * 
+ * Provides R statistical computing capabilities in the browser via WebR.
+ * Handles R code execution, package management, data analysis, and statistical
+ * computations without requiring an R server.
+ * 
+ * @class WebRService  
+ * @example
+ * // Initialize R environment
+ * const webR = new WebRService();
+ * await webR.initialize();
+ * 
+ * // Execute R code
+ * const result = await webR.executeCode('data <- c(1,2,3,4,5); mean(data)');
+ * console.log(result.output); // [1] 3
+ * 
+ * // Install R packages
+ * await webR.installPackages(['ggplot2', 'dplyr']);
+ * 
+ * // Check available packages
+ * const packages = await webR.getInstalledPackages();
+ * console.log(packages); // ['base', 'stats', 'ggplot2', ...]
+ */
 class WebRService {
+    /**
+     * Create a new WebRService instance
+     * Initializes the R runtime manager with default state
+     */
     constructor() {
         this.webR = null;
         this.status = 'not-started';

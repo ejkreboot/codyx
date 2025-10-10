@@ -3,9 +3,9 @@
     import { LiveText } from '$lib/classes/live-text.js';
     import { supabase } from '$lib/util/supabase-client.js';
     import { collapsibleScript } from '$lib/util/enhanced-markdown.js';
-    import { MarkdownRenderer } from '$lib/classes/render/MarkdownRenderer.svelte.js';
-    import { RRenderer } from '$lib/classes/render/RRenderer.svelte.js';
-    import { PythonRenderer } from '$lib/classes/render/PythonRenderer.svelte.js';
+    import { MarkdownCellController } from '$lib/classes/cells/MarkdownCellController.svelte.js';
+    import { RCellController } from '$lib/classes/cells/RCellController.svelte.js';
+    import { PythonCellController } from '$lib/classes/cells/PythonCellController.svelte.js';
 
     // Props
     let props = $props();
@@ -22,8 +22,8 @@
     let liveText;
     let codeEditor = $state();
     
-    // Renderer instance
-    let renderer = $state(null);
+    // Controller instance
+    let controller = $state(null);
     
     // Event dispatcher
     const dispatch = createEventDispatcher();
@@ -31,37 +31,33 @@
     // LiveText updater function
     let liveTextUpdater = null;
 
-    // ============ RENDERER MANAGEMENT ============
+    // ============ CONTROLLER MANAGEMENT ============
     
     /**
-     * Create appropriate renderer based on cell type
+     * Create appropriate controller based on cell type
      */
-    function createRenderer() {
+    function createController() {
         if (type === 'md') {
-            renderer = new MarkdownRenderer(docId, cellIndex, initialText);
+            controller = new MarkdownCellController(docId, cellIndex, initialText);
         } else if (type === 'code') {
-            renderer = new PythonRenderer(docId, cellIndex, initialText);
+            controller = new PythonCellController(docId, cellIndex, initialText);
         } else if (type === 'r') {
-            renderer = new RRenderer(docId, cellIndex, initialText);
+            controller = new RCellController(docId, cellIndex, initialText);
         } else {
-            renderer = null;
+            controller = null;
         }
     }
     
     /**
-     * Handle text changes from renderer or direct input
+     * Handle text changes from controller or direct input
      */
     function handleTextChange(newText) {
-        if (renderer) {
-            renderer.updateText(newText);
+        if (controller) {
+            controller.updateText(newText);
         }
         
         if (liveTextUpdater) {
             liveTextUpdater({ target: { value: newText } });
-        }
-        
-        if (codeEditor && (type === 'code' || type === 'r' || type === 'md')) {
-            renderer?.autoResizeTextarea(codeEditor);
         }
     }
     
@@ -76,19 +72,19 @@
     
     function startEditing() {
         if (sandboxed) return;
-        renderer?.startEditing();
+        controller?.startEditing();
     }
 
     function stopEditing() {
         if (sandboxed) return;
-        renderer?.stopEditing();
-        dispatch('edit', { type: "edit", docId, text: renderer?.text });
+        controller?.stopEditing();
+        dispatch('edit', { type: "edit", docId, text: controller?.text });
     }
 
     async function executeCell() {
-        if (renderer) {
+        if (controller) {
             try {
-                const result = await renderer.execute();
+                const result = await controller.execute();
                 dispatch('execute', { cellId: docId, result });
             } catch (error) {
                 console.error('Cell execution failed:', error);
@@ -97,8 +93,8 @@
     }
 
     function clearCell() {
-        if (renderer) {
-            renderer.clear();
+        if (controller) {
+            controller.clear();
         }
     }
 
@@ -137,8 +133,8 @@
     // ============ LIFECYCLE ============
 
     onMount(async () => {
-        // Create renderer instance
-        createRenderer();
+        // Create controller instance
+        createController();
         
         // Set up LiveText
         liveText = await LiveText.create({
@@ -150,8 +146,8 @@
         });
         
         liveText.addEventListener('patched', (e) => {
-            if (renderer) {
-                renderer.updateText(e.detail.text);
+            if (controller) {
+                controller.updateText(e.detail.text);
             }
         });
         
@@ -172,16 +168,9 @@
             document.head.appendChild(script);
         }
 
-        if (codeEditor && renderer?.text) {
-            setTimeout(() => renderer?.autoResizeTextarea(codeEditor), 0);
-        }
     });
 
-    $effect(() => {
-        if (codeEditor && renderer?.text !== undefined) {
-            setTimeout(() => renderer?.autoResizeTextarea(codeEditor), 0);
-        }
-    });
+    // Auto-resize is now handled within each renderer component
 
     onDestroy(() => {
         if (sandboxed) return;
@@ -190,8 +179,8 @@
         liveText?.removeEventListener('typing');
         liveText?.destroy();
         
-        // Cleanup renderer
-        renderer?.onDestroy();
+        // Cleanup controller
+        controller?.onDestroy();
     });
 </script>
 
@@ -199,8 +188,8 @@
     <!-- Cell Gutter -->
     <div class="cell-gutter">
         <div class="cell-type-icon">
-            {#if renderer}
-                {@const iconConfig = renderer.getIconConfig()}
+            {#if controller}
+                {@const iconConfig = controller.getIconConfig()}
                 {#if iconConfig.type === 'material-icon'}
                     <span class="material-symbols-outlined" style="color: {iconConfig.color}">
                         {iconConfig.icon}
@@ -209,7 +198,7 @@
                     <span class="{iconConfig.icon}" style="color: {iconConfig.color}"></span>
                 {/if}
             {:else}
-                <!-- Fallback for when renderer isn't ready -->
+                <!-- Fallback for when controller isn't ready -->
                 <span class="material-symbols-outlined" style="color: #6c757d">help_outline</span>
             {/if}
         </div>
@@ -245,8 +234,8 @@
         {/if}
 
         <!-- Universal Cell Rendering -->
-        {#if renderer}
-            {@const renderConfig = renderer.render({
+        {#if controller}
+            {@const renderConfig = controller.render({
                 onInput: handleInput,
                 onStartEditing: startEditing,
                 onStopEditing: stopEditing,
@@ -258,7 +247,7 @@
             />
         {:else}
             <div class="temp-fallback">
-                <p>🚧 Renderer for type "{type}" not implemented yet!</p>
+                <p>🚧 Controller for type "{type}" not implemented yet!</p>
             </div>
         {/if}
     

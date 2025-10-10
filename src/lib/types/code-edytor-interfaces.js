@@ -35,14 +35,14 @@
  * 
  * Flow in Codyx R Cells:
  * 1. User focuses R cell → RCellRenderer.handleFocus()
- * 2. Handler calls → renderer.getVariables() 
- * 3. RRenderer queries → webRService.getGlobalVariables()
+ * 2. Handler calls → controller.getVariables() 
+ * 3. RCellController queries → webRService.getGlobalVariables()
  * 4. Variables returned → ['x', 'y', 'data', 'model'] (string[])
  * 5. Passed to CodeEdytor → availableVariables={vars}
  * 6. Editor highlights → Variable names with orange underline
  * 
  * @example
- * // In RRenderer.svelte.js - implement this method
+ * // In RCellController.svelte.js - implement this method
  * async getVariables() {
  *     try {
  *         const result = await webRService.getGlobalVariables();

@@ -1,7 +1,7 @@
 <script>
     import {CodeEdytor, PythonCodeEdytor} from 'code-edytor';
     let {
-        renderer,
+        controller,
         codeEditor = $bindable(),
         onInput,
         onStartEditing,
@@ -10,17 +10,15 @@
     } = $props();
 
     let vars = $state([]);
-    let text = $derived(renderer ? renderer.text : '');
-    
-    // Make import suggestions reactive to renderer changes
-    let importSuggestions = $derived(renderer ? renderer.importSuggestions : []);
+    let text = $derived(controller ? controller.text : '');
 
-    // Execute function - run Python code
-    async function executePython() {
-        if (renderer && typeof renderer.execute === 'function') {
-            await renderer.execute();
-            // Update variables after execution since new ones might be created
-            vars = await renderer.getVariables();
+    // Make import suggestions reactive to controller changes
+    let importSuggestions = $derived(controller ? controller.importSuggestions : []);    // Execute function - run Python code
+    async function executeCode() {
+        if (controller && typeof controller.execute === 'function') {
+            await controller.execute();
+            
+            vars = await controller.getVariables();
         }
     }
     
@@ -28,7 +26,7 @@
         if (onStartEditing && typeof onStartEditing === 'function') {
             onStartEditing();
         }
-        vars = await renderer.getVariables();
+        vars = await controller.getVariables();
     }
 
     async function handleBlur() {
@@ -36,22 +34,22 @@
             onStopEditing();
         }
         // Optionally update variables on blur to catch any changes
-        vars = await renderer.getVariables();
+        vars = await controller.getVariables();
     }
 
     function handleKeydown(event) {
         if (event.shiftKey && event.key === 'Enter') {
             event.preventDefault();
-            executePython();
+            executeCode();
         } else if (onKeydown && typeof onKeydown === 'function') {
             onKeydown(event);
         }
     }
 
     function handleInput(event) {
-        // Call the renderer's handleInput method to trigger import suggestions
-        if (renderer && renderer.handleInput) {
-            renderer.handleInput(event);
+        // Call the controller's handleInput method to trigger import suggestions
+        if (controller && controller.handleInput) {
+            controller.handleInput(event);
         }
         
         // Call the parent's onInput if it exists
@@ -67,12 +65,12 @@
         <div class="python-sub-gutter">
             <button 
                 class="run-btn" 
-                onclick={executePython}
-                disabled={renderer.isExecuting || !renderer.text.trim()}
+                onclick={executeCode}
+                disabled={controller.isExecuting || !controller.text.trim()}
                 title="Run Python code (Shift+Enter)"
             >
                 <span class="material-symbols-outlined">
-                    {renderer.isExecuting ? 'hourglass_empty' : 'play_arrow'}
+                    {controller.isExecuting ? 'hourglass_empty' : 'play_arrow'}
                 </span>
             </button>
         </div>
@@ -107,14 +105,14 @@
                     <div class="suggestion-actions">
                         <button 
                             class="install-btn"
-                            onclick={() => renderer.insertInstallCode(suggestion)}
+                            onclick={() => controller.insertInstallCode(suggestion)}
                         >
                             Install
                         </button>
                         <button 
                             class="dismiss-btn"
                             onclick={() => {
-                                renderer.importSuggestions = renderer.importSuggestions.filter(s => s !== suggestion);
+                                controller.importSuggestions = controller.importSuggestions.filter(s => s !== suggestion);
                             }}
                         >
                             Dismiss
@@ -125,46 +123,46 @@
         </div>
     {/if}
 
-    {#if renderer.output}
+    {#if controller.output}
         <div class="python-output">
-            {#if renderer.output.type === 'text'}
-                <pre class="python-text-output">{renderer.output.content}</pre>
-            {:else if renderer.output.type === 'plot'}
-                {#if renderer.output.plots && renderer.output.plots.length > 0}
-                    {#each renderer.output.plots as plot, index}
+            {#if controller.output.type === 'text'}
+                <pre class="python-text-output">{controller.output.content}</pre>
+            {:else if controller.output.type === 'plot'}
+                {#if controller.output.plots && controller.output.plots.length > 0}
+                    {#each controller.output.plots as plot, index}
                         <div class="python-plot-output">
                             <img src={plot} alt="Python Plot {index + 1}" />
                         </div>
                     {/each}
                 {:else}
                     <div class="python-plot-output">
-                        <img src={renderer.output.content} alt="Python Plot" />
+                        <img src={controller.output.content} alt="Python Plot" />
                     </div>
                 {/if}
-            {:else if renderer.output.type === 'mixed'}
+            {:else if controller.output.type === 'mixed'}
                 <!-- Mixed output: both text and plots -->
-                {#if renderer.output.textContent && renderer.output.textContent.trim()}
-                    <pre class="python-text-output">{renderer.output.textContent}</pre>
+                {#if controller.output.textContent && controller.output.textContent.trim()}
+                    <pre class="python-text-output">{controller.output.textContent}</pre>
                 {/if}
-                {#if renderer.output.plots && renderer.output.plots.length > 0}
-                    {#each renderer.output.plots as plot, index}
+                {#if controller.output.plots && controller.output.plots.length > 0}
+                    {#each controller.output.plots as plot, index}
                         <div class="python-plot-output">
                             <img src={plot} alt="Python Plot {index + 1}" />
                         </div>
                     {/each}
                 {/if}
-            {:else if renderer.output.type === 'data'}
+            {:else if controller.output.type === 'data'}
                 <div class="python-data-output">
                     <table class="python-table">
                         <thead>
                             <tr>
-                                {#each renderer.output.columns as col}
+                                {#each controller.output.columns as col}
                                     <th>{col}</th>
                                 {/each}
                             </tr>
                         </thead>
                         <tbody>
-                            {#each renderer.output.rows as row}
+                            {#each controller.output.rows as row}
                                 <tr>
                                     {#each row as cell}
                                         <td>{cell}</td>
@@ -174,19 +172,19 @@
                         </tbody>
                     </table>
                 </div>
-            {:else if renderer.output.type === 'error'}
+            {:else if controller.output.type === 'error'}
                 <div class="python-error-output">
                     <div class="error-header">
                         <span class="material-symbols-outlined">error</span>
                         Python Error
                     </div>
-                    <pre class="error-content">{renderer.output.content}</pre>
+                    <pre class="error-content">{controller.output.content}</pre>
                 </div>
             {/if}
         </div>
     {/if}
         
-    {#if renderer.isExecuting}
+    {#if controller.isExecuting}
         <div class="python-executing">
             <span class="material-symbols-outlined spinning">sync</span>
             Executing Python code...

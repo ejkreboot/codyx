@@ -1,6 +1,34 @@
 import { loadPyodide } from 'pyodide';
 
+/**
+ * Python runtime service using Pyodide WebAssembly
+ * 
+ * Manages Python code execution in the browser via Pyodide. Handles package
+ * installation, variable tracking, import suggestions, and provides a complete
+ * Python environment without server dependencies.
+ * 
+ * @class PyodideService
+ * @example
+ * // Initialize Python environment
+ * const pyodide = new PyodideService();
+ * await pyodide.initialize();
+ * 
+ * // Execute Python code
+ * const result = await pyodide.runPython('print("Hello from Python!")');
+ * console.log(result.output); // "Hello from Python!"
+ * 
+ * // Install packages
+ * await pyodide.installPackage('numpy');
+ * 
+ * // Get available variables for syntax highlighting
+ * const variables = pyodide.getGlobalVariables();
+ * console.log(variables); // { 'numpy': {...}, ... }
+ */
 class PyodideService {
+    /**
+     * Create a new PyodideService instance
+     * Initializes the Python runtime manager with empty state
+     */
     constructor() {
         this.pyodide = null;
         this.initPromise = null;

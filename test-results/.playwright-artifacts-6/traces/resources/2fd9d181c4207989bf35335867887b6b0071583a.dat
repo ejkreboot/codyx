@@ -1,0 +1,444 @@
+import {
+  __commonJS
+} from "/node_modules/.vite/deps/chunk-PLDDJCW6.js?v=f8e19137";
+
+// node_modules/json-stringify-safe/stringify.js
+var require_stringify = __commonJS({
+  "node_modules/json-stringify-safe/stringify.js"(exports, module) {
+    exports = module.exports = stringify;
+    exports.getSerialize = serializer;
+    function stringify(obj, replacer, spaces, cycleReplacer) {
+      return JSON.stringify(obj, serializer(replacer, cycleReplacer), spaces);
+    }
+    function serializer(replacer, cycleReplacer) {
+      var stack = [], keys = [];
+      if (cycleReplacer == null) cycleReplacer = function(key, value) {
+        if (stack[0] === value) return "[Circular ~]";
+        return "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]";
+      };
+      return function(key, value) {
+        if (stack.length > 0) {
+          var thisPos = stack.indexOf(this);
+          ~thisPos ? stack.splice(thisPos + 1) : stack.push(this);
+          ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key);
+          if (~stack.indexOf(value)) value = cycleReplacer.call(this, key, value);
+        } else stack.push(value);
+        return replacer == null ? value : replacer.call(this, key, value);
+      };
+    }
+  }
+});
+
+// node_modules/random-seed/index.js
+var require_random_seed = __commonJS({
+  "node_modules/random-seed/index.js"(exports, module) {
+    "use strict";
+    var stringify = require_stringify();
+    var Mash = function() {
+      var n = 4022871197;
+      var mash = function(data) {
+        if (data) {
+          data = data.toString();
+          for (var i = 0; i < data.length; i++) {
+            n += data.charCodeAt(i);
+            var h = 0.02519603282416938 * n;
+            n = h >>> 0;
+            h -= n;
+            h *= n;
+            n = h >>> 0;
+            h -= n;
+            n += h * 4294967296;
+          }
+          return (n >>> 0) * 23283064365386963e-26;
+        } else {
+          n = 4022871197;
+        }
+      };
+      return mash;
+    };
+    var uheprng = function(seed) {
+      return (function() {
+        var o = 48;
+        var c = 1;
+        var p = o;
+        var s = new Array(o);
+        var i;
+        var j;
+        var k = 0;
+        var mash = new Mash();
+        for (i = 0; i < o; i++) {
+          s[i] = mash(Math.random());
+        }
+        var rawprng = function() {
+          if (++p >= o) {
+            p = 0;
+          }
+          var t = 1768863 * s[p] + c * 23283064365386963e-26;
+          return s[p] = t - (c = t | 0);
+        };
+        var random = function(range) {
+          return Math.floor(range * (rawprng() + (rawprng() * 2097152 | 0) * 11102230246251565e-32));
+        };
+        random.string = function(count) {
+          var i2;
+          var s2 = "";
+          for (i2 = 0; i2 < count; i2++) {
+            s2 += String.fromCharCode(33 + random(94));
+          }
+          return s2;
+        };
+        var hash = function() {
+          var args = Array.prototype.slice.call(arguments);
+          for (i = 0; i < args.length; i++) {
+            for (j = 0; j < o; j++) {
+              s[j] -= mash(args[i]);
+              if (s[j] < 0) {
+                s[j] += 1;
+              }
+            }
+          }
+        };
+        random.cleanString = function(inStr) {
+          inStr = inStr.replace(/(^\s*)|(\s*$)/gi, "");
+          inStr = inStr.replace(/[\x00-\x1F]/gi, "");
+          inStr = inStr.replace(/\n /, "\n");
+          return inStr;
+        };
+        random.hashString = function(inStr) {
+          inStr = random.cleanString(inStr);
+          mash(inStr);
+          for (i = 0; i < inStr.length; i++) {
+            k = inStr.charCodeAt(i);
+            for (j = 0; j < o; j++) {
+              s[j] -= mash(k);
+              if (s[j] < 0) {
+                s[j] += 1;
+              }
+            }
+          }
+        };
+        random.seed = function(seed2) {
+          if (typeof seed2 === "undefined" || seed2 === null) {
+            seed2 = Math.random();
+          }
+          if (typeof seed2 !== "string") {
+            seed2 = stringify(seed2, function(key, value) {
+              if (typeof value === "function") {
+                return value.toString();
+              }
+              return value;
+            });
+          }
+          random.initState();
+          random.hashString(seed2);
+        };
+        random.addEntropy = function() {
+          var args = [];
+          for (i = 0; i < arguments.length; i++) {
+            args.push(arguments[i]);
+          }
+          hash(k++ + (/* @__PURE__ */ new Date()).getTime() + args.join("") + Math.random());
+        };
+        random.initState = function() {
+          mash();
+          for (i = 0; i < o; i++) {
+            s[i] = mash(" ");
+          }
+          c = 1;
+          p = o;
+        };
+        random.done = function() {
+          mash = null;
+        };
+        if (typeof seed !== "undefined") {
+          random.seed(seed);
+        }
+        random.range = function(range) {
+          return random(range);
+        };
+        random.random = function() {
+          return random(Number.MAX_VALUE - 1) / Number.MAX_VALUE;
+        };
+        random.floatBetween = function(min, max) {
+          return random.random() * (max - min) + min;
+        };
+        random.intBetween = function(min, max) {
+          return Math.floor(random.random() * (max - min + 1)) + min;
+        };
+        return random;
+      })();
+    };
+    uheprng.create = function(seed) {
+      return new uheprng(seed);
+    };
+    module.exports = uheprng;
+  }
+});
+
+// node_modules/lodash.defaults/index.js
+var require_lodash = __commonJS({
+  "node_modules/lodash.defaults/index.js"(exports, module) {
+    var MAX_SAFE_INTEGER = 9007199254740991;
+    var argsTag = "[object Arguments]";
+    var funcTag = "[object Function]";
+    var genTag = "[object GeneratorFunction]";
+    var reIsUint = /^(?:0|[1-9]\d*)$/;
+    function apply(func, thisArg, args) {
+      switch (args.length) {
+        case 0:
+          return func.call(thisArg);
+        case 1:
+          return func.call(thisArg, args[0]);
+        case 2:
+          return func.call(thisArg, args[0], args[1]);
+        case 3:
+          return func.call(thisArg, args[0], args[1], args[2]);
+      }
+      return func.apply(thisArg, args);
+    }
+    function baseTimes(n, iteratee) {
+      var index = -1, result = Array(n);
+      while (++index < n) {
+        result[index] = iteratee(index);
+      }
+      return result;
+    }
+    var objectProto = Object.prototype;
+    var hasOwnProperty = objectProto.hasOwnProperty;
+    var objectToString = objectProto.toString;
+    var propertyIsEnumerable = objectProto.propertyIsEnumerable;
+    var nativeMax = Math.max;
+    function arrayLikeKeys(value, inherited) {
+      var result = isArray(value) || isArguments(value) ? baseTimes(value.length, String) : [];
+      var length = result.length, skipIndexes = !!length;
+      for (var key in value) {
+        if ((inherited || hasOwnProperty.call(value, key)) && !(skipIndexes && (key == "length" || isIndex(key, length)))) {
+          result.push(key);
+        }
+      }
+      return result;
+    }
+    function assignInDefaults(objValue, srcValue, key, object) {
+      if (objValue === void 0 || eq(objValue, objectProto[key]) && !hasOwnProperty.call(object, key)) {
+        return srcValue;
+      }
+      return objValue;
+    }
+    function assignValue(object, key, value) {
+      var objValue = object[key];
+      if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) || value === void 0 && !(key in object)) {
+        object[key] = value;
+      }
+    }
+    function baseKeysIn(object) {
+      if (!isObject(object)) {
+        return nativeKeysIn(object);
+      }
+      var isProto = isPrototype(object), result = [];
+      for (var key in object) {
+        if (!(key == "constructor" && (isProto || !hasOwnProperty.call(object, key)))) {
+          result.push(key);
+        }
+      }
+      return result;
+    }
+    function baseRest(func, start) {
+      start = nativeMax(start === void 0 ? func.length - 1 : start, 0);
+      return function() {
+        var args = arguments, index = -1, length = nativeMax(args.length - start, 0), array = Array(length);
+        while (++index < length) {
+          array[index] = args[start + index];
+        }
+        index = -1;
+        var otherArgs = Array(start + 1);
+        while (++index < start) {
+          otherArgs[index] = args[index];
+        }
+        otherArgs[start] = array;
+        return apply(func, this, otherArgs);
+      };
+    }
+    function copyObject(source, props, object, customizer) {
+      object || (object = {});
+      var index = -1, length = props.length;
+      while (++index < length) {
+        var key = props[index];
+        var newValue = customizer ? customizer(object[key], source[key], key, object, source) : void 0;
+        assignValue(object, key, newValue === void 0 ? source[key] : newValue);
+      }
+      return object;
+    }
+    function createAssigner(assigner) {
+      return baseRest(function(object, sources) {
+        var index = -1, length = sources.length, customizer = length > 1 ? sources[length - 1] : void 0, guard = length > 2 ? sources[2] : void 0;
+        customizer = assigner.length > 3 && typeof customizer == "function" ? (length--, customizer) : void 0;
+        if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+          customizer = length < 3 ? void 0 : customizer;
+          length = 1;
+        }
+        object = Object(object);
+        while (++index < length) {
+          var source = sources[index];
+          if (source) {
+            assigner(object, source, index, customizer);
+          }
+        }
+        return object;
+      });
+    }
+    function isIndex(value, length) {
+      length = length == null ? MAX_SAFE_INTEGER : length;
+      return !!length && (typeof value == "number" || reIsUint.test(value)) && (value > -1 && value % 1 == 0 && value < length);
+    }
+    function isIterateeCall(value, index, object) {
+      if (!isObject(object)) {
+        return false;
+      }
+      var type = typeof index;
+      if (type == "number" ? isArrayLike(object) && isIndex(index, object.length) : type == "string" && index in object) {
+        return eq(object[index], value);
+      }
+      return false;
+    }
+    function isPrototype(value) {
+      var Ctor = value && value.constructor, proto = typeof Ctor == "function" && Ctor.prototype || objectProto;
+      return value === proto;
+    }
+    function nativeKeysIn(object) {
+      var result = [];
+      if (object != null) {
+        for (var key in Object(object)) {
+          result.push(key);
+        }
+      }
+      return result;
+    }
+    function eq(value, other) {
+      return value === other || value !== value && other !== other;
+    }
+    function isArguments(value) {
+      return isArrayLikeObject(value) && hasOwnProperty.call(value, "callee") && (!propertyIsEnumerable.call(value, "callee") || objectToString.call(value) == argsTag);
+    }
+    var isArray = Array.isArray;
+    function isArrayLike(value) {
+      return value != null && isLength(value.length) && !isFunction(value);
+    }
+    function isArrayLikeObject(value) {
+      return isObjectLike(value) && isArrayLike(value);
+    }
+    function isFunction(value) {
+      var tag = isObject(value) ? objectToString.call(value) : "";
+      return tag == funcTag || tag == genTag;
+    }
+    function isLength(value) {
+      return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+    }
+    function isObject(value) {
+      var type = typeof value;
+      return !!value && (type == "object" || type == "function");
+    }
+    function isObjectLike(value) {
+      return !!value && typeof value == "object";
+    }
+    var assignInWith = createAssigner(function(object, source, srcIndex, customizer) {
+      copyObject(source, keysIn(source), object, customizer);
+    });
+    var defaults = baseRest(function(args) {
+      args.push(void 0, assignInDefaults);
+      return apply(assignInWith, void 0, args);
+    });
+    function keysIn(object) {
+      return isArrayLike(object) ? arrayLikeKeys(object, true) : baseKeysIn(object);
+    }
+    module.exports = defaults;
+  }
+});
+
+// node_modules/haikunator/dist-web/index.js
+var require_dist_web = __commonJS({
+  "node_modules/haikunator/dist-web/index.js"(exports, module) {
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports["default"] = void 0;
+    var _randomSeed = _interopRequireDefault(require_random_seed());
+    var _lodash = _interopRequireDefault(require_lodash());
+    function _interopRequireDefault(obj) {
+      return obj && obj.__esModule ? obj : { "default": obj };
+    }
+    function _classCallCheck(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    }
+    function _defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+    function _createClass(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties(Constructor, staticProps);
+      return Constructor;
+    }
+    var defaultAdjectives = ["aged", "ancient", "autumn", "billowing", "bitter", "black", "blue", "bold", "broad", "broken", "calm", "cold", "cool", "crimson", "curly", "damp", "dark", "dawn", "delicate", "divine", "dry", "empty", "falling", "fancy", "flat", "floral", "fragrant", "frosty", "gentle", "green", "hidden", "holy", "icy", "jolly", "late", "lingering", "little", "lively", "long", "lucky", "misty", "morning", "muddy", "mute", "nameless", "noisy", "odd", "old", "orange", "patient", "plain", "polished", "proud", "purple", "quiet", "rapid", "raspy", "red", "restless", "rough", "round", "royal", "shiny", "shrill", "shy", "silent", "small", "snowy", "soft", "solitary", "sparkling", "spring", "square", "steep", "still", "summer", "super", "sweet", "throbbing", "tight", "tiny", "twilight", "wandering", "weathered", "white", "wild", "winter", "wispy", "withered", "yellow", "young"];
+    var defaultNouns = ["art", "band", "bar", "base", "bird", "block", "boat", "bonus", "bread", "breeze", "brook", "bush", "butterfly", "cake", "cell", "cherry", "cloud", "credit", "darkness", "dawn", "dew", "disk", "dream", "dust", "feather", "field", "fire", "firefly", "flower", "fog", "forest", "frog", "frost", "glade", "glitter", "grass", "hall", "hat", "haze", "heart", "hill", "king", "lab", "lake", "leaf", "limit", "math", "meadow", "mode", "moon", "morning", "mountain", "mouse", "mud", "night", "paper", "pine", "poetry", "pond", "queen", "rain", "recipe", "resonance", "rice", "river", "salad", "scene", "sea", "shadow", "shape", "silence", "sky", "smoke", "snow", "snowflake", "sound", "star", "sun", "sun", "sunset", "surf", "term", "thunder", "tooth", "tree", "truth", "union", "unit", "violet", "voice", "water", "waterfall", "wave", "wildflower", "wind", "wood"];
+    var defaultOptions = {
+      delimiter: "-",
+      tokenLength: 4,
+      tokenHex: false,
+      tokenChars: "0123456789"
+    };
+    var Haikunator = (function() {
+      function Haikunator2() {
+        var options = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+        _classCallCheck(this, Haikunator2);
+        this.adjectives = options.adjectives || defaultAdjectives;
+        this.nouns = options.nouns || defaultNouns;
+        this.random = _randomSeed["default"].create(options.seed);
+        this.config = (0, _lodash["default"])(options.defaults, defaultOptions);
+      }
+      _createClass(Haikunator2, [{
+        key: "haikunate",
+        value: function haikunate(options) {
+          var config = (0, _lodash["default"])(options, this.config);
+          if (config.tokenHex === true) {
+            config.tokenChars = "0123456789abcdef";
+          }
+          var adjective = this._randomElement(this.adjectives);
+          var noun = this._randomElement(this.nouns);
+          if (!config.tokenLength) config.tokenLength = 0;
+          var token = "";
+          for (var i = 0; i < config.tokenLength; i++) {
+            token += this._randomElement(config.tokenChars);
+          }
+          var sections = [adjective, noun, token];
+          return sections.filter(function(e) {
+            return !!e;
+          }).join(config.delimiter);
+        }
+        /**
+         * Get a random element from an array/string
+         * @param {(string|Array)} array
+         * @returns {*}
+         * @private
+         */
+      }, {
+        key: "_randomElement",
+        value: function _randomElement(array) {
+          if (!array) return void 0;
+          return array[this.random(array.length)];
+        }
+      }]);
+      return Haikunator2;
+    })();
+    exports["default"] = Haikunator;
+    module.exports = exports.default;
+  }
+});
+export default require_dist_web();
+//# sourceMappingURL=haikunator.js.map

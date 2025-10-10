@@ -1,6 +1,35 @@
+/**
+ * Lexicographic ordering key generator for sortable identifiers
+ * 
+ * Generates lexicographically sortable keys that maintain order when sorted
+ * as strings. Useful for creating sortable identifiers, fractional indexing,
+ * and maintaining insertion order in databases.
+ * 
+ * @class LexaOrderKey
+ * @example
+ * // Create lexicographic keys
+ * const lexa = new LexaOrderKey();
+ * 
+ * // Generate keys that sort correctly
+ * const key1 = lexa.getKey();      // '1'
+ * const key2 = lexa.getKey();      // '2' 
+ * const between = lexa.between(key1, key2); // '1g'
+ * 
+ * // Keys sort lexicographically: ['1', '1g', '2']
+ * [key1, between, key2].sort(); // Maintains correct order
+ * 
+ * // Custom alphabet
+ * const custom = new LexaOrderKey('ABCDEFG');
+ * const customKey = custom.getKey(); // 'B'
+ */
 class LexaOrderKey {
   static DEFAULT_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'; 
 
+  /**
+   * Create a new LexaOrderKey generator
+   * @param {string} [alphabet='0123456789abcdefghijklmnopqrstuvwxyz'] - Character set for key generation
+   * @throws {Error} When alphabet contains duplicate characters or is empty
+   */
   constructor(alphabet = LexaOrderKey.DEFAULT_ALPHABET) {
     const uniq = new Set(alphabet);
     if (!alphabet || uniq.size !== alphabet.length) {
@@ -87,6 +116,16 @@ class LexaOrderKey {
   }
 }
 
+/**
+ * Default LexaOrderKey instance for convenient key generation
+ * @type {LexaOrderKey}
+ * @example
+ * import { LexaKey } from './lexasort.js';
+ * 
+ * const key1 = LexaKey.getKey();
+ * const key2 = LexaKey.getKey();  
+ * const between = LexaKey.between(key1, key2);
+ */
 const LexaKey = new LexaOrderKey();
 
 export { LexaOrderKey, LexaKey };
