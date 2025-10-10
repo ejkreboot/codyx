@@ -54,8 +54,11 @@
             // First process inline math
             let processed = processInlineMath(text);
             
-            // Then process markdown with custom renderer
-            return marked(processed, { renderer });
+            // Then process markdown with custom renderer and preserve line breaks
+            return marked(processed, { 
+                renderer,
+                breaks: true  // Convert single line breaks to <br> tags
+            });
         } catch (e) {
             console.warn('Error parsing markdown:', e);
             return text;
@@ -200,9 +203,6 @@
         color: #2c2c2c;
         font-weight: 400;
         flex-grow: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         text-align: center;
     }
     
@@ -227,9 +227,6 @@
         color: #2c2c2c;
         font-weight: 400;
         flex-grow: 1;
-        display: flex;
-        align-items: flex-start; /* Align to top instead of center */
-        justify-content: flex-start;
         text-align: left;
     }
     

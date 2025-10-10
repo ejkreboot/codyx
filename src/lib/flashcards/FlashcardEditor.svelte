@@ -366,9 +366,10 @@
         border: 2px dashed transparent;
         transition: all 0.2s ease;
         min-height: 100px;
-        display: flex;
+        /* Remove these centering properties that cause inline behavior */
+        /* display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: center; */
     }
 
     .rendered-content:hover {
@@ -380,6 +381,11 @@
         color: #6c757d;
         font-style: italic;
         text-align: center;
+        /* Add this to center only the placeholder */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100px;
     }
 
     .edit-textarea {
