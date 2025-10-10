@@ -36,6 +36,7 @@ export class LiveText extends EventTarget {
     #typingIdle = null;
     initialized = false;
     ready = false;
+    connectionState = 'disconnected'; // 'connecting', 'connected', 'disconnected'
     clientId = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
     lastSyncResponseTimestamp = null; // Track sync response timestamps for optimization
 
@@ -154,6 +155,7 @@ export class LiveText extends EventTarget {
         switch (event) {
             case 'JOINED':
                 console.log('✅ LiveText reconnected - requesting sync...');
+                this.#setConnectionState('connected');
                 this.#requestSyncOnReconnect();
                 break;
                 
@@ -161,6 +163,7 @@ export class LiveText extends EventTarget {
             case 'CHANNEL_ERROR':
             case 'TIMED_OUT':
                 console.log('📴 LiveText connection lost - resetting sync state and attempting reconnection...');
+                this.#setConnectionState('disconnected');
                 this.#handleConnectionLoss();
                 break;
         }
@@ -196,6 +199,16 @@ export class LiveText extends EventTarget {
         
         // Attempt to reconnect using subscribeReady with built-in retry logic
         this.subscribeReady(); // Will automatically retry with backoff
+    }
+
+    #setConnectionState(newState) {
+        if (this.connectionState !== newState) {
+            this.connectionState = newState;
+            // Emit connection state change event
+            this.dispatchEvent(new CustomEvent('connectionchange', {
+                detail: { state: newState }
+            }));
+        }
     }
 
     #setupChannelEventHandlers() {
@@ -373,6 +386,10 @@ export class LiveText extends EventTarget {
     // subscribe will resolve in a "joinING" state, but we want to wait until "joinED" or 
     // we will miss early messages. 
     async subscribeReady(attempt = 0) {
+        // Ensure async context
+        // Set connecting state when starting connection attempt
+        this.#setConnectionState('connecting');
+        
         // Apply exponential backoff delay for retry attempts
         if (attempt > 0) {
             const delay = Math.min(1000 * Math.pow(2, attempt - 1), 30000); // 1s, 2s, 4s, 8s... max 30s
@@ -398,27 +415,15 @@ export class LiveText extends EventTarget {
             // Setup event handlers
             this.#setupChannelEventHandlers();
 
-            // Debug: Simulate slow connection
-            if (LiveText.DEBUG_DELAY_SUBSCRIBE) {
-                console.log('🐛 DEBUG: Delaying channel subscribe by 5 seconds...');
-                await new Promise(resolve => setTimeout(resolve, 5000));
-            }
-            
-            // Debug: Simulate connection failure
-            if (LiveText.DEBUG_FAIL_SUBSCRIBE) {
-                console.log('🐛 DEBUG: Simulating channel subscribe failure...');
-                throw new Error('DEBUG: Simulated connection failure');
-            }
-
             const sub = await this.#channel.subscribe();
 
-            // Wait for connection to be established
             while (sub.state !== 'joined' && sub.state !== 'closed' && sub.state !== 'errored') {
                 await new Promise(resolve => setTimeout(resolve, 50)); // Check every 50ms
             }
 
             if (sub.state === 'joined') {
-                console.log(attempt > 0 ? '✅ LiveText reconnection successful' : "✅ Channel joined successfully");
+                // Explicitly set connected state on successful join
+                this.#setConnectionState('connected');
                 return sub;
             }
 

@@ -19,6 +19,7 @@
 
     // Container state
     let typing = $state(false);
+    let connectionState = $state('disconnected'); // 'connecting', 'connected', 'disconnected'
     let liveText;
     let codeEditor = $state();
     
@@ -155,6 +156,13 @@
             typing = e.detail.typing;
         });
 
+        liveText.addEventListener('connectionchange', (e) => {
+            connectionState = e.detail.state;
+        });
+        
+        // Initialize connection state from LiveText
+        connectionState = liveText.connectionState;
+
         if (!sandboxed) {
             liveTextUpdater = (e) => {
                 liveText.update(e.target.value);
@@ -177,6 +185,7 @@
         
         liveText?.removeEventListener('patched');
         liveText?.removeEventListener('typing');
+        liveText?.removeEventListener('connectionchange');
         liveText?.destroy();
         
         // Cleanup controller
@@ -202,7 +211,11 @@
                 <span class="material-symbols-outlined" style="color: #6c757d">help_outline</span>
             {/if}
         </div>
-        <div class="cell-index">
+        <div class="cell-index"
+             class:connected={connectionState === 'connected' && !sandboxed}
+             class:disconnected={connectionState === 'disconnected' && !sandboxed}
+             class:connecting={connectionState === 'connecting' && !sandboxed}
+             title={!sandboxed ? `Real-time collaboration: ${connectionState}` : ''}>
             [{cellIndex}]
         </div>
     </div>
@@ -260,7 +273,7 @@
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Cutive+Mono&display=swap');
-    @import 'material-symbols';
+    @import url('https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined');
 
     :root {
         --color-accent-1: #ffa000;
@@ -268,9 +281,8 @@
     }
 
     .cell-container {
-        border: 1px solid #f0f0f0;
-        border-radius: 8px;
         margin-bottom: 0.5rem;
+        border: 0.5px solid rgb(230, 230, 230);
         overflow: hidden;
         background: white;
         width: 100%;
@@ -281,8 +293,8 @@
 
     .cell-gutter {
         width: 36px;
-        background: #f8f9fa;
-        border-right: 1px solid #e9ecef;
+        background: #ffffff;
+        border-right: 0px solid #e9ecef;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -314,6 +326,20 @@
         font-weight: 600;
         text-align: center;
         line-height: 1;
+        transition: color 0.2s ease;
+        cursor: default;
+    }
+
+    .cell-index.disconnected {
+        color: #dc3545;
+    }
+
+    .cell-index.connecting {
+        color: #ffa000;
+    }
+
+    .cell-index.connected {
+        color: #888;
     }
 
     .cell-content {

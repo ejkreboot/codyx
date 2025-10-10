@@ -69,8 +69,8 @@
                 disabled={controller.isExecuting || !controller.text.trim()}
                 title="Run Python code (Shift+Enter)"
             >
-                <span class="material-symbols-outlined">
-                    {controller.isExecuting ? 'hourglass_empty' : 'play_arrow'}
+                <span class="material-icons">
+                    {controller.isExecuting ? 'hourglass_empty' : 'play_circle_filled'}
                 </span>
             </button>
         </div>
@@ -97,7 +97,7 @@
             {#each importSuggestions as suggestion}
                 <div class="suggestion-item">
                     <div class="suggestion-content">
-                        <span class="material-symbols-outlined">download</span>
+                        <span class="material-icons">download</span>
                         <span class="suggestion-text">
                             Install <strong>{suggestion.installName}</strong> for <code>{suggestion.packageName}</code>?
                         </span>
@@ -175,7 +175,7 @@
             {:else if controller.output.type === 'error'}
                 <div class="python-error-output">
                     <div class="error-header">
-                        <span class="material-symbols-outlined">error</span>
+                        <span class="material-icons">error</span>
                         Python Error
                     </div>
                     <pre class="error-content">{controller.output.content}</pre>
@@ -186,7 +186,7 @@
         
     {#if controller.isExecuting}
         <div class="python-executing">
-            <span class="material-symbols-outlined spinning">sync</span>
+            <span class="material-icons spinning">sync</span>
             Executing Python code...
         </div>
     {/if}
@@ -194,7 +194,7 @@
 
 
 <style>
-    @import 'material-symbols';
+    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
     
     .python-cell-container {
         display: flex;
@@ -246,43 +246,38 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 20px;
-        min-width: 20px;
-        height: 20px;
+        width: 18px;
+        min-width: 18px;
+        height: 18px;
         font-family: Material Symbols Outlined;
-        line-height: 20px;
-        font-size: 14px;
+        line-height: 18px;
+        font-size: 16px;
         font-feature-settings: "liga";
         color: #3776ab;
-        background: white;
-        border: 1.5px solid #3776ab;
+        background: transparent;
+        border: none;
         border-radius: 50%;
         cursor: pointer;
         transition: all 0.15s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .run-btn:hover:not(:disabled) {
-        background: #3776ab;
-        color: white;
-        box-shadow: 0 2px 6px rgba(55, 118, 171, 0.4);
+        color: #2d5a87;
         transform: scale(1.1);
     }
     
     .run-btn:active:not(:disabled) {
         transform: scale(0.95);
-        box-shadow: 0 1px 3px rgba(55, 118, 171, 0.3);
     }
     
     .run-btn:disabled {
-        background: #9ca3af;
+        color: #9ca3af;
         cursor: not-allowed;
-        box-shadow: none;
         opacity: 0.6;
     }
     
-    .run-btn .material-symbols-outlined {
-        font-size: 14px;
+    .run-btn .material-icons {
+        font-size: 16px;
     }
     
 
@@ -374,7 +369,7 @@
         font-family: 'Raleway', sans-serif;
     }
     
-    .error-header .material-symbols-outlined {
+    .error-header .material-icons {
         font-size: 18px;
     }
     
@@ -441,7 +436,7 @@
         color: #856404;
     }
     
-    .suggestion-content .material-symbols-outlined {
+    .suggestion-content .material-icons {
         font-size: 18px;
         color: #ffc107;
     }

@@ -63,8 +63,8 @@
                 disabled={controller.isExecuting || !controller.text.trim()}
                 title="Run R code (Shift+Enter)"
             >
-                <span class="material-symbols-outlined">
-                    {controller.isExecuting ? 'hourglass_empty' : 'play_arrow'}
+                <span class="material-icons">
+                    {controller.isExecuting ? 'hourglass_empty' : 'play_circle_filled'}
                 </span>
             </button>
         </div>
@@ -137,7 +137,7 @@
             {:else if controller.output.type === 'error'}
                 <div class="r-error-output">
                     <div class="error-header">
-                        <span class="material-symbols-outlined">error</span>
+                        <span class="material-icons">error</span>
                         R Error
                     </div>
                     <pre class="error-content">{controller.output.content}</pre>
@@ -148,14 +148,14 @@
         
     {#if controller.isExecuting}
         <div class="r-executing">
-            <span class="material-symbols-outlined spinning">sync</span>
+            <span class="material-icons spinning">sync</span>
             Executing R code...
         </div>
     {/if}
 </div>
 
 <style>
-    @import 'material-symbols';
+    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
     
     .r-cell-container {
         display: flex;
@@ -207,43 +207,38 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 20px;
-        min-width: 20px;
-        height: 20px;
+        width: 18px;
+        min-width: 18px;
+        height: 18px;
         font-family: Material Symbols Outlined;
-        line-height: 20px;
-        font-size: 14px;
+        line-height: 18px;
+        font-size: 16px;
         font-feature-settings: "liga";
         color: #054ba4;
-        background: white;
-        border: 1.5px solid #054ba4;
+        background: transparent;
+        border: none;
         border-radius: 50%;
         cursor: pointer;
         transition: all 0.15s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .run-btn:hover:not(:disabled) {
-        background: #054ba4;
-        color: white;
-        box-shadow: 0 2px 6px rgba(5, 75, 164, 0.4);
+        color: #043a7d;
         transform: scale(1.1);
     }
     
     .run-btn:active:not(:disabled) {
         transform: scale(0.95);
-        box-shadow: 0 1px 3px rgba(5, 75, 164, 0.3);
     }
     
     .run-btn:disabled {
-        background: #9ca3af;
+        color: #9ca3af;
         cursor: not-allowed;
-        box-shadow: none;
         opacity: 0.6;
     }
     
-    .run-btn .material-symbols-outlined {
-        font-size: 14px;
+    .run-btn .material-icons {
+        font-size: 16px;
     }
     
 
@@ -335,7 +330,7 @@
         font-family: 'Raleway', sans-serif;
     }
     
-    .error-header .material-symbols-outlined {
+    .error-header .material-icons {
         font-size: 18px;
     }
     

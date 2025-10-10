@@ -32,6 +32,7 @@
         content: 'Py';
         font-family: 'Orbitron', monospace;
         font-weight: 600;
+        color: #f6ce35;
         font-size: 0.85em;
         font-style: normal;
     }
