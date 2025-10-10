@@ -46,6 +46,7 @@
 	"dependencies": {
 		"@material/web": "^2.4.0",
 		"@supabase/supabase-js": "^2.58.0",
+		"code-edytor": "github:ejkreboot/code-edytor",
 		"date-fns": "^4.1.0",
 		"diff-match-patch": "^1.0.5",
 		"haikunator": "^2.1.2",
@@ -53,6 +54,7 @@
 		"marked": "^16.3.0",
 		"material-symbols": "^0.36.2",
 		"pyodide": "^0.28.3",
+		"web-tree-sitter": "^0.24.7",
 		"webr": "^0.5.6"
 	}
 }

@@ -1,5 +1,5 @@
 <script>
-    import {CodeEdytor, RCodeEdytor} from 'code-edytor';
+    import {CodeEdytor, PythonCodeEdytor} from 'code-edytor';
     let {
         renderer,
         codeEditor = $bindable(),
@@ -12,23 +12,22 @@
     let vars = $state([]);
     let text = $derived(renderer ? renderer.text : '');
 
-
-    // Execute function - run R code
-    async function executeR() {
+    // Execute function - run Python code
+    async function executePython() {
         if (renderer && typeof renderer.execute === 'function') {
             await renderer.execute();
             // Update variables after execution since new ones might be created
             vars = await renderer.getVariables();
-            console.log('Variables after execution:', vars);
+            console.log('Variables after Python execution:', vars);
         }
     }
-
+    
     async function handleFocus() {
         if (onStartEditing && typeof onStartEditing === 'function') {
             onStartEditing();
         }
         vars = await renderer.getVariables();
-        console.log('Current R variables:', vars);
+        console.log('Current Python variables:', vars);
     }
 
     async function handleBlur() {
@@ -42,21 +41,22 @@
     function handleKeydown(event) {
         if (event.shiftKey && event.key === 'Enter') {
             event.preventDefault();
-            executeR();
+            executePython();
         } else if (onKeydown && typeof onKeydown === 'function') {
             onKeydown(event);
         }
     }
+
 </script>
 
-<div class="r-cell-container">
-    <div class="r-input-container">
-        <div class="r-sub-gutter">
+<div class="python-cell-container">
+    <div class="python-input-container">
+        <div class="python-sub-gutter">
             <button 
                 class="run-btn" 
-                onclick={executeR}
+                onclick={executePython}
                 disabled={renderer.isExecuting || !renderer.text.trim()}
-                title="Run R code (Shift+Enter)"
+                title="Run Python code (Shift+Enter)"
             >
                 <span class="material-symbols-outlined">
                     {renderer.isExecuting ? 'hourglass_empty' : 'play_arrow'}
@@ -65,48 +65,48 @@
         </div>
         
         <div class="code-cell-main">
-          <CodeEdytor editorClass={RCodeEdytor} 
+          <CodeEdytor editorClass={PythonCodeEdytor} 
             bind:this={codeEditor}
             bind:value={text} 
             availableVariables={vars}
             oninput={onInput}
             onblur={handleBlur}
             onfocus={handleFocus}
-            class="r-textarea"
+            class="python-textarea"
           ></CodeEdytor>
     </div>
 
     {#if renderer.output}
-        <div class="r-output">
+        <div class="python-output">
             {#if renderer.output.type === 'text'}
-                <pre class="r-text-output">{renderer.output.content}</pre>
+                <pre class="python-text-output">{renderer.output.content}</pre>
             {:else if renderer.output.type === 'plot'}
                 {#if renderer.output.plots && renderer.output.plots.length > 0}
                     {#each renderer.output.plots as plot, index}
-                        <div class="r-plot-output">
-                            <img src={plot} alt="R Plot {index + 1}" />
+                        <div class="python-plot-output">
+                            <img src={plot} alt="Python Plot {index + 1}" />
                         </div>
                     {/each}
                 {:else}
-                    <div class="r-plot-output">
-                        <img src={renderer.output.content} alt="R Plot" />
+                    <div class="python-plot-output">
+                        <img src={renderer.output.content} alt="Python Plot" />
                     </div>
                 {/if}
             {:else if renderer.output.type === 'mixed'}
                 <!-- Mixed output: both text and plots -->
                 {#if renderer.output.textContent && renderer.output.textContent.trim()}
-                    <pre class="r-text-output">{renderer.output.textContent}</pre>
+                    <pre class="python-text-output">{renderer.output.textContent}</pre>
                 {/if}
                 {#if renderer.output.plots && renderer.output.plots.length > 0}
                     {#each renderer.output.plots as plot, index}
-                        <div class="r-plot-output">
-                            <img src={plot} alt="R Plot {index + 1}" />
+                        <div class="python-plot-output">
+                            <img src={plot} alt="Python Plot {index + 1}" />
                         </div>
                     {/each}
                 {/if}
             {:else if renderer.output.type === 'data'}
-                <div class="r-data-output">
-                    <table class="r-table">
+                <div class="python-data-output">
+                    <table class="python-table">
                         <thead>
                             <tr>
                                 {#each renderer.output.columns as col}
@@ -126,10 +126,10 @@
                     </table>
                 </div>
             {:else if renderer.output.type === 'error'}
-                <div class="r-error-output">
+                <div class="python-error-output">
                     <div class="error-header">
                         <span class="material-symbols-outlined">error</span>
-                        R Error
+                        Python Error
                     </div>
                     <pre class="error-content">{renderer.output.content}</pre>
                 </div>
@@ -138,9 +138,9 @@
     {/if}
         
     {#if renderer.isExecuting}
-        <div class="r-executing">
+        <div class="python-executing">
             <span class="material-symbols-outlined spinning">sync</span>
-            Executing R code...
+            Executing Python code...
         </div>
     {/if}
 </div>
@@ -149,19 +149,19 @@
 <style>
     @import 'material-symbols';
     
-    .r-cell-container {
+    .python-cell-container {
         display: flex;
         flex-direction: column;
         gap: 8px;
     }
     
-    .r-input-container {
+    .python-input-container {
         display: flex;
         align-items: flex-start;
         gap: 0;
     }
     
-    .r-sub-gutter {
+    .python-sub-gutter {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -172,7 +172,7 @@
         border-right: none;
     }
     
-    :global(.r-textarea) {
+    :global(.python-textarea) {
         flex: 1;
         min-height: 80px;
         max-height: 600px;
@@ -190,12 +190,12 @@
         transition: height 0.1s ease;
     }
     
-    .r-input-container:focus-within .r-sub-gutter {
+    .python-input-container:focus-within .python-sub-gutter {
         background: rgba(255, 255, 255, 0.08);
         border-right-color: #054ba4;
     }
     
-    :global(.r-textarea:focus) {
+    :global(.python-textarea:focus) {
         background-color: rgba(5, 75, 164, 0.03);
     }
     
@@ -243,14 +243,14 @@
     
 
     
-    .r-output {
+    .python-output {
         background: #f8f9fa;
         border-radius: 6px;
         border: 1px solid #e9ecef;
         overflow: hidden;
     }
     
-    .r-text-output {
+    .python-text-output {
         padding: 1rem;
         margin: 0;
         font-family: 'Cutive Mono', monospace;
@@ -263,42 +263,42 @@
         border-bottom: 1px solid #f0f0f0;
     }
     
-    .r-text-output:last-child {
+    .python-text-output:last-child {
         border-bottom: none;
     }
     
-    .r-plot-output {
+    .python-plot-output {
         padding: 1rem;
         text-align: center;
         background: white;
         border-bottom: 1px solid #f0f0f0;
     }
     
-    .r-plot-output:last-child {
+    .python-plot-output:last-child {
         border-bottom: none;
     }
     
-    .r-plot-output img {
+    .python-plot-output img {
         max-width: 100%;
         height: auto;
         border-radius: 4px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
-    .r-data-output {
+    .python-data-output {
         padding: 1rem;
         background: white;
         overflow-x: auto;
     }
     
-    .r-table {
+    .python-table {
         width: 100%;
         border-collapse: collapse;
         font-family: 'Cutive Mono', monospace;
         font-size: 12px;
     }
     
-    .r-table th {
+    .python-table th {
         background: #054ba4;
         color: white;
         padding: 8px 12px;
@@ -306,17 +306,17 @@
         font-weight: 600;
     }
     
-    .r-table td {
+    .python-table td {
         padding: 6px 12px;
         border-bottom: 1px solid #dee2e6;
         color: #495057;
     }
     
-    .r-table tr:nth-child(even) td {
+    .python-table tr:nth-child(even) td {
         background-color: #f8f9fa;
     }
     
-    .r-error-output {
+    .python-error-output {
         background: #fff5f5;
         border-left: 4px solid #dc3545;
     }
@@ -348,7 +348,7 @@
         white-space: pre-wrap;
     }
     
-    .r-executing {
+    .python-executing {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -370,8 +370,8 @@
         to { transform: rotate(360deg); }
     }
     
-    /* R syntax highlighting hints */
-    :global(.r-textarea::placeholder) {
+    /* Python syntax highlighting hints */
+    :global(.python-textarea::placeholder) {
         color: #054ba4;
         opacity: 0.6;
     }

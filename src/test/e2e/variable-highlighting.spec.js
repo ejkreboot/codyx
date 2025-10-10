@@ -67,11 +67,8 @@ print(f"is_active = {is_active}")`;
     // Look for highlighted variables in the code editor
     const highlightLayer = page.locator('.code-highlight-layer');
     if (await highlightLayer.isVisible()) {
-      console.log('Variable highlighting layer is visible');
-      // Check that highlighted variables exist
       const highlightedVars = page.locator('.defined-variable');
       const count = await highlightedVars.count();
-      console.log(`Found ${count} highlighted variables`);
       
       if (count > 0) {
         // Verify at least some variables are highlighted

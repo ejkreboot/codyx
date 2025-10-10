@@ -5,6 +5,7 @@
     import { collapsibleScript } from '$lib/util/enhanced-markdown.js';
     import { MarkdownRenderer } from '$lib/classes/render/MarkdownRenderer.svelte.js';
     import { RRenderer } from '$lib/classes/render/RRenderer.svelte.js';
+    import { PythonRenderer } from '$lib/classes/render/PythonRenderer.svelte.js';
 
     // Props
     let props = $props();
@@ -19,7 +20,7 @@
     // Container state
     let typing = $state(false);
     let liveText;
-    let textareaElement = $state();
+    let codeEditor = $state();
     
     // Renderer instance
     let renderer = $state(null);
@@ -39,8 +40,7 @@
         if (type === 'md') {
             renderer = new MarkdownRenderer(docId, cellIndex, initialText);
         } else if (type === 'code') {
-            // TODO: renderer = new PythonRenderer(docId, cellIndex, initialText);
-            renderer = null;
+            renderer = new PythonRenderer(docId, cellIndex, initialText);
         } else if (type === 'r') {
             renderer = new RRenderer(docId, cellIndex, initialText);
         } else {
@@ -60,8 +60,8 @@
             liveTextUpdater({ target: { value: newText } });
         }
         
-        if (textareaElement && (type === 'code' || type === 'r' || type === 'md')) {
-            renderer?.autoResizeTextarea(textareaElement);
+        if (codeEditor && (type === 'code' || type === 'r' || type === 'md')) {
+            renderer?.autoResizeTextarea(codeEditor);
         }
     }
     
@@ -76,7 +76,6 @@
     
     function startEditing() {
         if (sandboxed) return;
-        console.log('startEditing called, renderer:', renderer);
         renderer?.startEditing();
     }
 
@@ -158,6 +157,7 @@
         
         liveText.addEventListener('typing', (e) => {
             typing = e.detail.typing;
+            console.log('LiveText typing event:', e.detail);
         });
 
         if (!sandboxed) {
@@ -173,15 +173,14 @@
             document.head.appendChild(script);
         }
 
-        if (textareaElement && renderer?.text) {
-            setTimeout(() => renderer?.autoResizeTextarea(textareaElement), 0);
+        if (codeEditor && renderer?.text) {
+            setTimeout(() => renderer?.autoResizeTextarea(codeEditor), 0);
         }
     });
 
-    
     $effect(() => {
-        if (textareaElement && renderer?.text !== undefined) {
-            setTimeout(() => renderer?.autoResizeTextarea(textareaElement), 0);
+        if (codeEditor && renderer?.text !== undefined) {
+            setTimeout(() => renderer?.autoResizeTextarea(codeEditor), 0);
         }
     });
 
@@ -256,7 +255,7 @@
             })}
             <renderConfig.component 
                 {...renderConfig.props}
-                bind:textareaElement
+                bind:codeEditor
             />
         {:else}
             <div class="temp-fallback">

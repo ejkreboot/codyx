@@ -504,7 +504,6 @@ except:
                     userVariables = {};
                 }
             } catch (varError) {
-                console.log('Could not retrieve variables:', varError);
                 userVariables = {};
             }
             
@@ -565,7 +564,6 @@ except:
                 return {};
             }
         } catch (error) {
-            console.log('Could not retrieve user variables:', error);
             return {};
         }
     }
@@ -602,7 +600,6 @@ except:
 
     // Manual cleanup method for users - NUCLEAR RESET
     async resetEnvironment() {
-        console.log('� Nuclear reset: Completely restarting Pyodide engine...');
         
         try {
             // Completely destroy the current Pyodide instance
@@ -618,20 +615,17 @@ except:
                 window.gc();
             }
             
-            console.log('💥 Pyodide engine destroyed - reinitializing...');
             
             // Reinitialize from scratch (like a fresh page load)
             await this.initialize();
             
             return { 
-                output: "🔥 Python environment completely restarted. Fresh engine with no previous state.", 
                 error: null, 
                 hasPlot: false, 
                 plotData: null 
             };
             
         } catch (error) {
-            console.error('❌ Nuclear reset failed:', error);
             return { 
                 output: null, 
                 error: `Reset failed: ${error.message}. Try reloading the page.`, 
@@ -653,7 +647,7 @@ except:
     // Legacy cleanup method - now deprecated in favor of nuclear reset
     // This method is kept for backwards compatibility but does minimal cleanup
     async cleanNamespace(aggressive = false) {
-        console.log('⚠️ cleanNamespace is deprecated - use resetEnvironment() for full reset');
+        return;
         // Do nothing - nuclear reset is the preferred method now
     }
     
@@ -662,14 +656,12 @@ except:
     async cleanup() {
         if (this.pyodide) {
             try {
-                console.log('🧹 Pyodide service cleanup - destroying engine');
                 // Just destroy the engine completely
                 this.pyodide = null;
                 this.isInitialized = false;
                 this.initPromise = null;
-                console.log('✅ Pyodide service cleaned up');
             } catch (error) {
-                console.log('⚠️ Pyodide cleanup error:', error);
+                return;
             }
         }
     }

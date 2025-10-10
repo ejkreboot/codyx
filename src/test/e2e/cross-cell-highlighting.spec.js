@@ -48,7 +48,6 @@ print(f"message = {message}")`;
     const highlightLayer2 = page.locator('.cell-container').nth(1).locator('.code-highlight-layer');
     
     if (await highlightLayer2.isVisible()) {
-      console.log('Variable highlighting layer found in second cell');
       
       // Check that the highlighting layer contains references to our variables
       const highlightContent = await highlightLayer2.innerHTML();

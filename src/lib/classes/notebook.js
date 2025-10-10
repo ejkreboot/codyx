@@ -263,7 +263,7 @@ export class Notebook {
             .on('broadcast', { event: 'cell_sync' }, (payload) => {
                 this.#handleCellSync(payload.payload);
             })
-        const sub = this.channel.subscribe();
+        let sub = this.channel.subscribe();
         
         const maxRetries = 5;
         let attempt = 0;

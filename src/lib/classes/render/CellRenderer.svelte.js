@@ -7,7 +7,7 @@ export class CellRenderer {
         if (this.constructor === CellRenderer) {
             throw new Error('CellRenderer is abstract and cannot be instantiated directly');
         }
-        
+    
         this.type = type;
         this.cellId = cellId;
         this.cellIndex = cellIndex;
@@ -33,7 +33,6 @@ export class CellRenderer {
         });
         
         const implementedMethods = requiredMethods.concat(optionalMethods);
-        console.log(`✅ ${this.constructor.name} validated with methods: ${implementedMethods.join(', ')}`);
     }
     
     // ============ ABSTRACT METHODS ============
@@ -127,6 +126,7 @@ export class CellRenderer {
      * @param {string} newText - New text content
      */
     updateText(newText) {
+        console.log(`Updating text for cell ${this.cellId}: ${newText}`);
         this.text = newText;
         this.isDirty = true;
     }

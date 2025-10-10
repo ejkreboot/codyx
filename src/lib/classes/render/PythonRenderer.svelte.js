@@ -1,4 +1,5 @@
 import { CellRenderer } from './CellRenderer.svelte.js';
+import PythonCellRenderer from '$lib/components/renderers/PythonCellRenderer.svelte';
 
 /**
  * Python Cell Renderer
@@ -6,12 +7,13 @@ import { CellRenderer } from './CellRenderer.svelte.js';
  */
 export class PythonRenderer extends CellRenderer {
     constructor(cellId, cellIndex, initialText = '') {
-        super('code', cellId, cellIndex, initialText);
-        this.variables = {};
-        this.globalVariables = {};
-        this.importSuggestions = [];
-        this.executeFunction = null;
-        this.clearFunction = null;
+        super(cellId, cellIndex, initialText, 'python');
+        this.output = $state(null);
+        this.isExecuting = $state(false);
+        this.isEditing = $state(false);
+        this.variables = $state({});
+        this.globalVariables = $state({});
+        this.importSuggestions = $state([]);
         
         // Import pyodide service
         import('../pyodide-service.js').then(({ pyodideService }) => {
@@ -27,55 +29,188 @@ export class PythonRenderer extends CellRenderer {
     
     render(props) {
         return {
-            component: 'PythonArea',
+            component: PythonCellRenderer,
             props: {
-                code: this.text,
-                cellId: this.cellId,
-                cellIndex: this.cellIndex,
-                variables: this.variables,
-                globalVariables: this.globalVariables,
-                importSuggestions: this.importSuggestions
+                renderer: this,
+                ...props
             }
         };
     }
     
     async execute() {
-        if (!this.executeFunction) {
-            throw new Error('Python execution function not bound');
+        if (!this.text.trim()) {
+            return { success: false, error: 'No Python code to execute' };
         }
-        
-        this.onBeforeExecute();
-        const result = await this.executeFunction();
-        this.onAfterExecute(result);
-        
-        return result;
+
+        this.isExecuting = true;
+        this.output = null;
+
+        try {
+            // Check if pyodideService is available
+            if (!this.pyodideService) {
+                throw new Error('Python service not initialized. Please wait and try again.');
+            }
+
+            const result = await this.pyodideService.executeCode(this.text);
+            
+            if (result.error) {
+                this.output = {
+                    type: 'error',
+                    content: result.error
+                };
+                this.isExecuting = false;
+                return { success: false, error: result.error };
+            }
+
+            // Handle different output types
+            const hasPlots = result.hasPlot && result.plotData;
+            const hasText = result.output && result.output.trim();
+            
+            if (hasPlots && hasText) {
+                // Both plots and text output
+                this.output = {
+                    type: 'mixed',
+                    textContent: result.output,
+                    plots: [result.plotData] // Python typically has one plot at a time
+                };
+            } else if (hasPlots) {
+                // Only plots
+                this.output = {
+                    type: 'plot',
+                    content: result.plotData,
+                    plots: [result.plotData]
+                };
+            } else if (hasText) {
+                // Only text output
+                this.output = {
+                    type: 'text',
+                    content: result.output
+                };
+            } else {
+                // No visible output
+                this.output = {
+                    type: 'text',
+                    content: '(No output)'
+                };
+            }
+            
+            // Update variables if available
+            if (result.userVariables) {
+                this.variables = result.userVariables;
+            }
+            
+            this.isExecuting = false;
+            return { success: true, output: this.output };
+            
+        } catch (error) {
+            this.output = {
+                type: 'error',
+                content: error.message || String(error)
+            };
+            this.isExecuting = false;
+            return { success: false, error: error.message || String(error) };
+        }
     }
     
     clear() {
-        if (this.clearFunction) {
-            this.clearFunction();
-        }
+        this.output = null;
+        this.isExecuting = false;
+        // Could also clear variables if needed
+        // this.variables = {};
+    }
+
+    /**
+     * Start editing mode
+     */
+    startEditing() {
+        this.isEditing = true;
+    }
+
+    /**
+     * Stop editing mode  
+     */
+    stopEditing() {
+        this.isEditing = false;
     }
     
     handleInput(event) {
-        this.updateText(event.target.value);
-        this.autoResizeTextarea(event.target);
+        const newText = event.target ? event.target.value : event;
+        this.updateText(newText);
+        if (event.target) {
+            this.autoResizeTextarea(event.target);
+        }
         this.updateImportSuggestions();
     }
     
-    getVariables() {
-        return this.variables;
+    /**
+     * Get variables from Python environment
+     * @returns {Promise<Array<string>>} Array of user-defined variable names
+     */
+    async getVariables() {
+        try {
+            // Check if pyodideService is available
+            if (!this.pyodideService) {
+                console.warn('Python service not initialized yet');
+                return [];
+            }
+
+            // Execute Python code to get user-defined variables
+            const pythonCode = `
+import builtins
+builtin_names = set(dir(builtins))
+user_vars = [name for name in globals() if not name.startswith('_') and name not in builtin_names and not callable(globals()[name]) or name in ['pd', 'np', 'plt', 'sns']]
+print(user_vars)
+            `.trim();
+            
+            const result = await this.pyodideService.executeCode(pythonCode);
+            
+            if (result?.output && !result.error) {
+                // Parse Python list output: ['x', 'y', 'data'] → ['x', 'y', 'data']
+                const output = result.output.trim();
+                
+                // Handle empty list case
+                if (output === '[]') {
+                    return [];
+                }
+                
+                // Parse the Python list string
+                try {
+                    // Remove surrounding brackets and split by comma
+                    const listContent = output.slice(1, -1); // Remove [ and ]
+                    if (!listContent.trim()) return [];
+                    
+                    const vars = listContent.split(',')
+                        .map(item => item.trim().replace(/['"]/g, '')) // Remove quotes
+                        .filter(item => item.length > 0);
+                        
+                    console.log('Current Python variables:', vars);
+                    return vars;
+                } catch (parseError) {
+                    console.warn('Failed to parse Python variables output:', output);
+                    return [];
+                }
+            }
+            
+            return [];
+        } catch (error) {
+            console.warn('Failed to get Python variables:', error);
+            return [];
+        }
     }
     
     updateHighlighting(variables) {
         this.globalVariables = variables;
     }
     
-    getExecutionBindings() {
+    /**
+     * Get icon configuration for Python cells
+     * @returns {Object} Icon configuration
+     */
+    getIconConfig() {
         return {
-            executePython: (fn) => { this.executeFunction = fn; },
-            clearOutput: (fn) => { this.clearFunction = fn; },
-            variables: (vars) => { this.variables = vars; }
+            type: 'custom-symbol',
+            icon: 'python-symbol',
+            color: '#3776ab'
         };
     }
     
@@ -235,5 +370,8 @@ export class PythonRenderer extends CellRenderer {
         if (this.unsubscribeFromVariables) {
             this.unsubscribeFromVariables();
         }
+        this.isExecuting = false;
+        this.isEditing = false;
+        this.output = null;
     }
 }

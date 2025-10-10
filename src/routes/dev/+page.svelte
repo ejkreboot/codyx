@@ -76,15 +76,14 @@
         } else if (event.detail.cellId === 'test-cell-r') {
             testRCell.text = event.detail.text;
         }
-        console.log('📝 Cell text changed:', event.detail.text.slice(0, 50) + '...');
     }
 
     function handleCellExecute(event) {
-        console.log('▶️ Cell executed:', event.detail);
+        return; // No-op for now
     }
 
     function handleCellDelete(event) {
-        console.log('🗑️ Cell delete requested:', event.detail);
+        return;
         // In a real app, this would remove the cell from the notebook
     }
 </script>
