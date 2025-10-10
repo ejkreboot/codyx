@@ -1,6 +1,31 @@
 import DiffMatchPatch from 'diff-match-patch';
 
-// usage: const lt = await LiveText.create(initialText, docId, supabase, userId);
+/**
+ * Real-time collaborative text editing using operational transformation
+ * 
+ * Provides live text synchronization between multiple clients using diff-match-patch
+ * algorithm for operational transformation. Handles conflict resolution, typing
+ * indicators, and real-time updates via Supabase real-time channels.
+ * 
+ * @class LiveText
+ * @extends EventTarget
+ * @example
+ * // Create collaborative text editor
+ * const liveText = await LiveText.create('Initial content', 'doc-123', supabase, 'user-456');
+ * 
+ * // Listen for text changes
+ * liveText.addEventListener('textchange', (event) => {
+ *   console.log('Text updated:', event.detail.text);
+ * });
+ * 
+ * // Update text (will sync to other clients)
+ * liveText.updateText('New content here');
+ * 
+ * // Handle typing indicators
+ * liveText.addEventListener('typing', (event) => {
+ *   console.log('User typing:', event.detail.clientId);
+ * });
+ */
 export class LiveText extends EventTarget {
     
     #canonical = null;      // private per-instance state

@@ -1,0 +1,50 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/node_modules/@sveltejs/kit/src/runtime/components/svelte-5/error.svelte?v=f8e19137");import "/node_modules/.vite/deps/svelte_internal_disclose-version.js?v=f8e19137";
+import "/node_modules/.vite/deps/svelte_internal_flags_legacy.js?v=f8e19137";
+
+Error[$.FILENAME] = 'node_modules/@sveltejs/kit/src/runtime/components/svelte-5/error.svelte';
+
+import * as $ from "/node_modules/.vite/deps/svelte_internal_client.js?v=f8e19137";
+import { page } from "/node_modules/@sveltejs/kit/src/runtime/app/state/index.js?v=f8e19137";
+
+var root = $.add_locations($.from_html(`<h1> </h1> <p> </p>`, 1), Error[$.FILENAME], [[5, 0], [6, 0]]);
+
+function Error($$anchor, $$props) {
+	$.check_target(new.target);
+	$.push($$props, false, Error);
+
+	var $$exports = { ...$.legacy_api() };
+
+	$.init();
+
+	var fragment = root();
+	var h1 = $.first_child(fragment);
+	var text = $.child(h1, true);
+
+	$.reset(h1);
+
+	var p = $.sibling(h1, 2);
+	var text_1 = $.child(p, true);
+
+	$.reset(p);
+
+	$.template_effect(() => {
+		$.set_text(text, page.status);
+		$.set_text(text_1, page.error?.message);
+	});
+
+	$.append($$anchor, fragment);
+
+	return $.pop($$exports);
+}
+
+if (import.meta.hot) {
+	Error = $.hmr(Error, () => Error[$.HMR].source);
+
+	import.meta.hot.acceptExports(["default"],(module) => {
+		module.default[$.HMR].source = Error[$.HMR].source;
+		$.set(Error[$.HMR].source, module.default[$.HMR].original);
+	});
+}
+
+export default Error;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6Ijs7Ozs7O1NBQ1UsSUFBSSxRQUFRLFlBQVk7Ozs7a0NBRGxDLENBQUM7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O21CQUlJLElBQUksQ0FBQyxNQUFNO3FCQUNaLElBQUksQ0FBQyxLQUFLLEVBQUUsT0FBTzs7Ozs7O0NBSHZCIiwibmFtZXMiOltdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJlcnJvci5zdmVsdGUiXSwic291cmNlc0NvbnRlbnQiOlsiPHNjcmlwdD5cblx0aW1wb3J0IHsgcGFnZSB9IGZyb20gJyRhcHAvc3RhdGUnO1xuPC9zY3JpcHQ+XG5cbjxoMT57cGFnZS5zdGF0dXN9PC9oMT5cbjxwPntwYWdlLmVycm9yPy5tZXNzYWdlfTwvcD5cbiJdLCJmaWxlIjoiL1VzZXJzL2VyaWtvci9jb2R5eC9ub2RlX21vZHVsZXMvQHN2ZWx0ZWpzL2tpdC9zcmMvcnVudGltZS9jb21wb25lbnRzL3N2ZWx0ZS01L2Vycm9yLnN2ZWx0ZSIsInhfZ29vZ2xlX2lnbm9yZUxpc3QiOlswXX0=

@@ -11,7 +11,6 @@
     onMount(() => {
 
         const handleBeforeUnload = async () => {
-            console.log('🧹 Page unloading - cleaning up services...');
             try {
                 await pyodideService.cleanup();
                 await webRService.cleanup();
@@ -27,10 +26,7 @@
         };
     });
 
-    onDestroy(async () => {
-        // Cleanup services when layout is destroyed
-        console.log('🧹 Layout destroyed - cleaning up services...');
-                
+    onDestroy(async () => {                
         try {
             await pyodideService.cleanup();
             await webRService.cleanup();

@@ -9,7 +9,6 @@ class MemoryMonitor {
         if (this.isMonitoring) return;
         
         this.isMonitoring = true;
-        console.log('🔍 Memory monitoring started');
         
         this.measureMemory();
         this.interval = setInterval(() => {
@@ -22,13 +21,11 @@ class MemoryMonitor {
         
         this.isMonitoring = false;
         clearInterval(this.interval);
-        console.log('⏹️ Memory monitoring stopped');
         this.printSummary();
     }
 
     measureMemory() {
         if (!performance.memory) {
-            console.log('⚠️ Memory API not available in this browser');
             return;
         }
 

@@ -158,64 +158,6 @@
         flex-direction: column;
     }
 
-    .landing-header {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-bottom: 1px solid #e9ecef;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-
-    .header-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 1rem 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .logo-section {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .logo {
-        height: 48px;
-        width: 48px;
-        object-fit: contain;
-        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
-    }
-
-    .brand-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .app-name {
-        font-family: 'Orbitron', monospace;
-        font-size: 1.5rem;
-        font-weight: 300;
-        margin: -4px 0 0 0;
-        color: #555958;
-        letter-spacing: 0.15em;
-        line-height: 1;
-    }
-
-    .tagline {
-        font-family: 'Raleway', sans-serif;
-        font-size: 0.65rem;
-        color: #999;
-        font-weight: 400;
-        margin: 0;
-        line-height: 0.5;
-    }
-
     .hero-section {
         flex: 1;
         display: flex;

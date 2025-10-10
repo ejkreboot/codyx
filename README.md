@@ -1,6 +1,6 @@
-# # CODYX 
+## CODYX 
 
-🚀 **Collaborative Data Science Notebooks in Your Browser**
+**Collaborative Data Science Notebooks in Your Browser**
 
 CODYX is a browser-based collaborative notebook platform that lets you execute Python and R code seamlessly, interleaved with markdown documentation. Share analyses instantly with a simple URL - perfect for classrooms, research, and team collaboration.YRN 
 
@@ -69,6 +69,22 @@ Visit the live platform: codyx.app
    ```
    Navigate to http://localhost:5173
    ```
+
+## 📖 Documentation
+
+Comprehensive API documentation is available and auto-generated from source code:
+
+```bash
+# Generate and serve interactive documentation
+npm run docs         # Generate with DocumentationJS  
+npm run docs:serve   # Serve on http://localhost:8080
+```
+
+- **📱 Interactive HTML**: Modern single-page documentation with smooth navigation
+- **📝 GitHub Markdown**: Perfect for repository documentation at `docs/reference/notebook/README.md`
+- **🔧 JSON API**: Structured data for integrations
+
+All classes include comprehensive JSDoc with examples, parameters, and usage patterns.
 
 ### Database Schema
 

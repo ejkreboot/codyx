@@ -17,7 +17,9 @@
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:headed": "playwright test --headed",
 		"test:e2e:debug": "playwright test --debug",
-		"test:all": "npm run test:run && npm run test:e2e"
+		"test:all": "npm run test:run && npm run test:e2e",
+		"docs": "node scripts/generate-docs.js",
+		"docs:serve": "npx http-server docs/reference/notebook/html -p 8080 -o"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -30,10 +32,13 @@
 		"@testing-library/svelte": "^5.2.8",
 		"@types/node": "^22",
 		"@vitest/ui": "^3.2.4",
+		"documentation": "^14.0.3",
 		"eslint": "^9.36.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.12.4",
 		"globals": "^16.4.0",
+		"jsdoc": "^4.0.5",
+		"jsdoc-to-markdown": "^9.1.3",
 		"jsdom": "^27.0.0",
 		"playwright": "^1.56.0",
 		"prettier": "^3.4.2",
@@ -46,6 +51,7 @@
 	"dependencies": {
 		"@material/web": "^2.4.0",
 		"@supabase/supabase-js": "^2.58.0",
+		"code-edytor": "github:ejkreboot/code-edytor",
 		"date-fns": "^4.1.0",
 		"diff-match-patch": "^1.0.5",
 		"haikunator": "^2.1.2",
@@ -53,6 +59,7 @@
 		"marked": "^16.3.0",
 		"material-symbols": "^0.36.2",
 		"pyodide": "^0.28.3",
+		"web-tree-sitter": "^0.24.7",
 		"webr": "^0.5.6"
 	}
 }

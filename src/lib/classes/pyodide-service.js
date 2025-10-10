@@ -1,10 +1,40 @@
 import { loadPyodide } from 'pyodide';
 
+/**
+ * Python runtime service using Pyodide WebAssembly
+ * 
+ * Manages Python code execution in the browser via Pyodide. Handles package
+ * installation, variable tracking, import suggestions, and provides a complete
+ * Python environment without server dependencies.
+ * 
+ * @class PyodideService
+ * @example
+ * // Initialize Python environment
+ * const pyodide = new PyodideService();
+ * await pyodide.initialize();
+ * 
+ * // Execute Python code
+ * const result = await pyodide.runPython('print("Hello from Python!")');
+ * console.log(result.output); // "Hello from Python!"
+ * 
+ * // Install packages
+ * await pyodide.installPackage('numpy');
+ * 
+ * // Get available variables for syntax highlighting
+ * const variables = pyodide.getGlobalVariables();
+ * console.log(variables); // { 'numpy': {...}, ... }
+ */
 class PyodideService {
+    /**
+     * Create a new PyodideService instance
+     * Initializes the Python runtime manager with empty state
+     */
     constructor() {
         this.pyodide = null;
         this.initPromise = null;
         this.isInitialized = false;
+        this.globalVariables = {};
+        this.variableCallbacks = new Set();
     }
 
     async initialize() {
@@ -144,6 +174,112 @@ class PyodideService {
                         return ""
                     except ImportError:
                         return ""
+                
+                # Function to get user-defined variables
+                def get_user_variables():
+                    """Get user-defined variables with their types and values"""
+                    import builtins
+                    import types
+                    import sys
+                    
+                    user_vars = {}
+                    
+                    try:
+                        # Get current globals - avoid creating dict() which might cause JsProxy issues
+                        current_globals = globals()
+                        
+                        # Built-in names to exclude
+                        try:
+                            builtin_names = set(dir(builtins))
+                        except:
+                            builtin_names = set()
+                            
+                        system_names = {
+                            '__name__', '__doc__', '__package__', '__loader__', '__spec__',
+                            '__annotations__', '__builtins__', '__file__', '__cached__',
+                            'sys', 'traceback', 'StringIO', 'OutputCapture', '_output_capture',
+                            '_matplotlib_loaded', '_matplotlib_loading', 'ensure_matplotlib',
+                            'capture_matplotlib', 'capture_plotly', 'get_user_variables',
+                            'plt', 'base64', 'BytesIO', '__user_code__', 'builtins', 'types'
+                        }
+                        
+                        # Very defensive iteration over globals
+                        try:
+                            # Get keys as a list very carefully
+                            keys_to_check = []
+                            for key in current_globals:
+                                try:
+                                    # Ensure key is a string and safe to use
+                                    if isinstance(key, str) and key not in system_names:
+                                        keys_to_check.append(key)
+                                except:
+                                    continue
+                        except:
+                            # If we can't iterate, return empty
+                            return {}
+                        
+                        # Process each key safely
+                        for name in keys_to_check:
+                            try:
+                                # Skip system variables and built-ins
+                                if (name.startswith('_') or 
+                                    name in builtin_names or 
+                                    name in system_names):
+                                    continue
+                                
+                                # Get value very safely
+                                try:
+                                    value = current_globals[name]
+                                except:
+                                    continue
+                                    
+                                if value is None:
+                                    continue
+                                
+                                # Skip modules and functions
+                                try:
+                                    if (isinstance(value, types.ModuleType) or
+                                        callable(value)):
+                                        continue
+                                except:
+                                    continue
+                                
+                                # Get type very safely
+                                try:
+                                    var_type = type(value).__name__
+                                    # Skip problematic types immediately
+                                    if var_type in ['JsProxy', 'JsMethod', 'JsBuffer', 'JsException']:
+                                        continue
+                                except:
+                                    continue
+                                
+                                # Get string representation very safely
+                                try:
+                                    str_value = str(value)
+                                    if len(str_value) > 100:
+                                        str_value = str_value[:97] + '...'
+                                    elif '\\n' in str_value:
+                                        lines = str_value.split('\\n')
+                                        str_value = lines[0] + ('...' if len(lines) > 1 else '')
+                                except:
+                                    str_value = f"<{var_type} object>"
+                                
+                                # Only add if we have valid string name
+                                if isinstance(name, str) and name:
+                                    user_vars[name] = {
+                                        'type': var_type,
+                                        'value': str_value
+                                    }
+                                
+                            except Exception as e:
+                                # Skip any variable that causes any error
+                                continue
+                        
+                    except Exception as e:
+                        # Return empty dict if there's any global error
+                        return {}
+                    
+                    return user_vars
                 
                 # Check what's available
                 import sys
@@ -385,23 +521,113 @@ except:
                 output = capturedOutput; // Include any partial output
             }
 
+            // Get user variables after execution (even if there was an error)
+            let userVariables = {};
+            try {
+                const varResult = await py.runPython('get_user_variables()');
+                // Ensure varResult is a proper object and not a JsProxy
+                if (varResult && typeof varResult === 'object') {
+                    userVariables = varResult.toJs ? varResult.toJs() : varResult;
+                } else {
+                    userVariables = {};
+                }
+            } catch (varError) {
+                userVariables = {};
+            }
+            
+            // Update global variables and notify all subscribers
+            this.updateGlobalVariables(userVariables);
             
             return { 
                 output: output || null, 
                 error: error,
                 hasPlot: hasPlot,
-                plotData: plotData
+                plotData: plotData,
+                userVariables: userVariables
             };
 
         } catch (err) {
             let errorMessage = err.message || 'Unknown error';
-            return { output: null, error: errorMessage, hasPlot: false, plotData: null };
+            
+            // Still try to get user variables even after a fatal error
+            let userVariables = {};
+            try {
+                const py = await this.initialize();
+                const varResult = await py.runPython('get_user_variables()');
+                if (varResult && typeof varResult === 'object') {
+                    userVariables = varResult.toJs ? varResult.toJs() : varResult;
+                } else {
+                    userVariables = {};
+                }
+            } catch (varError) {
+                // Ignore variable retrieval errors in error case
+                userVariables = {};
+            }
+            
+            // Update global variables even in error case
+            this.updateGlobalVariables(userVariables);
+            
+            return { 
+                output: null, 
+                error: errorMessage, 
+                hasPlot: false, 
+                plotData: null,
+                userVariables: userVariables
+            };
         }
+    }
+
+    // Get current user-defined variables
+    async getUserVariables() {
+        const py = await this.initialize();
+        if (!py) {
+            return {};
+        }
+
+        try {
+            const varResult = await py.runPython('get_user_variables()');
+            if (varResult && typeof varResult === 'object') {
+                return varResult.toJs ? varResult.toJs() : varResult;
+            } else {
+                return {};
+            }
+        } catch (error) {
+            return {};
+        }
+    }
+
+    // Subscribe to variable changes
+    subscribeToVariables(callback) {
+        this.variableCallbacks.add(callback);
+        // Immediately call with current variables
+        callback(this.globalVariables);
+        
+        // Return unsubscribe function
+        return () => {
+            this.variableCallbacks.delete(callback);
+        };
+    }
+
+    // Update global variables and notify subscribers
+    updateGlobalVariables(variables) {
+        this.globalVariables = variables || {};
+        // Notify all subscribers
+        this.variableCallbacks.forEach(callback => {
+            try {
+                callback(this.globalVariables);
+            } catch (error) {
+                console.error('Error in variable callback:', error);
+            }
+        });
+    }
+
+    // Get current global variables
+    getGlobalVariables() {
+        return this.globalVariables;
     }
 
     // Manual cleanup method for users - NUCLEAR RESET
     async resetEnvironment() {
-        console.log('� Nuclear reset: Completely restarting Pyodide engine...');
         
         try {
             // Completely destroy the current Pyodide instance
@@ -409,25 +635,25 @@ except:
             this.isInitialized = false;
             this.initPromise = null;
             
+            // Clear global variables and notify subscribers
+            this.updateGlobalVariables({});
+            
             // Force garbage collection to clean up memory
             if (typeof window !== 'undefined' && window.gc) {
                 window.gc();
             }
             
-            console.log('💥 Pyodide engine destroyed - reinitializing...');
             
             // Reinitialize from scratch (like a fresh page load)
             await this.initialize();
             
             return { 
-                output: "🔥 Python environment completely restarted. Fresh engine with no previous state.", 
                 error: null, 
                 hasPlot: false, 
                 plotData: null 
             };
             
         } catch (error) {
-            console.error('❌ Nuclear reset failed:', error);
             return { 
                 output: null, 
                 error: `Reset failed: ${error.message}. Try reloading the page.`, 
@@ -449,7 +675,7 @@ except:
     // Legacy cleanup method - now deprecated in favor of nuclear reset
     // This method is kept for backwards compatibility but does minimal cleanup
     async cleanNamespace(aggressive = false) {
-        console.log('⚠️ cleanNamespace is deprecated - use resetEnvironment() for full reset');
+        return;
         // Do nothing - nuclear reset is the preferred method now
     }
     
@@ -458,14 +684,12 @@ except:
     async cleanup() {
         if (this.pyodide) {
             try {
-                console.log('🧹 Pyodide service cleanup - destroying engine');
                 // Just destroy the engine completely
                 this.pyodide = null;
                 this.isInitialized = false;
                 this.initPromise = null;
-                console.log('✅ Pyodide service cleaned up');
             } catch (error) {
-                console.log('⚠️ Pyodide cleanup error:', error);
+                return;
             }
         }
     }
