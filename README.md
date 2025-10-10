@@ -87,6 +87,17 @@ The `init.sql` file contains the complete database schema including:
 - **Styling**: Custom CSS with responsive design
 - **Fonts**: Orbitron (headings), Raleway (body), Bowlby One (R symbols)
 
+## 📚 Documentation
+
+Detailed component documentation is available in the `docs/` directory:
+
+- **[CodyxCell Component Documentation](docs/CodyxCell-Component-Documentation.md)** - Comprehensive documentation of the core cell component, including:
+  - Component architecture with mermaid class diagrams
+  - Props, state, and methods reference
+  - Event handling and lifecycle
+  - Real-time collaboration flow
+  - Usage examples and best practices
+
 ## Building for Production
 
 ```sh
