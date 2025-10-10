@@ -187,7 +187,6 @@ export class PythonCellController extends CellController {
     
     handleInput = (event) => {
         this.updateImportSuggestions();
-        console.log('Import suggestions:', this.importSuggestions); 
     }
     
     /**

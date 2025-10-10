@@ -31,6 +31,11 @@ import Haikunator from 'haikunator'
 export class Notebook {
 
     static haikunator = new Haikunator();
+    
+    // Debug flags for testing fault behavior
+    static DEBUG_DELAY_REALTIME = false;
+    static DEBUG_FAIL_REALTIME = false;
+    static DEBUG_SIMULATE_DISCONNECT = false;
 
     /**
      * Create a new Notebook instance
@@ -275,55 +280,82 @@ export class Notebook {
         }
 
         if(!this.isSandbox) {
-            // Set up realtime channel for notebook-level changes
-            await this.#setupRealtimeChannel();
+            // Set up realtime channel for notebook-level changes (non-blocking)
+            this.#setupRealtimeChannel();
         }
 
         this.initialized = true;
     }
     
     async #setupRealtimeChannel() {
-        const channelName = `notebook_${this.id}`;
-        
-        this.channel = supabase.channel(channelName)
-            .on('broadcast', { event: 'cell_sync' }, (payload) => {
-                this.#handleCellSync(payload.payload);
-            })
-        let sub = this.channel.subscribe();
-        
-        const maxRetries = 5;
+        console.log('🔄 Starting realtime channel setup in background...');
         let attempt = 0;
+        let baseDelay = 1000; // Start with 1 second
         
-        while (attempt < maxRetries) {
+        const tryConnect = async () => {
+            const channelName = `notebook_${this.id}`;
+            
             try {
-                await this.#wait_for_join(sub);
-                console.log(`✅ Realtime channel joined successfully${attempt > 0 ? ` (after ${attempt} retries)` : ''}`);
-                return; // Success! Exit the retry loop
-            } catch (error) {
-                attempt++;
-                console.log(`⚠️ Channel join attempt ${attempt} failed:`, error.message);
-                
-                if (attempt >= maxRetries) {
-                    console.error(`❌ Failed to join realtime channel after ${maxRetries} attempts`);
-                    throw new Error(`Failed to join realtime channel after ${maxRetries} attempts: ${error.message}`);
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                try {
-                    this.channel?.unsubscribe();
-                } catch (cleanupError) {
-                    console.log('Note: Error during channel cleanup (expected):', cleanupError.message);
+                // Clean up any existing channel
+                if (this.channel) {
+                    try {
+                        this.channel.unsubscribe();
+                    } catch (cleanupError) {
+                        // Expected - ignore cleanup errors
+                    }
                 }
                 
                 this.channel = supabase.channel(channelName)
                     .on('broadcast', { event: 'cell_sync' }, (payload) => {
                         this.#handleCellSync(payload.payload);
+                    })
+                    .on('system', {}, ({ event, payload }) => {
+                        this.#handleNotebookConnectionStateChange(event, payload);
                     });
-                const newSub = this.channel.subscribe();
-                sub = newSub; 
+                
+                // Debug: Simulate slow connection
+                if (Notebook.DEBUG_DELAY_REALTIME) {
+                    console.log('🐛 DEBUG: Delaying notebook realtime by 5 seconds...');
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+                
+                // Debug: Simulate connection failure
+                if (Notebook.DEBUG_FAIL_REALTIME) {
+                    console.log('🐛 DEBUG: Simulating notebook realtime failure...');
+                    throw new Error('DEBUG: Simulated notebook realtime failure');
+                }
+                
+                const sub = this.channel.subscribe();
+                await this.#wait_for_join(sub);
+                
+                console.log(`✅ Realtime collaboration enabled${attempt > 0 ? ` (connected after ${attempt} attempts)` : ''}`);
+                
+                // Debug: Simulate disconnect after connection
+                if (Notebook.DEBUG_SIMULATE_DISCONNECT) {
+                    console.log('🐛 DEBUG: Will simulate notebook disconnect in 15 seconds...');
+                    setTimeout(() => {
+                        console.log('🐛 DEBUG: Simulating notebook disconnect now...');
+                        this.channel?.unsubscribe();
+                    }, 15000);
+                }
+                
+                return true; // Success!
+                
+            } catch (error) {
+                attempt++;
+                console.log(`⚠️ Realtime connection attempt ${attempt} failed, will retry...`);
+                
+                // Calculate next delay with exponential backoff (max 30 seconds)
+                const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), 30000);
+                
+                // Schedule next attempt
+                setTimeout(tryConnect, delay);
+                return false;
             }
-        }
+        };
+        
+        // Start the connection attempt (non-blocking)
+        tryConnect();
     }
 
     async #handleCellSync(data) {
@@ -331,17 +363,45 @@ export class Notebook {
         this.cellsStore.set(cells);
     }
 
+    #handleNotebookConnectionStateChange(event, payload) {
+        console.log(`🔌 Notebook connection state: ${event}`, payload);
+        
+        switch (event) {
+            case 'JOINED':
+                console.log('✅ Notebook realtime reconnected');
+                // Notebook-level doesn't need sync requests like cells do
+                // since cell structure changes are less frequent
+                break;
+                
+            case 'CLOSED':
+            case 'CHANNEL_ERROR':
+                console.log('📴 Notebook realtime connection lost');
+                break;
+                
+            case 'TIMED_OUT':
+                console.log('⏰ Notebook realtime connection timed out');
+                break;
+        }
+    }
+
     #broadcastCellSync(action, cellId) {
         if (!this.channel || this.isSandbox) return;
-        this.channel?.send({
-            type: 'broadcast',
-            event: 'cell_sync',
-            payload: { 
-                action,
-                cellId,
-                notebookId: this.id 
-            }
-        });
+        
+        // Only try to send if channel is connected
+        if (this.channel.state === 'joined') {
+            this.channel.send({
+                type: 'broadcast',
+                event: 'cell_sync',
+                payload: { 
+                    action,
+                    cellId,
+                    notebookId: this.id 
+                }
+            });
+        } else {
+            // Channel not connected yet - collaboration will sync when connection is established
+            console.log('📴 Realtime not connected - changes will sync when connection is restored');
+        }
     }
 
     async #wait_for_join(sub) {
