@@ -52,6 +52,10 @@ export class Notebook {
         this.cellsStore = writable([]);
         this.initialized = false;
         this.channel = null;
+        this.connectionState = 'disconnected'; // Track connection state
+        this.pendingCellSyncEvents = []; // Queue for events when disconnected
+        this.clientId = `nb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; // Unique client ID
+        this.lastSyncTimestamp = null; // Track last successful sync timestamp for conflict resolution
     }
 
     // Helper to get current cells array when needed internally
@@ -288,138 +292,362 @@ export class Notebook {
     }
     
     async #setupRealtimeChannel() {
-        console.log('🔄 Starting realtime channel setup in background...');
-        let attempt = 0;
-        let baseDelay = 1000; // Start with 1 second
+        this.#setConnectionState('connecting');
         
-        const tryConnect = async () => {
+        try {
             const channelName = `notebook_${this.id}`;
             
-            try {
-                // Clean up any existing channel
-                if (this.channel) {
-                    try {
-                        this.channel.unsubscribe();
-                    } catch (cleanupError) {
-                        // Expected - ignore cleanup errors
-                    }
+            // Clean up any existing channel
+            if (this.channel) {
+                try {
+                    this.channel.unsubscribe();
+                } catch (cleanupError) {
+                    // Expected - ignore cleanup errors
+                }
+            }
+            
+            // Create channel with event handlers
+            this.channel = supabase.channel(channelName)
+                .on('broadcast', { event: 'cell_sync' }, (payload) => {
+                    this.#handleCellSync(payload.payload);
+                })
+                .on('broadcast', { event: 'notebook_sync_request' }, (payload) => {
+                    this.#handleNotebookSyncRequest(payload.payload);
+                })
+                .on('broadcast', { event: 'notebook_sync_response' }, (payload) => {
+                    this.#handleNotebookSyncResponse(payload.payload);
+                })
+                .on('system', {}, ({ event, payload }) => {
+                    this.#handleNotebookConnectionStateChange(event, payload);
+                });
+           
+            // Subscribe with robust retry logic
+            await this.#subscribeReady();
+                        
+        } catch (error) {
+            console.log('⚠️ Initial notebook realtime setup failed, will retry:', error.message);
+            this.#setConnectionState('disconnected');
+            // Start retry process
+            this.#handleConnectionLoss();
+        }
+    }
+
+    async #subscribeReady(attempt = 0) {
+        // Set connecting state when starting connection attempt
+        this.#setConnectionState('connecting');
+        
+        // Apply exponential backoff delay for retry attempts
+        if (attempt > 0) {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 30000); // 1s, 2s, 4s, 8s... max 30s
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        try {
+            // Always try to clean up existing channel (gracefully fail if not possible)
+            if (this.channel && attempt > 0) {
+                try {
+                    this.channel.unsubscribe();
+                } catch (cleanupError) {
+                    // Expected - ignore cleanup errors
                 }
                 
+                // Recreate channel with same configuration
+                const channelName = `notebook_${this.id}`;
                 this.channel = supabase.channel(channelName)
                     .on('broadcast', { event: 'cell_sync' }, (payload) => {
                         this.#handleCellSync(payload.payload);
                     })
+                    .on('broadcast', { event: 'notebook_sync_request' }, (payload) => {
+                        this.#handleNotebookSyncRequest(payload.payload);
+                    })
+                    .on('broadcast', { event: 'notebook_sync_response' }, (payload) => {
+                        this.#handleNotebookSyncResponse(payload.payload);
+                    })
                     .on('system', {}, ({ event, payload }) => {
                         this.#handleNotebookConnectionStateChange(event, payload);
                     });
-                
-                // Debug: Simulate slow connection
-                if (Notebook.DEBUG_DELAY_REALTIME) {
-                    console.log('🐛 DEBUG: Delaying notebook realtime by 5 seconds...');
-                    await new Promise(resolve => setTimeout(resolve, 5000));
-                }
-                
-                // Debug: Simulate connection failure
-                if (Notebook.DEBUG_FAIL_REALTIME) {
-                    console.log('🐛 DEBUG: Simulating notebook realtime failure...');
-                    throw new Error('DEBUG: Simulated notebook realtime failure');
-                }
-                
-                const sub = this.channel.subscribe();
-                await this.#wait_for_join(sub);
-                
-                console.log(`✅ Realtime collaboration enabled${attempt > 0 ? ` (connected after ${attempt} attempts)` : ''}`);
-                
-                // Debug: Simulate disconnect after connection
-                if (Notebook.DEBUG_SIMULATE_DISCONNECT) {
-                    console.log('🐛 DEBUG: Will simulate notebook disconnect in 15 seconds...');
-                    setTimeout(() => {
-                        console.log('🐛 DEBUG: Simulating notebook disconnect now...');
-                        this.channel?.unsubscribe();
-                    }, 15000);
-                }
-                
-                return true; // Success!
-                
-            } catch (error) {
-                attempt++;
-                console.log(`⚠️ Realtime connection attempt ${attempt} failed, will retry...`);
-                
-                // Calculate next delay with exponential backoff (max 30 seconds)
-                const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), 30000);
-                
-                // Schedule next attempt
-                setTimeout(tryConnect, delay);
-                return false;
             }
-        };
-        
-        // Start the connection attempt (non-blocking)
-        tryConnect();
+            
+            const sub = await this.channel.subscribe();
+
+            // Wait for connection to be established
+            while (sub.state !== 'joined' && sub.state !== 'closed' && sub.state !== 'errored') {
+                await new Promise(resolve => setTimeout(resolve, 50)); // Check every 50ms
+            }
+
+            if (sub.state === 'joined') {
+                this.#setConnectionState('connected');
+                
+                // Request sync from other instances when first connecting
+                setTimeout(() => {
+                    if (this.channel && this.channel.state === 'joined') {
+                        this.channel.send({
+                            type: 'broadcast',
+                            event: 'notebook_sync_request',
+                            payload: {
+                                requesterId: this.clientId,
+                                notebookId: this.id,
+                                timestamp: Date.now()
+                            }
+                        });
+                    }
+                }, 100);
+                
+                return sub;
+            }
+
+            // If we reach here, connection failed
+            throw new Error(`Channel failed to connect: ${sub.state}`);
+            
+        } catch (error) {
+            console.log(`⚠️ Notebook realtime connection attempt ${attempt + 1} failed:`, error.message);
+            
+            // Always retry with incremented attempt
+            return this.#subscribeReady(attempt + 1);
+        }
     }
 
     async #handleCellSync(data) {
-        const cells = await this.getCells();
-        this.cellsStore.set(cells);
+        // Sync cell structure and code content only (output data is never stored in DB)
+        try {
+            const cells = await this.getCells();
+            this.cellsStore.set(cells);
+        } catch (error) {
+            console.log('⚠️ Failed to sync cells:', error);
+        }
     }
 
-    #handleNotebookConnectionStateChange(event, payload) {
-        console.log(`🔌 Notebook connection state: ${event}`, payload);
-        
+    #handleNotebookConnectionStateChange(event, payload) {        
         switch (event) {
             case 'JOINED':
-                console.log('✅ Notebook realtime reconnected');
-                // Notebook-level doesn't need sync requests like cells do
-                // since cell structure changes are less frequent
+                console.log('✅ Notebook realtime reconnected - refreshing cell data...');
+                this.#setConnectionState('connected');
+                this.#requestSyncOnReconnect();
                 break;
                 
             case 'CLOSED':
             case 'CHANNEL_ERROR':
-                console.log('📴 Notebook realtime connection lost');
-                break;
-                
             case 'TIMED_OUT':
-                console.log('⏰ Notebook realtime connection timed out');
+                console.log('📴 Notebook realtime connection lost - attempting reconnection...');
+                this.#setConnectionState('disconnected');
+                this.#handleConnectionLoss();
                 break;
         }
+    }
+
+    #setConnectionState(newState) {
+        if (this.connectionState !== newState) {
+            this.connectionState = newState;
+            // Could emit events here if needed by UI components
+        }
+    }
+
+    #requestSyncOnReconnect() {
+        // Send any pending cell sync events and refresh cell data after reconnection
+        setTimeout(async () => {
+            if (this.channel && this.channel.state === 'joined') {
+                // Send queued events first
+                if (this.pendingCellSyncEvents.length > 0) {
+                    for (const event of this.pendingCellSyncEvents) {
+                        this.channel.send({
+                            type: 'broadcast',
+                            event: 'cell_sync',
+                            payload: event
+                        });
+                    }
+                    this.pendingCellSyncEvents = []; // Clear the queue
+                }
+                
+                // Send sync request to other connected instances
+                this.channel.send({
+                    type: 'broadcast',
+                    event: 'notebook_sync_request',
+                    payload: {
+                        requesterId: this.clientId,
+                        notebookId: this.id,
+                        timestamp: Date.now()
+                    }
+                });
+                
+                // Also refresh from database as fallback
+                try {
+                    const cells = await this.getCells();
+                    this.cellsStore.set(cells);
+                } catch (error) {
+                    console.log('⚠️ Failed to refresh cells from database:', error);
+                }
+            }
+        }, 100);
+    }
+
+    #handleConnectionLoss() {
+        // Attempt to reconnect using subscribeReady with built-in retry logic
+        this.#subscribeReady(); // Will automatically retry with backoff
+    }
+
+    async #handleNotebookSyncRequest(payload) {
+        // Don't respond to our own requests
+        if (payload.requesterId === this.clientId) return;
+                
+        // Get current cells and send them as a response
+        try {
+            const cells = await this.getCells();
+            
+            // Small delay to avoid message collisions
+            setTimeout(() => {
+                if (this.channel && this.channel.state === 'joined') {
+                    this.channel.send({
+                        type: 'broadcast',
+                        event: 'notebook_sync_response',
+                        payload: {
+                            requesterId: payload.requesterId,
+                            responderId: this.clientId,
+                            notebookId: this.id,
+                            cells: cells,
+                            timestamp: Date.now()
+                        }
+                    });
+                }
+            }, Math.random() * 100); // Random delay 0-100ms
+        } catch (error) {
+            console.log('⚠️ Failed to respond to notebook sync request:', error);
+        }
+    }
+
+    #handleNotebookSyncResponse(payload) {
+        // Only process responses meant for us
+        if (payload.requesterId !== this.clientId) return;
+        
+        // Check if this response is newer than our last sync
+        if (this.lastSyncTimestamp && payload.timestamp <= this.lastSyncTimestamp) {
+            console.log('📅 Ignoring outdated sync response (older timestamp)');
+            return;
+        }
+        
+        // Validate payload
+        if (!payload.cells || !Array.isArray(payload.cells)) {
+            console.log('⚠️ Invalid sync response payload');
+            return;
+        }
+        
+        console.log('🔄 Processing sync response with smart merge...');
+        
+        // Get current cells for comparison
+        const currentCells = this.cells;
+        const incomingCells = payload.cells;
+        
+        // Smart merge algorithm: find differences and resolve conflicts
+        const mergedCells = this.#mergeCellsWithConflictResolution(currentCells, incomingCells);
+        
+        // Update store with merged results
+        this.cellsStore.set(mergedCells);
+        
+        // Update sync timestamp
+        this.lastSyncTimestamp = payload.timestamp;
+        
+        console.log(`✅ Sync completed. Merged ${mergedCells.length} cells`);
+    }
+    
+    /**
+     * Smart cell merging with conflict resolution
+     * Strategy: "New content wins" - cells with newer content take precedence
+     */
+    #mergeCellsWithConflictResolution(currentCells, incomingCells) {
+        const mergedCellsMap = new Map();
+        
+        // Step 1: Add all current cells to the map
+        currentCells.forEach(cell => {
+            mergedCellsMap.set(cell.id, {
+                ...cell,
+                _source: 'current'
+            });
+        });
+        
+        // Step 2: Process incoming cells
+        incomingCells.forEach(incomingCell => {
+            const existingCell = mergedCellsMap.get(incomingCell.id);
+            
+            if (!existingCell) {
+                // New cell from remote - add it
+                mergedCellsMap.set(incomingCell.id, {
+                    ...incomingCell,
+                    _source: 'remote_new'
+                });
+                console.log(`📝 Adding new cell: ${incomingCell.id}`);
+            } else {
+                // Cell exists in both - check for content differences
+                const contentChanged = existingCell.content !== incomingCell.content;
+                const typeChanged = existingCell.type !== incomingCell.type;
+                const positionChanged = existingCell.position !== incomingCell.position;
+                
+                if (contentChanged || typeChanged || positionChanged) {
+                    // Content differs - check timestamps to resolve conflict
+                    const existingTimestamp = new Date(existingCell.updated_at || existingCell.created_at).getTime();
+                    const incomingTimestamp = new Date(incomingCell.updated_at || incomingCell.created_at).getTime();
+                    
+                    if (incomingTimestamp >= existingTimestamp) {
+                        // Incoming cell is newer or same age - "new content wins"
+                        mergedCellsMap.set(incomingCell.id, {
+                            ...incomingCell,
+                            _source: 'remote_updated'
+                        });
+                        console.log(`🔄 Updating cell (remote newer): ${incomingCell.id}`);
+                    } else {
+                        // Keep current cell (it's newer)
+                        console.log(`⏭️ Keeping local cell (local newer): ${incomingCell.id}`);
+                    }
+                }
+                // If content is identical, no change needed
+            }
+        });
+        
+        // Step 3: Check for deleted cells (cells that exist locally but not in incoming)
+        const incomingIds = new Set(incomingCells.map(cell => cell.id));
+        currentCells.forEach(currentCell => {
+            if (!incomingIds.has(currentCell.id)) {
+                // Cell was deleted remotely - remove it from merged results
+                mergedCellsMap.delete(currentCell.id);
+                console.log(`🗑️ Removing deleted cell: ${currentCell.id}`);
+            }
+        });
+        
+        // Step 4: Convert back to array and sort by position
+        const mergedCells = Array.from(mergedCellsMap.values())
+            .map(cell => {
+                // Remove internal tracking fields
+                const { _source, ...cleanCell } = cell;
+                return cleanCell;
+            })
+            .sort((a, b) => a.position.localeCompare(b.position));
+        
+        return mergedCells;
     }
 
     #broadcastCellSync(action, cellId) {
-        if (!this.channel || this.isSandbox) return;
+        if (this.isSandbox) return; // No sync for sandboxes
         
-        // Only try to send if channel is connected
-        if (this.channel.state === 'joined') {
+        const syncEvent = {
+            action,
+            cellId,
+            notebookId: this.id,
+            timestamp: Date.now()
+        };
+        
+        // Try to send immediately if connected
+        if (this.channel && this.channel.state === 'joined') {
             this.channel.send({
                 type: 'broadcast',
                 event: 'cell_sync',
-                payload: { 
-                    action,
-                    cellId,
-                    notebookId: this.id 
-                }
+                payload: syncEvent
             });
         } else {
-            // Channel not connected yet - collaboration will sync when connection is established
-            console.log('📴 Realtime not connected - changes will sync when connection is restored');
+            // Queue the event for when connection is restored
+            console.log('📴 Queueing cell sync event (not connected):', syncEvent);
+            this.pendingCellSyncEvents.push(syncEvent);
         }
     }
 
-    async #wait_for_join(sub) {
-        if (sub.state === 'joined') {
-            return sub;
-        }
-        return new Promise((resolve, reject) => {
-            const check = setInterval(() => {
-                if (sub.state === 'joined') {
-                    clearInterval(check);
-                    resolve(sub);
-                } else if (sub.state === 'closed' || sub.state === 'errored') {
-                    clearInterval(check);
-                    reject(new Error(`Channel failed: ${sub.state}`));
-                }
-            }, 200); // check every 200ms
-        });
-    }
+
     
     
     /******************************************
@@ -663,11 +891,18 @@ export class Notebook {
     // Clean up resources when notebook instance is no longer needed
     async destroy() {
         if (this.channel) {
+            try {
+                this.channel.unsubscribe();
+            } catch (error) {
+                // Ignore cleanup errors
+            }
             await supabase.removeChannel(this.channel);
             this.channel = null;
         }
         
         // Reset the notebook state
+        this.#setConnectionState('disconnected');
+        this.pendingCellSyncEvents = [];
         this.initialized = false;
         this.cellsStore.set([]);
     }

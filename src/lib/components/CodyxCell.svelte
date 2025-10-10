@@ -31,6 +31,9 @@
     
     // LiveText updater function
     let liveTextUpdater = null;
+    
+    // Event handler functions for proper cleanup
+    let handlePatched, handleTyping, handleConnectionChange;
 
     // ============ CONTROLLER MANAGEMENT ============
     
@@ -146,19 +149,24 @@
             version
         });
         
-        liveText.addEventListener('patched', (e) => {
+        // Define event handlers in module scope for proper cleanup
+        handlePatched = (e) => {
             if (controller) {
                 controller.updateText(e.detail.text);
             }
-        });
+        };
         
-        liveText.addEventListener('typing', (e) => {
+        handleTyping = (e) => {
             typing = e.detail.typing;
-        });
+        };
 
-        liveText.addEventListener('connectionchange', (e) => {
+        handleConnectionChange = (e) => {
             connectionState = e.detail.state;
-        });
+        };
+        
+        liveText.addEventListener('patched', handlePatched);
+        liveText.addEventListener('typing', handleTyping);
+        liveText.addEventListener('connectionchange', handleConnectionChange);
         
         // Initialize connection state from LiveText
         connectionState = liveText.connectionState;
@@ -183,9 +191,9 @@
     onDestroy(() => {
         if (sandboxed) return;
         
-        liveText?.removeEventListener('patched');
-        liveText?.removeEventListener('typing');
-        liveText?.removeEventListener('connectionchange');
+        liveText?.removeEventListener('patched', handlePatched);
+        liveText?.removeEventListener('typing', handleTyping);
+        liveText?.removeEventListener('connectionchange', handleConnectionChange);
         liveText?.destroy();
         
         // Cleanup controller

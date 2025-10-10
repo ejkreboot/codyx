@@ -120,17 +120,19 @@ export class PythonCellController extends CellController {
             
             if (hasPlots && hasText) {
                 // Both plots and text output
+                const plotDataUri = `data:image/png;base64,${result.plotData}`;
                 this.output = {
                     type: 'mixed',
                     textContent: result.output,
-                    plots: [result.plotData] // Python typically has one plot at a time
+                    plots: [plotDataUri] // Output data is never synced - stays local to this browser tab
                 };
             } else if (hasPlots) {
                 // Only plots
+                const plotDataUri = `data:image/png;base64,${result.plotData}`;
                 this.output = {
                     type: 'plot',
-                    content: result.plotData,
-                    plots: [result.plotData]
+                    content: plotDataUri,
+                    plots: [plotDataUri] // Output data is never synced - stays local to this browser tab
                 };
             } else if (hasText) {
                 // Only text output

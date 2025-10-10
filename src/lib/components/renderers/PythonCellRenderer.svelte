@@ -126,8 +126,10 @@
     {#if controller.output}
         <div class="python-output">
             {#if controller.output.type === 'text'}
+            <pre>TEXT RESPONSE</pre>
                 <pre class="python-text-output">{controller.output.content}</pre>
             {:else if controller.output.type === 'plot'}
+                <pre>IMAGE RESPONSE</pre>
                 {#if controller.output.plots && controller.output.plots.length > 0}
                     {#each controller.output.plots as plot, index}
                         <div class="python-plot-output">
