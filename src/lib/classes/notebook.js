@@ -573,7 +573,6 @@ export class Notebook {
                     ...incomingCell,
                     _source: 'remote_new'
                 });
-                console.log(`📝 Adding new cell: ${incomingCell.id}`);
             } else {
                 // Cell exists in both - check for content differences
                 const contentChanged = existingCell.content !== incomingCell.content;
@@ -591,11 +590,7 @@ export class Notebook {
                             ...incomingCell,
                             _source: 'remote_updated'
                         });
-                        console.log(`🔄 Updating cell (remote newer): ${incomingCell.id}`);
-                    } else {
-                        // Keep current cell (it's newer)
-                        console.log(`⏭️ Keeping local cell (local newer): ${incomingCell.id}`);
-                    }
+                    } 
                 }
                 // If content is identical, no change needed
             }
@@ -607,7 +602,6 @@ export class Notebook {
             if (!incomingIds.has(currentCell.id)) {
                 // Cell was deleted remotely - remove it from merged results
                 mergedCellsMap.delete(currentCell.id);
-                console.log(`🗑️ Removing deleted cell: ${currentCell.id}`);
             }
         });
         
