@@ -40,6 +40,12 @@ export class LiveText extends EventTarget {
     clientId = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
     lastSyncResponseTimestamp = null; // Track sync response timestamps for optimization
 
+    // Heartbeat fields
+    #heartbeatInterval = null;
+    #heartbeatTimeout = null;
+    HEARTBEAT_PERIOD = 10000; // 10 seconds
+    HEARTBEAT_TIMEOUT = 20000; // 20 seconds
+
     
     constructor({ text = '', docId, supabase, userId = null, debounce = 500, version }) {
         super();
@@ -220,7 +226,6 @@ export class LiveText extends EventTarget {
         });
         this.#channel.on('broadcast', { event: 'lt_sync' }, ({ payload }) => {
             if (payload.docId !== this.docId) return;
-            
             if (payload.type === 'request' && payload.requesterId !== this.clientId) {
                 // Respond to sync requests from other clients
                 setTimeout(async () => {
@@ -243,13 +248,43 @@ export class LiveText extends EventTarget {
                 this.#handleSyncResponse(payload);
             }
         });
-
+        // Heartbeat event handler
+        this.#channel.on('broadcast', { event: 'lt_heartbeat' }, ({ payload }) => {
+            // Reset heartbeat timeout on receiving any heartbeat
+            if (this.#heartbeatTimeout) clearTimeout(this.#heartbeatTimeout);
+            this.#heartbeatTimeout = setTimeout(() => {
+                // If no heartbeat received in time, mark as disconnected
+                this.stopHeartbeat();
+                this.#setConnectionState('disconnected');
+                this.#handleConnectionLoss();
+            }, this.HEARTBEAT_TIMEOUT);
+        });
         // Listen for connection state changes
         this.#channel.on('system', {}, ({ event, payload }) => {
             this.#handleConnectionStateChange(event, payload);
         });
     }
-    
+
+    startHeartbeat() {
+        this.stopHeartbeat();
+        this.#heartbeatInterval = setInterval(() => {
+            if (this.#channel && this.#channel.state === 'joined') {
+                this.#channel.send({
+                    type: 'broadcast',
+                    event: 'lt_heartbeat',
+                    payload: { clientId: this.clientId, ts: Date.now() }
+                });
+            }
+        }, this.HEARTBEAT_PERIOD);
+    }
+
+    stopHeartbeat() {
+        if (this.#heartbeatInterval) clearInterval(this.#heartbeatInterval);
+        if (this.#heartbeatTimeout) clearTimeout(this.#heartbeatTimeout);
+        this.#heartbeatInterval = null;
+        this.#heartbeatTimeout = null;
+    }
+
     createPatch() {
         const dmp = new DiffMatchPatch();
         const diffs = dmp.diff_main(this.#canonical, this.text);
@@ -424,6 +459,7 @@ export class LiveText extends EventTarget {
             if (sub.state === 'joined') {
                 // Explicitly set connected state on successful join
                 this.#setConnectionState('connected');
+                this.startHeartbeat();
                 return sub;
             }
 
@@ -440,7 +476,8 @@ export class LiveText extends EventTarget {
 
     destroy() {
         if (this.#debounceTimer) clearTimeout(this.#debounceTimer);
+        this.stopHeartbeat();
         this.#channel?.unsubscribe();
     }
 
-}   
+}
