@@ -35,7 +35,6 @@ export class LiveText extends EventTarget {
     #typing = false;
     #typingIdle = null;
     initialized = false;
-    ready = false;
     connectionState = 'disconnected'; // 'connecting', 'connected', 'disconnected'
     clientId = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
     lastSyncResponseTimestamp = null; // Track sync response timestamps for optimization
@@ -43,8 +42,8 @@ export class LiveText extends EventTarget {
     // Heartbeat fields
     #heartbeatInterval = null;
     #heartbeatTimeout = null;
-    HEARTBEAT_PERIOD = 10000; // 10 seconds
-    HEARTBEAT_TIMEOUT = 20000; // 20 seconds
+    HEARTBEAT_PERIOD = 5000; // 5 seconds
+    HEARTBEAT_TIMEOUT = 10000; // 10 seconds
 
     
     constructor({ text = '', docId, supabase, userId = null, debounce = 500, version }) {
@@ -89,17 +88,10 @@ export class LiveText extends EventTarget {
                 clientId: this.clientId, 
                 userId: this.userId,
                 requesterId: this.clientId
-            }
+            }   
         });
-        
-        // Debug: Simulate disconnect after connection
-        if (LiveText.DEBUG_SIMULATE_DISCONNECT) {
-            console.log('🐛 DEBUG: Will simulate disconnect in 10 seconds...');
-            setTimeout(() => {
-                console.log('🐛 DEBUG: Simulating disconnect now...');
-                this.#channel.unsubscribe();
-            }, 10000);
-        }
+        this.startHeartbeat();
+        this.initialized = true;
     }
 
     #handleSyncResponse(payload) {
@@ -156,11 +148,8 @@ export class LiveText extends EventTarget {
     }
 
     #handleConnectionStateChange(event, payload) {
-        console.log(`🔌 LiveText connection state: ${event}`, payload);
-        
         switch (event) {
             case 'JOINED':
-                console.log('✅ LiveText reconnected - requesting sync...');
                 this.#setConnectionState('connected');
                 this.#requestSyncOnReconnect();
                 break;
@@ -168,7 +157,6 @@ export class LiveText extends EventTarget {
             case 'CLOSED':
             case 'CHANNEL_ERROR':
             case 'TIMED_OUT':
-                console.log('📴 LiveText connection lost - resetting sync state and attempting reconnection...');
                 this.#setConnectionState('disconnected');
                 this.#handleConnectionLoss();
                 break;
@@ -182,7 +170,6 @@ export class LiveText extends EventTarget {
         // Small delay to ensure channel is fully ready
         setTimeout(() => {
             if (this.#channel && this.#channel.state === 'joined') {
-                console.log('🔄 Requesting sync after reconnection...');
                 this.#channel.send({
                     type: 'broadcast',
                     event: 'lt_sync',
@@ -219,13 +206,16 @@ export class LiveText extends EventTarget {
 
     #setupChannelEventHandlers() {
         this.#channel.on('broadcast', { event: 'lt_patch' }, ({ payload }) => {
+            if (payload.clientId == this.clientId) return;
             this.applyPatch(payload.patch);
         });
+
         this.#channel.on('broadcast', { event: 'lt_typing' }, ({ payload }) => {
+            if (payload.clientId == this.clientId) return;
             this.dispatchEvent(new CustomEvent('typing', { detail: { typing: payload.typing } }));
         });
+
         this.#channel.on('broadcast', { event: 'lt_sync' }, ({ payload }) => {
-            if (payload.docId !== this.docId) return;
             if (payload.type === 'request' && payload.requesterId !== this.clientId) {
                 // Respond to sync requests from other clients
                 setTimeout(async () => {
@@ -248,18 +238,17 @@ export class LiveText extends EventTarget {
                 this.#handleSyncResponse(payload);
             }
         });
-        // Heartbeat event handler
+        
         this.#channel.on('broadcast', { event: 'lt_heartbeat' }, ({ payload }) => {
-            // Reset heartbeat timeout on receiving any heartbeat
+            console.log("lubdub");
             if (this.#heartbeatTimeout) clearTimeout(this.#heartbeatTimeout);
             this.#heartbeatTimeout = setTimeout(() => {
-                // If no heartbeat received in time, mark as disconnected
                 this.stopHeartbeat();
                 this.#setConnectionState('disconnected');
                 this.#handleConnectionLoss();
             }, this.HEARTBEAT_TIMEOUT);
         });
-        // Listen for connection state changes
+
         this.#channel.on('system', {}, ({ event, payload }) => {
             this.#handleConnectionStateChange(event, payload);
         });
@@ -428,12 +417,10 @@ export class LiveText extends EventTarget {
         // Apply exponential backoff delay for retry attempts
         if (attempt > 0) {
             const delay = Math.min(1000 * Math.pow(2, attempt - 1), 30000); // 1s, 2s, 4s, 8s... max 30s
-            console.log(`🔄 Attempting to connect LiveText (attempt ${attempt}) in ${delay}ms...`);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
 
         try {
-            // Always try to clean up existing channel (gracefully fail if not possible)
             if (this.#channel) {
                 try {
                     this.#channel.unsubscribe();
@@ -442,14 +429,10 @@ export class LiveText extends EventTarget {
                 }
             }
             
-            // Recreate channel with same configuration
             this.#channel = this.supabase.channel(`${this.docId}`, {
-                config: { broadcast: { self: false, ack: true } }
+                config: { broadcast: { self: true, ack: true } }
             });
             
-            // Setup event handlers
-            this.#setupChannelEventHandlers();
-
             const sub = await this.#channel.subscribe();
 
             while (sub.state !== 'joined' && sub.state !== 'closed' && sub.state !== 'errored') {
@@ -460,15 +443,15 @@ export class LiveText extends EventTarget {
                 // Explicitly set connected state on successful join
                 this.#setConnectionState('connected');
                 this.startHeartbeat();
+                this.#setupChannelEventHandlers();
+                attempt = 0;
                 return sub;
             }
 
             // If we reach here, connection failed
             throw new Error(`Channel failed to connect: ${sub.state}`);
             
-        } catch (error) {
-            console.log(`⚠️ LiveText connection attempt ${attempt + 1} failed:`, error.message);
-            
+        } catch (error) {            
             // Always retry with incremented attempt - let caller decide if they want to stop
             return this.subscribeReady(attempt + 1);
         }

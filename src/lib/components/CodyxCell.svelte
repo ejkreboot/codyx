@@ -162,6 +162,16 @@
 
         handleConnectionChange = (e) => {
             connectionState = e.detail.state;
+            
+            // Propagate connection state to notebook level
+            if (!sandboxed) {
+                window.dispatchEvent(new CustomEvent('cellConnectionStateChange', {
+                    detail: {
+                        cellId: docId,
+                        connectionState: e.detail.state
+                    }
+                }));
+            }
         };
         
         liveText.addEventListener('patched', handlePatched);
@@ -221,8 +231,7 @@
         </div>
         <div class="cell-index"
              class:connected={connectionState === 'connected' && !sandboxed}
-             class:disconnected={connectionState === 'disconnected' && !sandboxed}
-             class:connecting={connectionState === 'connecting' && !sandboxed}
+             class:disconnected={(connectionState === 'disconnected' || connectionState === 'connecting') && !sandboxed}
              title={!sandboxed ? `Real-time collaboration: ${connectionState}` : ''}>
             [{cellIndex}]
         </div>
@@ -340,10 +349,6 @@
 
     .cell-index.disconnected {
         color: #dc3545;
-    }
-
-    .cell-index.connecting {
-        color: #ffa000;
     }
 
     .cell-index.connected {

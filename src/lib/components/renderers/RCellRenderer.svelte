@@ -78,8 +78,8 @@
             onblur={handleBlur}
             onfocus={handleFocus}
             width="100%"
-            minHeight="80px"
-            maxHeight="600px"
+            minHeight="300px"
+            maxHeight="800px"
             class="r-textarea"
           ></CodeEdytor>
         </div>

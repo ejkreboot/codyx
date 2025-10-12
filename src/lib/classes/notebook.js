@@ -381,6 +381,7 @@ export class Notebook {
                 // Request sync from other instances when first connecting
                 setTimeout(() => {
                     if (this.channel && this.channel.state === 'joined') {
+                        console.log("🔄 Requesting cell sync from other instances...");
                         this.channel.send({
                             type: 'broadcast',
                             event: 'notebook_sync_request',
@@ -407,14 +408,17 @@ export class Notebook {
         }
     }
 
-    async #handleCellSync(data) {
-        // Sync cell structure and code content only (output data is never stored in DB)
+    async cellSync() {
         try {
             const cells = await this.getCells();
             this.cellsStore.set(cells);
         } catch (error) {
             console.log('⚠️ Failed to sync cells:', error);
         }
+    }
+
+    async #handleCellSync(data) {
+        this.cellSync();
     }
 
     #handleNotebookConnectionStateChange(event, payload) {        

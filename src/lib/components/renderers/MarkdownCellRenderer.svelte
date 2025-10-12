@@ -35,7 +35,7 @@
         textarea.style.height = newHeight + 'px';
         
         // Ensure max height constraint
-        const maxHeight = 600;
+        const maxHeight = 800;
         if (newHeight > maxHeight) {
             textarea.style.height = maxHeight + 'px';
             textarea.style.overflowY = 'scroll';

@@ -14,6 +14,10 @@
     let cells = $derived(nb ? nb.cellsStore : writable([]));
     let currentSlug = $state(null); // Track current slug to prevent duplicate loads
     
+    // connection state 
+    let connectionState = $state('connected'); // 'connected', 'disconnected', 'connecting' - assume connected since page loaded
+    let cellConnectionStates = $state(new Map()); // Track individual cell states
+
     // Notebook name editing state
     let isEditingName = $state(false);
     let editingNameValue = $state('');
@@ -284,6 +288,75 @@
         }
     }
     
+    function updateNotebookConnectionState() {
+        console.log('Cell connection states:', Array.from(cellConnectionStates.entries()));
+        if (cellConnectionStates.size === 0) {
+            connectionState = 'disconnected';
+            return;
+        }
+        
+        const states = Array.from(cellConnectionStates.values());
+        
+        // If any cell is connecting, notebook is connecting
+        if (states.some(state => state === 'connecting')) {
+            connectionState = 'connecting';
+        }
+        // If any cell is disconnected, notebook is disconnected
+        else if (states.some(state => state === 'disconnected')) {
+            connectionState = 'disconnected';
+        }
+        // Otherwise, notebook is connected (all cells connected or no specific state changes)
+        else {
+            connectionState = 'connected';
+            console.log("syncing");
+            nb.cellSync();
+        }
+    }
+
+    function handleCellConnectionStateChange(event) {
+        console.log('Received cellConnectionStateChange event:', event.detail);
+        const { cellId, connectionState: cellState } = event.detail;
+        
+        // Update the map of cell connection states
+        cellConnectionStates.set(cellId, cellState);
+        
+        // Trigger reactivity
+        cellConnectionStates = new Map(cellConnectionStates);
+        
+        // Update overall notebook connection state
+        updateNotebookConnectionState();
+    }
+
+    // Clean up cell state when cells are removed
+    function cleanupCellConnectionState(cellId) {
+        cellConnectionStates.delete(cellId);
+        cellConnectionStates = new Map(cellConnectionStates);
+        updateNotebookConnectionState();
+    }
+
+    $effect(() => {
+        window.addEventListener('cellConnectionStateChange', handleCellConnectionStateChange);
+        
+        return () => {
+            window.removeEventListener('cellConnectionStateChange', handleCellConnectionStateChange);
+        };
+    });
+
+    // Clean up cell states when cells change
+    $effect(() => {
+        if (!$cells) return;
+        
+        // Get current cell IDs
+        const currentCellIds = new Set($cells.map(cell => cell.id));
+        
+        // Remove states for cells that no longer exist
+        for (const cellId of cellConnectionStates.keys()) {
+            if (!currentCellIds.has(cellId)) {
+                cleanupCellConnectionState(cellId);
+            }
+        }
+    });
+
     $effect(async () => {
         try {
             const slug = $page.url.searchParams.get('slug') || 'default-notebook';
@@ -297,7 +370,7 @@
             }
             currentSlug = slug;
             nb = await Notebook.create(slug);
-            
+
             warmUpPyodide();
             
         } catch (err) {
@@ -324,6 +397,13 @@
 <div class="message message--error">
     <span class="material-symbols-outlined">error</span>
     {error}
+</div>
+{/if}
+
+{#if (connectionState === 'disconnected' || connectionState === 'connecting') && !nb?.isSandbox}
+<div class="message message--warning">
+    <span class="material-symbols-outlined">wifi_off</span>
+    Real-time collaboration unavailable - Changes will sync when connection is restored
 </div>
 {/if}
 
@@ -612,7 +692,18 @@
         flex-shrink: 0;
     }
     
-    
+    .message--info {
+        border-left-color: var(--primary-color);
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+        color: var(--primary-color);
+    }
+
+    .message--warning {
+        border-left-color: var(--color-accent-1);
+        background-color: rgba(255, 160, 0, 0.1);
+        color: var(--color-accent-1);
+        margin: 10px 0 10px 0;
+    }
     
     /* Responsive design */
     @media (max-width: 768px) {

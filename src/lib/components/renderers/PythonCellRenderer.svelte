@@ -81,8 +81,8 @@
             bind:this={codeEditor}
             bind:value={text}
             width="100%"
-            minHeight="80px"  
-            maxHeight="600px"
+            minHeight="300px"  
+            maxHeight="800px"
             availableVariables={vars}
             oninput={handleInput}
             onfocus={handleFocus}
