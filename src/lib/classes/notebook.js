@@ -424,7 +424,6 @@ export class Notebook {
     #handleNotebookConnectionStateChange(event, payload) {        
         switch (event) {
             case 'JOINED':
-                console.log('✅ Notebook realtime reconnected - refreshing cell data...');
                 this.#setConnectionState('connected');
                 this.#requestSyncOnReconnect();
                 break;
@@ -432,7 +431,6 @@ export class Notebook {
             case 'CLOSED':
             case 'CHANNEL_ERROR':
             case 'TIMED_OUT':
-                console.log('📴 Notebook realtime connection lost - attempting reconnection...');
                 this.#setConnectionState('disconnected');
                 this.#handleConnectionLoss();
                 break;
@@ -524,17 +522,14 @@ export class Notebook {
         
         // Check if this response is newer than our last sync
         if (this.lastSyncTimestamp && payload.timestamp <= this.lastSyncTimestamp) {
-            console.log('📅 Ignoring outdated sync response (older timestamp)');
             return;
         }
         
         // Validate payload
         if (!payload.cells || !Array.isArray(payload.cells)) {
-            console.log('⚠️ Invalid sync response payload');
             return;
         }
         
-        console.log('🔄 Processing sync response with smart merge...');
         
         // Get current cells for comparison
         const currentCells = this.cells;

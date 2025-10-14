@@ -51,7 +51,7 @@
     // CodyxCell renderer test data
     let testMarkdownCell = $state({
         id: 'test-cell-md',
-        type: 'markdown',
+        type: 'md',
         text: '# Renderer Architecture Test\n\nThis is a **Markdown cell** using the new renderer architecture!\n\n- Clean separation of concerns ✅\n- Modular renderer classes ✅\n- LiveText integration ✅\n\nClick **Execute** to toggle preview mode, or edit this content to test the new architecture.\n\n## Features Demonstrated\n\n1. **Container Logic**: CodyxCell handles gutter, toolbar, lifecycle\n2. **Content Logic**: MarkdownRenderer handles markdown-specific behavior\n3. **Interface Compliance**: All renderers implement the same interface'
     });
 
@@ -153,6 +153,32 @@
                 onDelete={handleCellDelete}
             />
         </section>
+
+        <section class="component-section">
+            <h2>⚡ Collaborative Editing Test</h2>
+                <div class="comparison-cell">
+                    <h3>🚀 Real-time Collaboration with Yjs CRDT</h3>
+                    <p class="tech-description">Uses Yjs Conflict-free Replicated Data Types for seamless collaborative editing</p>
+                    <CodyxCell 
+                        initialText="Collaborative Editing Test. Type here to test **Yjs** with CRDT technology.)"
+                        type="md"
+                        docId="comparison-yjs"
+                        cellIndex={3}
+                        onTextChange={handleCellTextChange}
+                        onExecute={handleCellExecute}
+                        onDelete={handleCellDelete}
+                    />
+                </div>
+            
+                <div class="comparison-info">
+                    <h4>🔬 Test Instructions</h4>
+                    <ul>
+                        <li>Open this page in multiple browser tabs/windows</li>
+                        <li>Type simultaneously in the cell from different tabs</li>
+                        <li>Watch changes sync in real-time without conflicts</li>
+                    </ul>
+                </div>
+        </section>
     </main>
 </div>
 
@@ -229,5 +255,58 @@
         background: #fff;
         border-left: 4px solid #ffa000;
         border-radius: 4px;
+    }
+
+    .comparison-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .comparison-cell h3 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .tech-description {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 1rem;
+        font-style: italic;
+    }
+
+    .comparison-info {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .comparison-info h4 {
+        margin-top: 0;
+        color: #495057;
+    }
+
+    .comparison-info ul {
+        margin: 0.5rem 0 0 0;
+        padding-left: 1.5rem;
+    }
+
+    .comparison-info li {
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .comparison-container {
+            gap: 1rem;
+        }
+        
+        .comparison-cell h3 {
+            font-size: 1.1rem;
+        }
     }
 </style>

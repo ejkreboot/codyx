@@ -289,7 +289,6 @@
     }
     
     function updateNotebookConnectionState() {
-        console.log('Cell connection states:', Array.from(cellConnectionStates.entries()));
         if (cellConnectionStates.size === 0) {
             connectionState = 'disconnected';
             return;
@@ -308,13 +307,11 @@
         // Otherwise, notebook is connected (all cells connected or no specific state changes)
         else {
             connectionState = 'connected';
-            console.log("syncing");
             nb.cellSync();
         }
     }
 
     function handleCellConnectionStateChange(event) {
-        console.log('Received cellConnectionStateChange event:', event.detail);
         const { cellId, connectionState: cellState } = event.detail;
         
         // Update the map of cell connection states

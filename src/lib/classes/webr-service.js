@@ -197,10 +197,8 @@ class WebRService {
 
         // Install packages that are needed but not yet installed
         if (packagesToInstall.length > 0) {
-            console.log(`📦 Installing R packages: ${packagesToInstall.join(', ')}`);
             try {
                 await this.webR.installPackages(packagesToInstall);
-                console.log(`✅ R packages installed successfully`);
             } catch (error) {
                 console.log(`⚠️ Some R packages may not have installed correctly:`, error);
             }

@@ -13,7 +13,6 @@
     function handleInput(event) {
         // Auto-resize the textarea
         autoResizeTextarea(event.target);
-        
         // Call the parent's onInput if it exists
         if (onInput) {
             onInput(event);

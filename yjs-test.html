@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yjs Collaborative Text Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }
+        .editor { 
+            width: 100%; 
+            height: 200px; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px;
+        }
+        .connected { background: #d4edda; border: 1px solid #c3e6cb; }
+        .disconnected { background: #f8d7da; border: 1px solid #f5c6cb; }
+        .connecting { background: #fff3cd; border: 1px solid #ffeaa7; }
+        .typing { background: #cce5ff; padding: 5px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Yjs Collaborative Text Test</h1>
+    
+    <div id="status" class="status disconnected">
+        Status: Disconnected
+    </div>
+    
+    <div id="typing" class="typing" style="display: none;">
+        Someone is typing...
+    </div>
+    
+    <textarea id="editor1" class="editor" placeholder="Editor 1 - Start typing..."></textarea>
+    <textarea id="editor2" class="editor" placeholder="Editor 2 - Start typing..."></textarea>
+    
+    <div>
+        <button id="connect">Connect</button>
+        <button id="disconnect">Disconnect</button>
+        <button id="clear">Clear Text</button>
+    </div>
+    
+    <div id="log"></div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+        import * as Y from 'https://cdn.skypack.dev/yjs';
+        
+        // Mock Supabase client for testing (you'll need real credentials)
+        const supabase = {
+            channel: (name, config) => ({
+                state: 'closed',
+                on: () => {},
+                send: () => Promise.resolve(true),
+                subscribe: () => Promise.resolve({ state: 'joined' }),
+                unsubscribe: () => {}
+            })
+        };
+        
+        const log = (message) => {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+        
+        // Simple Yjs test without network
+        const ydoc1 = new Y.Doc();
+        const ydoc2 = new Y.Doc();
+        const ytext1 = ydoc1.getText('content');
+        const ytext2 = ydoc2.getText('content');
+        
+        const editor1 = document.getElementById('editor1');
+        const editor2 = document.getElementById('editor2');
+        const statusDiv = document.getElementById('status');
+        const typingDiv = document.getElementById('typing');
+        
+        // Simulate network sync between two Yjs documents
+        ydoc1.on('update', (update, origin) => {
+            if (origin !== 'remote') {
+                Y.applyUpdate(ydoc2, update, 'remote');
+            }
+        });
+        
+        ydoc2.on('update', (update, origin) => {
+            if (origin !== 'remote') {
+                Y.applyUpdate(ydoc1, update, 'remote');
+            }
+        });
+        
+        // Update editors when Yjs text changes
+        ytext1.observe((event) => {
+            if (editor1.value !== ytext1.toString()) {
+                const cursorPos = editor1.selectionStart;
+                editor1.value = ytext1.toString();
+                editor1.setSelectionRange(cursorPos, cursorPos);
+                log('Editor 1 updated from Yjs');
+            }
+        });
+        
+        ytext2.observe((event) => {
+            if (editor2.value !== ytext2.toString()) {
+                const cursorPos = editor2.selectionStart;
+                editor2.value = ytext2.toString();
+                editor2.setSelectionRange(cursorPos, cursorPos);
+                log('Editor 2 updated from Yjs');
+            }
+        });
+        
+        // Update Yjs when editors change
+        editor1.addEventListener('input', (e) => {
+            const text = e.target.value;
+            if (text !== ytext1.toString()) {
+                ytext1.delete(0, ytext1.length);
+                ytext1.insert(0, text);
+                log('Editor 1 input applied to Yjs');
+            }
+        });
+        
+        editor2.addEventListener('input', (e) => {
+            const text = e.target.value;
+            if (text !== ytext2.toString()) {
+                ytext2.delete(0, ytext2.length);
+                ytext2.insert(0, text);
+                log('Editor 2 input applied to Yjs');
+            }
+        });
+        
+        // Button handlers
+        document.getElementById('connect').addEventListener('click', () => {
+            statusDiv.textContent = 'Status: Connected';
+            statusDiv.className = 'status connected';
+            log('Connected to collaboration');
+        });
+        
+        document.getElementById('disconnect').addEventListener('click', () => {
+            statusDiv.textContent = 'Status: Disconnected';
+            statusDiv.className = 'status disconnected';
+            log('Disconnected from collaboration');
+        });
+        
+        document.getElementById('clear').addEventListener('click', () => {
+            ytext1.delete(0, ytext1.length);
+            log('Text cleared');
+        });
+        
+        // Initialize
+        ytext1.insert(0, 'Hello Yjs! Start editing in either editor to see real-time sync.');
+        statusDiv.textContent = 'Status: Connected (Local Test)';
+        statusDiv.className = 'status connected';
+        log('Yjs collaborative text test initialized');
+    </script>
+</body>
+</html>

@@ -154,6 +154,20 @@ export class CellController {
     }
     
     /**
+     * Apply user input to collaborative text (single source of truth)
+     * @param {string} newText - New text from user input
+     */
+    applyUserInput(newText) {
+        if (this.isCollaborative()) {
+            // For collaborative editing: apply directly to Yjs, let it propagate back
+            this.getYjsInstance().applyDelta(newText);
+        } else {
+            // For non-collaborative: update directly
+            this.updateText(newText);
+        }
+    }
+    
+    /**
      * Set editing state
      * @param {boolean} editing - Whether cell is being edited
      */
@@ -236,10 +250,60 @@ export class CellController {
         };
     }
     
+    // ============ COLLABORATIVE FEATURES ============
+    
+    /**
+     * Set the collaborative text instance (LiveText/Yjs)
+     * @param {Object} collaborativeText - LiveText or LiveTextYjs instance
+     */
+    setCollaborativeText(collaborativeText) {
+        this.collaborativeText = collaborativeText;
+    }
+    
+    /**
+     * Get direct access to Yjs collaborative text instance
+     * @returns {YjsCollaborativeText|null} Yjs instance if available
+     */
+    getYjsInstance() {
+        // Direct access to YjsCollaborativeText (no wrapper)
+        return this.collaborativeText?.constructor?.name === 'YjsCollaborativeText' 
+            ? this.collaborativeText 
+            : null;
+    }
+    
+    /**
+     * Get cursor positions and selections from other users
+     * @returns {Map|null} Awareness states if available
+     */
+    getCursorPositions() {
+        const yjsInstance = this.getYjsInstance();
+        return yjsInstance?.getAwarenessStates() || null;
+    }
+    
+    /**
+     * Get connection state for collaborative editing
+     * @returns {string} Connection state ('connected', 'disconnected', 'connecting')
+     */
+    getCollaborativeState() {
+        return this.collaborativeText?.connectionState || 'disconnected';
+    }
+    
+    /**
+     * Check if collaborative features are available
+     * @returns {boolean} True if using Yjs collaborative text
+     */
+    isCollaborative() {
+        return !!this.getYjsInstance();
+    }
+    
     /**
      * Cleanup when controller is destroyed
      */
     onDestroy() {
+        // Clean up collaborative text
+        this.collaborativeText?.destroy?.();
+        this.collaborativeText = null;
+        
         // Default implementation - can be overridden by subclasses
         this.isEditing = false;
         this.isDirty = false;

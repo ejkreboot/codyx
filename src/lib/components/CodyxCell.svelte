@@ -1,6 +1,6 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-    import { LiveText } from '$lib/classes/live-text.js';
+    import { YjsCollaborativeText } from '$lib/classes/yjs-collaborative-text.js';
     import { supabase } from '$lib/util/supabase-client.js';
     import { collapsibleScript } from '$lib/util/enhanced-markdown.js';
     import { MarkdownCellController } from '$lib/classes/cells/MarkdownCellController.svelte.js';
@@ -16,11 +16,13 @@
     let version = props.version;
     let cellIndex = props.cellIndex ?? 1;
     let sandboxed = props.sandboxed ?? false;
+    let handleUpdate = null;
+    // Debug: unique ID for this component instance
+    const componentId = `${type}-${cellIndex}-yjs`;
 
     // Container state
-    let typing = $state(false);
     let connectionState = $state('disconnected'); // 'connecting', 'connected', 'disconnected'
-    let liveText;
+    let liveText = $state(null);
     let codeEditor = $state();
     
     // Controller instance
@@ -29,26 +31,25 @@
     // Event dispatcher
     const dispatch = createEventDispatcher();
     
-    // LiveText updater function
-    let liveTextUpdater = null;
+
     
     // Event handler functions for proper cleanup
-    let handlePatched, handleTyping, handleConnectionChange;
-
+    let handleConnectionChange;
+    
     // ============ CONTROLLER MANAGEMENT ============
     
     /**
      * Create appropriate controller based on cell type
      */
-    function createController() {
+    function createController(text = '') {
         if (type === 'md') {
-            controller = new MarkdownCellController(docId, cellIndex, initialText);
+            controller = new MarkdownCellController(docId, cellIndex, text);
         } else if (type === 'code') {
-            controller = new PythonCellController(docId, cellIndex, initialText);
+            controller = new PythonCellController(docId, cellIndex, text);
         } else if (type === 'r') {
-            controller = new RCellController(docId, cellIndex, initialText);
+            controller = new RCellController(docId, cellIndex, text);
         } else {
-            controller = null;
+            throw new Error(`Unknown cell type: ${type}`);
         }
     }
     
@@ -57,16 +58,15 @@
      */
     function handleTextChange(newText) {
         if (controller) {
-            controller.updateText(newText);
-        }
-        
-        if (liveTextUpdater) {
-            liveTextUpdater({ target: { value: newText } });
+            // Single source of truth: apply user input through controller
+            // For Yjs: this will apply to Yjs and propagate back via 'patched' event
+            // For non-Yjs: this will update directly
+            controller.applyUserInput(newText);
         }
     }
     
     /**
-     * Handle input events from textarea
+     * Handle input events
      */
     function handleInput(event) {
         handleTextChange(event.target.value);
@@ -137,27 +137,36 @@
     // ============ LIFECYCLE ============
 
     onMount(async () => {
-        // Create controller instance
-        createController();
-        
-        // Set up LiveText
-        liveText = await LiveText.create({
-            text: initialText, 
-            docId, 
-            supabase, 
-            userId, 
-            version
-        });
+        // Set up Yjs collaborative text
+        try {
+            liveText = await YjsCollaborativeText.create({
+                text: initialText, 
+                docId, 
+                supabase, 
+                userId, 
+                version
+            });
+            
+            // Create controller with text from LiveText (single source of truth)
+            const currentText = liveText.text || initialText;
+            createController(currentText);
+            
+            // Connect controller with collaborative text for Yjs-aware features
+            if (controller && liveText) {
+                controller.setCollaborativeText(liveText);
+            }
+        } catch (error) {
+            console.error(`❌ [${componentId}] LiveText creation failed:`, error);
+            // Fallback: create controller with initial text if LiveText fails
+            createController(initialText);
+        }
         
         // Define event handlers in module scope for proper cleanup
-        handlePatched = (e) => {
-            if (controller) {
+        // Handle Yjs update events
+        handleUpdate = (e) => {
+            if (controller && controller.text !== e.detail.text) {
                 controller.updateText(e.detail.text);
             }
-        };
-        
-        handleTyping = (e) => {
-            typing = e.detail.typing;
         };
 
         handleConnectionChange = (e) => {
@@ -174,17 +183,11 @@
             }
         };
         
-        liveText.addEventListener('patched', handlePatched);
-        liveText.addEventListener('typing', handleTyping);
-        liveText.addEventListener('connectionchange', handleConnectionChange);
-        
-        // Initialize connection state from LiveText
-        connectionState = liveText.connectionState;
-
-        if (!sandboxed) {
-            liveTextUpdater = (e) => {
-                liveText.update(e.target.value);
-            };
+        // Set up event listeners if liveText was created successfully
+        if (liveText) {
+            liveText.addEventListener('update', handleUpdate);
+            liveText.addEventListener('connectionchange', handleConnectionChange);
+            connectionState = liveText.connectionState;
         }
 
         // Inject collapsible functionality for markdown
@@ -201,10 +204,11 @@
     onDestroy(() => {
         if (sandboxed) return;
         
-        liveText?.removeEventListener('patched', handlePatched);
-        liveText?.removeEventListener('typing', handleTyping);
-        liveText?.removeEventListener('connectionchange', handleConnectionChange);
-        liveText?.destroy();
+        if (liveText) {
+            liveText.removeEventListener('update', handleUpdate);
+            liveText.removeEventListener('connectionchange', handleConnectionChange);
+            liveText.disconnect();
+        }
         
         // Cleanup controller
         controller?.onDestroy();
@@ -430,6 +434,8 @@
         color: #6c757d;
         font-family: 'Raleway', sans-serif;
     }
+
+
 
 
 </style>
