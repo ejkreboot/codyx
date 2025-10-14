@@ -77,14 +77,12 @@
     
     function startEditing() {
         if (sandboxed) return;
-        console.log('🚀 Starting editing for cell:', docId);
         controller?.startEditing();
         // Don't set collaborative state on focus - wait for actual typing
     }
 
     function stopEditing() {
         if (sandboxed) return;
-        console.log('🛑 Stopping editing for cell:', docId);
         controller?.stopEditing();
         // Clear collaborative state when leaving the cell
         if (controller?.isCollaborative()) {
@@ -189,7 +187,6 @@
         // Handle typing indicator events
         let handleTyping = (e) => {
             typing = e.detail.typing;
-            console.log('📨 Typing indicator:', typing ? 'ON' : 'OFF');
         };
 
         handleConnectionChange = (e) => {

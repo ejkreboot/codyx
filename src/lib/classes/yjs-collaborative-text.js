@@ -43,7 +43,6 @@ export class YjsCollaborativeText extends EventTarget {
         
         // Set up awareness change handler
         this.#awarenessHandler = ({ added, updated, removed }) => {
-            console.log('🔔 Awareness change:', { added, updated, removed });
             
             // Check if anyone else is actively typing (not just editing)
             const othersTyping = Array.from(this.#awareness.getStates().entries())
@@ -53,7 +52,6 @@ export class YjsCollaborativeText extends EventTarget {
                 )
                 .length > 0;
             
-            console.log('📢 Emitting typing event:', othersTyping);
             this.dispatchEvent(new CustomEvent('typing', { 
                 detail: { typing: othersTyping } 
             }));
@@ -126,8 +124,6 @@ export class YjsCollaborativeText extends EventTarget {
         
         this.#channel.on('broadcast', { event: 'yjs_awareness' }, ({ payload }) => {
             if (payload.clientId === this.clientId) return;
-            
-            console.log('🔍 Received awareness update:', payload);
             
             // Apply remote awareness state directly to the states map
             if (payload.state) {
@@ -385,9 +381,7 @@ export class YjsCollaborativeText extends EventTarget {
     /**
      * Indicate that user is actively typing
      */
-    setTyping() {
-        console.log('⌨️ YjsCollaborativeText.setTyping');
-        
+    setTyping() {        
         // Clear any existing timeout
         if (this.#typingTimeout) {
             clearTimeout(this.#typingTimeout);
@@ -422,7 +416,6 @@ export class YjsCollaborativeText extends EventTarget {
      * Clear typing state
      */
     clearTyping() {
-        console.log('🛑 YjsCollaborativeText.clearTyping');
         
         // Clear any pending timeout
         if (this.#typingTimeout) {
@@ -441,7 +434,6 @@ export class YjsCollaborativeText extends EventTarget {
     }    // ============ CONNECTION MANAGEMENT ============
     
     async #subscribeAndWait(attempt = 0) {
-        console.log(`🔌 YjsCollaborativeText.#subscribeAndWait attempt ${attempt + 1}`) ;
         this.#setConnectionState('connecting');
         
         if (attempt > 0) {
@@ -490,8 +482,7 @@ export class YjsCollaborativeText extends EventTarget {
      * Disconnect and clean up resources
      */
     disconnect() {
-        console.log('🔥 Disconnecting YjsCollaborativeText');
-        
+      
         // Clear typing timeout
         if (this.#typingTimeout) {
             clearTimeout(this.#typingTimeout);

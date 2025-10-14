@@ -381,7 +381,6 @@ export class Notebook {
                 // Request sync from other instances when first connecting
                 setTimeout(() => {
                     if (this.channel && this.channel.state === 'joined') {
-                        console.log("🔄 Requesting cell sync from other instances...");
                         this.channel.send({
                             type: 'broadcast',
                             event: 'notebook_sync_request',
@@ -544,7 +543,6 @@ export class Notebook {
         // Update sync timestamp
         this.lastSyncTimestamp = payload.timestamp;
         
-        console.log(`✅ Sync completed. Merged ${mergedCells.length} cells`);
     }
     
     /**
