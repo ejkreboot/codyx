@@ -445,8 +445,8 @@
     /* Typing indicator dot in gutter */
     .typing-dot {
         position: absolute;
-        top: 13px;  /* moved down 5px from 8px */
-        right: 3px; /* moved right 5px from 8px */
+        top: 50px;  
+        right: 17px; 
         width: 8px;
         height: 8px;
         border-radius: 50%;

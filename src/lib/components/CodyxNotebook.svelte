@@ -420,9 +420,9 @@
             <h3>Initializing Compute Environment</h3>
             <p>Embedding interpreters for code execution...</p>
             <div class="loading-steps">
-                <div class="step step-1">Downloading  Runtimes</div>
-                <div class="step step-2">Loading scientific libraries</div>
-                <div class="step step-3">Almost ready...</div>
+                <div class="step animate-in animate-delay-0">Downloading Runtimes</div>
+                <div class="step animate-in animate-delay-2">Loading scientific libraries</div>
+                <div class="step animate-in animate-delay-4">Almost ready...</div>
             </div>
         </div>
     </div>
@@ -565,16 +565,16 @@
 <style>
     /* Component-specific styles for CodyxNotebook */
     
-    /* Pyodide loading overlay - unique to notebook */
+    /* Pyodide loading overlay - extends global .overlay pattern */
     .pyodide-loading-overlay {
-        font-family: 'Raleway', sans-serif;
+        font-family: var(--font-family-sans);
         font-weight: 500;
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(var(--gray-50-rgb), 0.85);
+        background: rgba(248, 249, 250, 0.85); /* gray-50 with opacity */
         backdrop-filter: blur(4px);
         z-index: 1000;
         display: flex;
@@ -590,10 +590,9 @@
         padding: var(--space-8);
         background: white;
         border-radius: var(--border-radius-xl);
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--box-shadow-lg);
         border: 1px solid var(--gray-200);
         font-weight: 500;
-        
     }
     
     .loading-spinner {
@@ -606,18 +605,14 @@
         font-weight: 500;
     }
     
+    /* Use global .loading__spinner--spinning class instead */
     .spinning {
         animation: spin 2s linear infinite;
     }
     
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    
     .loading-text h3 {
         margin: 0 0 var(--space-2) 0;
-        color: var(--gray-900);
+        color: var(--gray-700);
         font-weight: 600;
     }
     
@@ -631,26 +626,12 @@
         flex-direction: column;
         gap: var(--space-2);
         color: var(--gray-500);
+        font-size: var(--text-sm);
     }
     
     .step {
         padding: var(--space-1) 0;
         position: relative;
-        opacity: 0;
-        transform: translateY(10px);
-        animation: stepAppear 0.5s ease-out forwards;
-    }
-    
-    .step-1 {
-        animation-delay: 0s;
-    }
-    
-    .step-2 {
-        animation-delay: 1s;
-    }
-    
-    .step-3 {
-        animation-delay: 3s;
     }
     
     .step::before {
@@ -670,17 +651,7 @@
         flex-shrink: 0;
     }
     
-
-    @keyframes stepAppear {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
     /* Notebook header layout */
-
-    
     .notebook-header__actions {
         display: flex;
         gap: var(--space-2);
@@ -688,152 +659,10 @@
         flex-shrink: 0;
     }
     
-    .message--info {
-        border-left-color: var(--primary-color);
-        background-color: rgba(var(--primary-color-rgb), 0.1);
-        color: var(--primary-color);
-    }
-
-    .message--warning {
-        border-left-color: var(--color-accent-1);
-        background-color: rgba(255, 160, 0, 0.1);
-        color: var(--color-accent-1);
-        margin: 10px 0 10px 0;
-    }
-    
     /* Responsive design */
     @media (max-width: 768px) {
-
-    }
-    
-    @media (max-width: 480px) {
-
-
-    /* Component-specific styles for CodyxNotebook */
-
-    /* Pyodide loading overlay - unique to notebook */
-    .pyodide-loading-overlay {
-        font-family: 'Raleway', sans-serif;
-        font-weight: 500;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(var(--gray-50-rgb), 0.85);
-        backdrop-filter: blur(4px);
-        z-index: 1000;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding-top: var(--space-16);
-        border-radius: var(--border-radius-lg);
-    }
-
-    .loading-content {
-        text-align: center;
-        max-width: 400px;
-        padding: var(--space-8);
-        background: white;
-        border-radius: var(--border-radius-xl);
-        box-shadow: var(--shadow-lg);
-        border: 1px solid var(--gray-200);
-        font-weight: 500;
-
-    }
-
-    .loading-spinner {
-        margin-bottom: var(--space-6);
-    }
-
-    .loading-spinner .material-symbols-outlined {
-        font-size: 48px;
-        color: var(--primary-color);
-        font-weight: 500;
-    }
-
-    .spinning {
-        animation: spin 2s linear infinite;
-    }
-
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-
-    .loading-text h3 {
-        margin: 0 0 var(--space-2) 0;
-        color: var(--gray-900);
-        font-weight: 600;
-    }
-
-    .loading-text p {
-        margin: 0 0 var(--space-6) 0;
-        color: var(--gray-600);
-    }
-
-    .loading-steps {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
-        color: var(--gray-500);
-    }
-
-    .step {
-        padding: var(--space-1) 0;
-        position: relative;
-        opacity: 0;
-        transform: translateY(10px);
-        animation: stepAppear 0.5s ease-out forwards;
-    }
-
-    .step-1 {
-        animation-delay: 1.5s;
-    }
-
-    .step-2 {
-        animation-delay: 4s;
-    }
-
-    /* Sandbox slug editor styles */
-    .sandbox-editor {
-        gap: var(--space-2);
-        align-items: center;
-        flex-wrap: nowrap;
-    }
-
-    .sandbox-editor .form__input {
-        min-width: 200px;
-        flex-shrink: 0;
-    }
-
-    .step-3 {
-        animation-delay: 6s;
-    }
-
-    .step::before {
-        content: "⏳";
-        margin-right: var(--space-2);
-    }
-
-    @keyframes stepAppear {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    
-    }
-
-
-    /* Responsive design */
-    @media (max-width: 768px) {
-        
         .notebook-header__actions {
             align-self: flex-end;
         }
-    }
-
-    @media (max-width: 480px) {
-    }
     }
 </style>

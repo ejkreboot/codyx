@@ -806,6 +806,12 @@ export class Notebook {
         const cell = this.cells.find(c => c.id === cellId);
         if (!cell) throw new Error('Cell not found');
         const index = this.cells.findIndex(c => c.id === cellId);
+        
+        // No-op if already at the bottom
+        if (index >= this.cells.length - 1) {
+            return cell;
+        }
+        
         let after = this.cells[index + 1].position;
         let before = index + 2 < this.cells.length ? this.cells[index + 2].position : null;
         const newPosition = LexaKey.between(after, before);
@@ -822,6 +828,12 @@ export class Notebook {
         const cell = this.cells.find(c => c.id === cellId);
         if (!cell) throw new Error('Cell not found');
         const index = this.cells.findIndex(c => c.id === cellId);
+        
+        // No-op if already at the top
+        if (index <= 0) {
+            return cell;
+        }
+        
         let after = index - 2 >= 0 ? this.cells[index - 2].position : null;
         let before = this.cells[index - 1].position;
         const newPosition = LexaKey.between(after, before);

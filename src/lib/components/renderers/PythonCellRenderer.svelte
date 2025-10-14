@@ -28,6 +28,11 @@
             onStartEditing();
         }
         vars = await controller.getVariables();
+        
+        // Check for import suggestions when cell gets focus
+        if (controller && controller.updateImportSuggestions) {
+            controller.updateImportSuggestions();
+        }
     }
 
     async function handleBlur() {
@@ -102,33 +107,33 @@
         <div class="import-suggestions">
             {#each importSuggestions as suggestion}
                 <div class="suggestion-item">
-                    <div class="suggestion-content">
-                        <span class="material-icons">download</span>
-                        <span class="suggestion-text">
-                            Install <strong>{suggestion.installName}</strong> for <code>{suggestion.packageName}</code>?
-                        </span>
-                    </div>
-                    <div class="suggestion-actions">
-                        <button 
-                            class="install-btn"
-                            onclick={() => controller.insertInstallCode(suggestion)}
-                        >
-                            Install
-                        </button>
-                        <button 
-                            class="dismiss-btn"
-                            onclick={() => {
-                                controller.importSuggestions = controller.importSuggestions.filter(s => s !== suggestion);
-                            }}
-                        >
-                            Dismiss
-                        </button>
-                    </div>
+                    <span class="suggestion-icon material-icons">info</span>
+                    <span class="suggestion-text">
+                        <code>{suggestion.packageName}</code> needs to be installed with micropip
+                    </span>
+                    <button 
+                        class="suggestion-btn suggestion-btn--install"
+                        onclick={() => controller.insertInstallCode(suggestion)}
+                        title="Install package"
+                    >
+                        Install
+                    </button>
+                    <button 
+                        class="suggestion-btn suggestion-btn--dismiss"
+                        onclick={() => {
+                            controller.importSuggestions = controller.importSuggestions.filter(s => s !== suggestion);
+                        }}
+                        title="Dismiss suggestion"
+                    >
+                        <span class="material-icons">close</span>
+                    </button>
                 </div>
             {/each}
         </div>
     {/if}
 
+
+    
     {#if controller.output}
         <div class="python-output">
             {#if controller.output.type === 'text'}
@@ -414,96 +419,97 @@
         to { transform: rotate(360deg); }
     }
     
-    /* Import suggestions styling */
+    /* Import suggestions styling - subtle and streamlined */
     .import-suggestions {
         width: calc(100% - 40px);
         margin-left: 40px;
-        margin-top: 8px;
-        margin-bottom: 8px;
+        margin-top: 0;
+        margin-bottom: 0;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 0;
+        border-top: 1px solid #e9ecef;
     }
     
     .suggestion-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        background: rgba(255, 193, 7, 0.1);
-        border: 1px solid rgba(255, 193, 7, 0.3);
-        border-radius: 6px;
-        font-family: 'Raleway', sans-serif;
-        font-size: 14px;
-    }
-    
-    .suggestion-content {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        gap: 10px;
+        padding: 8px 12px;
+        background: #fffbf0;
+        border-bottom: 1px solid #fff3cd;
+        font-family: var(--font-family-sans);
+        font-size: 13px;
         color: #856404;
+        transition: background 0.15s ease;
     }
     
-    .suggestion-content .material-icons {
-        font-size: 18px;
+    .suggestion-item:hover {
+        background: #fff9e6;
+    }
+    
+    .suggestion-icon {
+        font-size: 16px;
         color: #ffc107;
+        flex-shrink: 0;
     }
     
     .suggestion-text {
         flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        line-height: 1.4;
     }
     
     .suggestion-text code {
-        background: rgba(255, 193, 7, 0.2);
-        padding: 2px 6px;
+        background: rgba(255, 193, 7, 0.15);
+        padding: 1px 5px;
         border-radius: 3px;
         font-family: 'Cutive Mono', monospace;
-        font-size: 13px;
+        font-size: 12px;
         color: #856404;
+        font-weight: 500;
     }
     
-    .suggestion-actions {
-        display: flex;
-        gap: 8px;
-    }
-    
-    .install-btn {
-        background: #28a745;
-        color: white;
+    .suggestion-btn {
         border: none;
         border-radius: 4px;
-        padding: 6px 12px;
-        font-family: 'Raleway', sans-serif;
+        padding: 4px 10px;
+        font-family: var(--font-family-sans);
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.15s ease;
+        flex-shrink: 0;
     }
     
-    .install-btn:hover {
+    .suggestion-btn--install {
+        background: #28a745;
+        color: white;
+    }
+    
+    .suggestion-btn--install:hover {
         background: #218838;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+        box-shadow: 0 1px 3px rgba(40, 167, 69, 0.3);
     }
     
-    .dismiss-btn {
+    .suggestion-btn--dismiss {
         background: transparent;
         color: #6c757d;
-        border: 1px solid #6c757d;
-        border-radius: 4px;
-        padding: 6px 12px;
-        font-family: 'Raleway', sans-serif;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s ease;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
-    .dismiss-btn:hover {
-        background: #6c757d;
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+    .suggestion-btn--dismiss:hover {
+        background: rgba(108, 117, 125, 0.1);
+        color: #495057;
+    }
+    
+    .suggestion-btn--dismiss .material-icons {
+        font-size: 16px;
     }
 
     /* Python syntax highlighting hints */

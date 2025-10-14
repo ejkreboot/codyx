@@ -23,6 +23,14 @@ export class YjsCollaborativeText extends EventTarget {
     #typingTimeout = null;
     #typingDuration = 1500; // Clear typing state after 1.5 seconds of inactivity
     
+    // Offline support
+    #updateQueue = [];
+    #maxQueueSize = 100;
+    #reconnectInterval = null;
+    #reconnectAttempts = 0;
+    #maxReconnectAttempts = 10;
+    #reconnectDelay = 1000; // Start with 1 second, will exponentially backoff
+    
     connectionState = 'disconnected';
     clientId = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
     
@@ -80,14 +88,19 @@ export class YjsCollaborativeText extends EventTarget {
             this.#requestSync();
             
             // Fallback: if no sync response after 3 seconds, initialize with initial text
-            // Only if document is still empty and we haven't received any updates
+            // Only if document is STILL empty after sync attempts
             setTimeout(() => {
                 if (!this.#hasReceivedInitialSync && this.#initialText && this.#ytext.length === 0) {
-                    console.log('No sync received, initializing with initial text');
                     this.#hasReceivedInitialSync = true;
                     this.#ydoc.transact(() => {
                         this.#ytext.insert(0, this.#initialText);
                     }, 'initial');
+                } else if (!this.#hasReceivedInitialSync && this.#initialText && this.#ytext.length > 0) {
+                    console.warn('🛑 Prevented duplicate initialization - document already has content:', {
+                        docId: this.docId,
+                        currentLength: this.#ytext.length,
+                        initialTextLength: this.#initialText.length
+                    });
                 }
             }, 3000);
             
@@ -157,20 +170,27 @@ export class YjsCollaborativeText extends EventTarget {
     }
     
     #broadcastUpdate(update) {
-        if (!this.#channel || this.#channel.state !== 'joined') return;
+        const updatePayload = {
+            docId: this.docId,
+            update: Array.from(update),
+            clientId: this.clientId,
+            userId: this.userId,
+            timestamp: Date.now()
+        };
+        
+        if (!this.#channel || this.#channel.state !== 'joined') {
+            // Queue update for when we reconnect
+            this.#queueUpdate(updatePayload);
+            return;
+        }
         
         this.#channel.send({
             type: 'broadcast',
             event: 'yjs_update',
-            payload: {
-                docId: this.docId,
-                update: Array.from(update),
-                clientId: this.clientId,
-                userId: this.userId,
-                timestamp: Date.now()
-            }
+            payload: updatePayload
         }).catch(error => {
-            console.warn('Failed to broadcast update:', error);
+            console.warn('Failed to broadcast update, queueing for retry:', error);
+            this.#queueUpdate(updatePayload);
         });
     }
     
@@ -235,21 +255,21 @@ export class YjsCollaborativeText extends EventTarget {
     
     #handleSyncResponse(payload) {
         try {
+            // Mark that we've received a sync response
+            this.#hasReceivedInitialSync = true;
+            
             if (payload.documentUpdate) {
                 const update = new Uint8Array(payload.documentUpdate);
                 Y.applyUpdate(this.#ydoc, update, 'remote');
             }
             
-            // Handle initial text if this is our first sync
-            if (!this.#hasReceivedInitialSync) {
-                this.#hasReceivedInitialSync = true;
-                
-                if (this.#ytext.length === 0 && this.#initialText) {
-                    this.#ydoc.transact(() => {
-                        this.#ytext.insert(0, this.#initialText);
-                    }, 'initial');
-                }
-            }
+            // Only insert initial text if document is STILL empty after applying sync
+            // This prevents duplication when sync contains content
+            if (this.#ytext.length === 0 && this.#initialText) {
+                this.#ydoc.transact(() => {
+                    this.#ytext.insert(0, this.#initialText);
+                }, 'initial');
+            } 
         } catch (error) {
             console.error('Failed to handle sync response:', error);
         }
@@ -259,7 +279,10 @@ export class YjsCollaborativeText extends EventTarget {
         switch (event) {
             case 'JOINED':
                 this.#setConnectionState('connected');
+                this.#reconnectAttempts = 0; // Reset reconnection attempts
+                this.#clearReconnectionTimer();
                 this.#requestSync();
+                this.#flushQueuedUpdates(); // Send any queued offline updates
                 break;
                 
             case 'CLOSED':
@@ -273,7 +296,7 @@ export class YjsCollaborativeText extends EventTarget {
     
     #handleConnectionLoss() {
         this.#awareness.states.clear();
-        this.#subscribeAndWait();
+        this.#startReconnectionAttempts();
     }
     
     #setConnectionState(newState) {
@@ -282,6 +305,75 @@ export class YjsCollaborativeText extends EventTarget {
             this.dispatchEvent(new CustomEvent('connectionchange', {
                 detail: { state: newState }
             }));
+        }
+    }
+
+    // ============ OFFLINE SUPPORT ============
+    
+    #queueUpdate(updatePayload) {
+        // Add to queue, maintaining size limit
+        this.#updateQueue.push(updatePayload);
+        if (this.#updateQueue.length > this.#maxQueueSize) {
+            this.#updateQueue.shift(); // Remove oldest update
+        }
+        console.log(`Queued update (${this.#updateQueue.length}/${this.#maxQueueSize})`);
+    }
+    
+    #flushQueuedUpdates() {
+        if (this.#updateQueue.length === 0) return;
+        
+        console.log(`Flushing ${this.#updateQueue.length} queued updates`);
+        const updates = [...this.#updateQueue];
+        this.#updateQueue = [];
+        
+        // Send all queued updates
+        updates.forEach(updatePayload => {
+            if (this.#channel && this.#channel.state === 'joined') {
+                this.#channel.send({
+                    type: 'broadcast',
+                    event: 'yjs_update',
+                    payload: updatePayload
+                }).catch(error => {
+                    console.warn('Failed to send queued update:', error);
+                    // Re-queue if send fails
+                    this.#queueUpdate(updatePayload);
+                });
+            }
+        });
+    }
+    
+    #startReconnectionAttempts() {
+        if (this.#reconnectInterval) return; // Already trying to reconnect
+        
+        const reconnect = async () => {
+            if (this.#reconnectAttempts >= this.#maxReconnectAttempts) {
+                console.warn('Max reconnection attempts reached');
+                this.#clearReconnectionTimer();
+                return;
+            }
+            
+            this.#reconnectAttempts++;
+            console.log(`Reconnection attempt ${this.#reconnectAttempts}/${this.#maxReconnectAttempts}`);
+            
+            try {
+                this.#setConnectionState('connecting');
+                await this.#subscribeAndWait();
+            } catch (error) {
+                console.warn('Reconnection failed:', error);
+                // Exponential backoff
+                const delay = Math.min(this.#reconnectDelay * Math.pow(2, this.#reconnectAttempts - 1), 30000);
+                this.#reconnectInterval = setTimeout(reconnect, delay);
+            }
+        };
+        
+        // Start first reconnection attempt after initial delay
+        this.#reconnectInterval = setTimeout(reconnect, this.#reconnectDelay);
+    }
+    
+    #clearReconnectionTimer() {
+        if (this.#reconnectInterval) {
+            clearTimeout(this.#reconnectInterval);
+            this.#reconnectInterval = null;
         }
     }
 
@@ -300,6 +392,23 @@ export class YjsCollaborativeText extends EventTarget {
     applyDelta(newText) {
         const currentText = this.#ytext.toString();
         if (currentText === newText) return;
+        
+        // Failsafe: Check if newText would create duplication
+        // This catches cases where the same content might be inserted twice
+        if (newText.includes(currentText) && newText !== currentText) {
+            // Check if newText is just currentText duplicated
+            const isDuplicate = newText === currentText + currentText;
+            if (isDuplicate) {
+                console.warn('🛑 Duplicate content detected and rejected:', {
+                    docId: this.docId,
+                    currentLength: currentText.length,
+                    newLength: newText.length,
+                    currentText: currentText.substring(0, 50) + '...',
+                    newText: newText.substring(0, 50) + '...'
+                });
+                return; // Reject the duplicate change
+            }
+        }
         
         this.#applyTextDiff(currentText, newText);
     }
@@ -485,12 +594,17 @@ export class YjsCollaborativeText extends EventTarget {
      * Disconnect and clean up resources
      */
     disconnect() {
-      
+        // Clear reconnection timer
+        this.#clearReconnectionTimer();
+        
         // Clear typing timeout
         if (this.#typingTimeout) {
             clearTimeout(this.#typingTimeout);
             this.#typingTimeout = null;
         }
+        
+        // Clear queued updates
+        this.#updateQueue = [];
         
         // Clean up awareness
         if (this.#awareness && this.#awarenessHandler) {
