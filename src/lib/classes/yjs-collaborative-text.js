@@ -79,14 +79,17 @@ export class YjsCollaborativeText extends EventTarget {
             await this.#subscribeAndWait();
             this.#requestSync();
             
+            // Fallback: if no sync response after 3 seconds, initialize with initial text
+            // Only if document is still empty and we haven't received any updates
             setTimeout(() => {
                 if (!this.#hasReceivedInitialSync && this.#initialText && this.#ytext.length === 0) {
+                    console.log('No sync received, initializing with initial text');
                     this.#hasReceivedInitialSync = true;
                     this.#ydoc.transact(() => {
                         this.#ytext.insert(0, this.#initialText);
                     }, 'initial');
                 }
-            }, 1000);
+            }, 3000);
             
         } catch (error) {
             this.#setConnectionState('disconnected');

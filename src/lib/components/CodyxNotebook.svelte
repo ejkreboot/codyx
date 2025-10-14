@@ -77,7 +77,6 @@
             }
         } catch (err) {
             console.error("Cell operation failed:", err);
-            error = err.message;
         }
     };
     
