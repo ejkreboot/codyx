@@ -62,6 +62,7 @@
 		"pyodide": "^0.28.3",
 		"web-tree-sitter": "^0.24.7",
 		"webr": "^0.5.6",
+		"y-protocols": "^1.0.6",
 		"y-websocket": "^3.0.0",
 		"yjs": "^13.6.27"
 	}

@@ -6,7 +6,8 @@
         onInput,
         onStartEditing,
         onStopEditing, 
-        onKeydown
+        onKeydown,
+        onTyping
     } = $props();
 
     let vars = $state([]);
@@ -47,6 +48,11 @@
     }
 
     function handleInput(event) {
+        // Trigger typing awareness
+        if (onTyping) {
+            onTyping(event);
+        }
+        
         // Call the parent's onInput if it exists
         if (onInput) {
             onInput(event);

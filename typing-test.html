@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Yjs Typing Indicator Test</title>
+    <script type="module">
+        import * as Y from 'https://esm.sh/yjs@13.6.10';
+        import { WebsocketProvider } from 'https://esm.sh/y-websocket@1.5.0';
+
+        // Simple test of Yjs awareness
+        const doc = new Y.Doc();
+        const provider = new WebsocketProvider('ws://localhost:1234', 'test-room', doc);
+        const awareness = provider.awareness;
+
+        const clientId = Math.floor(Math.random() * 1000);
+        
+        // DOM elements
+        const statusDiv = document.getElementById('status');
+        const editingCheckbox = document.getElementById('editing');
+        const statesDiv = document.getElementById('states');
+        
+        function updateUI() {
+            const states = Array.from(awareness.getStates().entries());
+            statusDiv.textContent = `Client ID: ${awareness.clientID}`;
+            statesDiv.innerHTML = states.map(([id, state]) => 
+                `Client ${id}: ${state.editing ? '✏️ Editing' : '💤 Idle'}`
+            ).join('<br>');
+        }
+        
+        // Update awareness when checkbox changes
+        editingCheckbox.addEventListener('change', (e) => {
+            console.log('Setting editing state:', e.target.checked);
+            awareness.setLocalState({
+                editing: e.target.checked
+            });
+        });
+        
+        // Listen for awareness changes
+        awareness.on('change', () => {
+            console.log('Awareness changed');
+            updateUI();
+        });
+        
+        // Initial update
+        updateUI();
+    </script>
+</head>
+<body>
+    <h1>Yjs Awareness Test</h1>
+    <div id="status"></div>
+    <label>
+        <input type="checkbox" id="editing"> I am editing
+    </label>
+    <div id="states"></div>
+</body>
+</html>
+</script>
+</html>

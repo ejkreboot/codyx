@@ -22,6 +22,7 @@
 
     // Container state
     let connectionState = $state('disconnected'); // 'connecting', 'connected', 'disconnected'
+    let typing = $state(false); // True when other users are editing this cell
     let liveText = $state(null);
     let codeEditor = $state();
     
@@ -34,7 +35,7 @@
 
     
     // Event handler functions for proper cleanup
-    let handleConnectionChange;
+    let handleConnectionChange, handleTyping;
     
     // ============ CONTROLLER MANAGEMENT ============
     
@@ -76,13 +77,29 @@
     
     function startEditing() {
         if (sandboxed) return;
+        console.log('🚀 Starting editing for cell:', docId);
         controller?.startEditing();
+        // Don't set collaborative state on focus - wait for actual typing
     }
 
     function stopEditing() {
         if (sandboxed) return;
+        console.log('🛑 Stopping editing for cell:', docId);
         controller?.stopEditing();
+        // Clear collaborative state when leaving the cell
+        if (controller?.isCollaborative()) {
+            controller.getYjsInstance().clearTyping();
+        }
         dispatch('edit', { type: "edit", docId, text: controller?.text });
+    }
+
+    function handleTypingActivity() {
+        if (sandboxed) return;
+        console.log('⌨️ Typing activity in cell:', docId);
+        // Set collaborative typing state on actual typing
+        if (controller?.isCollaborative()) {
+            controller.getYjsInstance().setTyping();
+        }
     }
 
     async function executeCell() {
@@ -168,6 +185,12 @@
                 controller.updateText(e.detail.text);
             }
         };
+        
+        // Handle typing indicator events
+        let handleTyping = (e) => {
+            typing = e.detail.typing;
+            console.log('📨 Typing indicator:', typing ? 'ON' : 'OFF');
+        };
 
         handleConnectionChange = (e) => {
             connectionState = e.detail.state;
@@ -186,6 +209,7 @@
         // Set up event listeners if liveText was created successfully
         if (liveText) {
             liveText.addEventListener('update', handleUpdate);
+            liveText.addEventListener('typing', handleTyping);
             liveText.addEventListener('connectionchange', handleConnectionChange);
             connectionState = liveText.connectionState;
         }
@@ -206,6 +230,7 @@
         
         if (liveText) {
             liveText.removeEventListener('update', handleUpdate);
+            liveText.removeEventListener('typing', handleTyping);
             liveText.removeEventListener('connectionchange', handleConnectionChange);
             liveText.disconnect();
         }
@@ -233,6 +258,13 @@
                 <span class="material-symbols-outlined" style="color: #6c757d">help_outline</span>
             {/if}
         </div>
+        
+        <!-- Typing indicator dot -->
+        {#if typing}
+            <div class="typing-dot" aria-label="Someone is typing">
+                <div class="typing-dot-inner"></div>
+            </div>
+        {/if}
         <div class="cell-index"
              class:connected={connectionState === 'connected' && !sandboxed}
              class:disconnected={(connectionState === 'disconnected' || connectionState === 'connecting') && !sandboxed}
@@ -273,7 +305,8 @@
                 onInput: handleInput,
                 onStartEditing: startEditing,
                 onStopEditing: stopEditing,
-                onKeydown: handleKeydown
+                onKeydown: handleKeydown,
+                onTyping: handleTypingActivity
             })}
             <renderConfig.component 
                 {...renderConfig.props}
@@ -285,10 +318,6 @@
             </div>
         {/if}
     
-        <!-- Typing indicator -->
-        {#if typing}
-            <div class="typing-indicator" aria-live="polite">Typing…</div>
-        {/if}
     </div>
 </div>
 
@@ -322,6 +351,7 @@
         padding: 8px 4px;
         gap: 6px;
         flex-shrink: 0;
+        position: relative; /* For absolute positioning of typing dot */
     }
 
     .cell-type-icon {
@@ -415,13 +445,46 @@
 
 
 
-    .typing-indicator {
-        font-size: 0.85rem;
-        color: #ffa000;
-        font-family: 'Raleway', sans-serif;
-        font-style: italic;
-        padding: 0.5rem 1rem;
-        background-color: rgba(255, 160, 0, 0.1);
+    /* Typing indicator dot in gutter */
+    .typing-dot {
+        position: absolute;
+        top: 13px;  /* moved down 5px from 8px */
+        right: 3px; /* moved right 5px from 8px */
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #f9931a; /* Updated brand orange */
+        animation: typing-pulse 1.5s infinite;
+    }
+
+    .typing-dot-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: #f9931a; /* Updated brand orange */
+        animation: typing-pulse-inner 1.5s infinite;
+    }
+
+    @keyframes typing-pulse {
+        0%, 100% {
+            opacity: 0.9;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.4;
+            transform: scale(1.3);
+        }
+    }
+
+    @keyframes typing-pulse-inner {
+        0%, 100% {
+            opacity: 0.7;
+            transform: scale(0.8);
+        }
+        50% {
+            opacity: 0.2;
+            transform: scale(1.1);
+        }
     }
 
     /* Temporary fallback styling */

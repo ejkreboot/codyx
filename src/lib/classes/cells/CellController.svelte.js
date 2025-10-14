@@ -172,7 +172,19 @@ export class CellController {
      * @param {boolean} editing - Whether cell is being edited
      */
     setEditing(editing) {
+        console.log('🔄 CellController.setEditing:', { editing, isCollaborative: this.isCollaborative() });
         this.isEditing = editing;
+        
+        // Update Yjs awareness state if collaborative
+        if (this.isCollaborative()) {
+            if (editing) {
+                console.log('📝 Setting Yjs editing state to true');
+                this.getYjsInstance().setEditing(true);
+            } else {
+                console.log('📝 Clearing Yjs editing state');
+                this.getYjsInstance().clearEditing();
+            }
+        }
     }
     
     /**

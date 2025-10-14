@@ -86,6 +86,22 @@
         return;
         // In a real app, this would remove the cell from the notebook
     }
+
+    // Test function to manually trigger awareness
+    let testCell = null;
+    function testAwareness() {
+        console.log('🧪 Manual awareness test');
+        
+        // Try to get the collaborative cell component
+        const cellComponent = document.querySelector('[data-testid="collaborative-cell"]');
+        if (cellComponent) {
+            console.log('📱 Found cell component');
+            // Simulate clicking to start editing
+            cellComponent.click();
+        } else {
+            console.log('❌ Could not find collaborative cell');
+        }
+    }
 </script>
 
 <svelte:head>
@@ -159,24 +175,38 @@
                 <div class="comparison-cell">
                     <h3>🚀 Real-time Collaboration with Yjs CRDT</h3>
                     <p class="tech-description">Uses Yjs Conflict-free Replicated Data Types for seamless collaborative editing</p>
-                    <CodyxCell 
-                        initialText="Collaborative Editing Test. Type here to test **Yjs** with CRDT technology.)"
-                        type="md"
-                        docId="comparison-yjs"
-                        cellIndex={3}
-                        onTextChange={handleCellTextChange}
-                        onExecute={handleCellExecute}
-                        onDelete={handleCellDelete}
-                    />
+                    <div data-testid="collaborative-cell">
+                        <CodyxCell 
+                            initialText="Collaborative Editing Test. Type here to test **Yjs** with CRDT technology.)"
+                            type="md"
+                            docId="comparison-yjs"
+                            cellIndex={3}
+                            onTextChange={handleCellTextChange}
+                            onExecute={handleCellExecute}
+                            onDelete={handleCellDelete}
+                        />
+                    </div>
                 </div>
             
                 <div class="comparison-info">
                     <h4>🔬 Test Instructions</h4>
                     <ul>
                         <li>Open this page in multiple browser tabs/windows</li>
+                        <li>Click inside the cell above to start editing</li>
+                        <li>Do the same in other tabs and watch for typing indicators</li>
                         <li>Type simultaneously in the cell from different tabs</li>
                         <li>Watch changes sync in real-time without conflicts</li>
                     </ul>
+                    
+                    <h4>🐛 Debug Tips</h4>
+                    <ul>
+                        <li>Open browser DevTools console to see debug logs</li>
+                        <li>Look for logs starting with 🚀, 🔄, 🎯, 🔔, 📢, 📨</li>
+                        <li>Check if typing indicator (orange border) appears when others edit</li>
+                    </ul>
+                    
+                    <h4>🧪 Manual Tests</h4>
+                    <button onclick={() => testAwareness()}>Test Awareness Manually</button>
                 </div>
         </section>
     </main>

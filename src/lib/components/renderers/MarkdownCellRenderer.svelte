@@ -7,12 +7,19 @@
         onInput,
         onStartEditing,
         onStopEditing,
-        onKeydown
+        onKeydown,
+        onTyping
     } = $props();
 
     function handleInput(event) {
         // Auto-resize the textarea
         autoResizeTextarea(event.target);
+        
+        // Trigger typing awareness
+        if (onTyping) {
+            onTyping(event);
+        }
+        
         // Call the parent's onInput if it exists
         if (onInput) {
             onInput(event);
@@ -49,6 +56,7 @@
         bind:this={textareaElement}
         bind:value={controller.text} 
         oninput={handleInput}
+        onfocus={() => onStartEditing?.()}
         onblur={() => onStopEditing?.()}
         class="cell-textarea"
         placeholder="Enter markdown..."

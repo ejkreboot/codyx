@@ -1,4 +1,5 @@
 import * as Y from 'yjs';
+import { Awareness } from 'y-protocols/awareness';
 import diff from 'fast-diff';
 
 /**
@@ -19,6 +20,8 @@ export class YjsCollaborativeText extends EventTarget {
     #awarenessHandler = null;
     #initialText = '';
     #hasReceivedInitialSync = false;
+    #typingTimeout = null;
+    #typingDuration = 1500; // Clear typing state after 1.5 seconds of inactivity
     
     connectionState = 'disconnected';
     clientId = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
@@ -35,22 +38,29 @@ export class YjsCollaborativeText extends EventTarget {
         this.#initialText = text;
         this.#hasReceivedInitialSync = false;
         
-        this.#awareness = {
-            clientID: this.#ydoc.clientID,
-            states: new Map(),
+        // Create REAL Yjs Awareness
+        this.#awareness = new Awareness(this.#ydoc);
+        
+        // Set up awareness change handler
+        this.#awarenessHandler = ({ added, updated, removed }) => {
+            console.log('🔔 Awareness change:', { added, updated, removed });
             
-            setLocalState(state) {
-                this.states.set(this.clientID, state);
-            },
+            // Check if anyone else is actively typing (not just editing)
+            const othersTyping = Array.from(this.#awareness.getStates().entries())
+                .filter(([clientId, state]) => 
+                    clientId !== this.#awareness.clientID && 
+                    state.typing === true
+                )
+                .length > 0;
             
-            getStates() {
-                return this.states;
-            },
-            
-            destroy() {
-                this.states.clear();
-            }
+            console.log('📢 Emitting typing event:', othersTyping);
+            this.dispatchEvent(new CustomEvent('typing', { 
+                detail: { typing: othersTyping } 
+            }));
         };
+        
+        // Attach awareness event handler
+        this.#awareness.on('change', this.#awarenessHandler);
     }
     
     static async create({ text, docId, supabase, userId = null }) {
@@ -100,15 +110,6 @@ export class YjsCollaborativeText extends EventTarget {
         };
         
         this.#ydoc.on('update', this.#updateHandler);
-        
-        this.#awarenessHandler = () => {
-            this.#broadcastAwareness();
-            this.dispatchEvent(new CustomEvent('awareness', {
-                detail: { 
-                    states: Array.from(this.#awareness.getStates().entries())
-                }
-            }));
-        };
     }
     
     #setupChannelEventHandlers() {
@@ -126,13 +127,21 @@ export class YjsCollaborativeText extends EventTarget {
         this.#channel.on('broadcast', { event: 'yjs_awareness' }, ({ payload }) => {
             if (payload.clientId === this.clientId) return;
             
+            console.log('🔍 Received awareness update:', payload);
+            
+            // Apply remote awareness state directly to the states map
             if (payload.state) {
-                this.#awareness.states.set(payload.clientId, payload.state);
+                this.#awareness.getStates().set(payload.clientId, payload.state);
             } else {
-                this.#awareness.states.delete(payload.clientId);
+                this.#awareness.getStates().delete(payload.clientId);
             }
             
-            this.#awarenessHandler();
+            // Manually call our handler since external state changes won't trigger events
+            this.#awarenessHandler({ 
+                added: payload.state ? [payload.clientId] : [],
+                updated: [],
+                removed: payload.state ? [] : [payload.clientId]
+            });
         });
         
         this.#channel.on('broadcast', { event: 'yjs_sync' }, ({ payload }) => {
@@ -169,7 +178,7 @@ export class YjsCollaborativeText extends EventTarget {
     #broadcastAwareness() {
         if (!this.#channel || this.#channel.state !== 'joined') return;
         
-        const localState = this.#awareness.states.get(this.#awareness.clientID);
+        const localState = this.#awareness.getLocalState();
         
         this.#channel.send({
             type: 'broadcast',
@@ -354,7 +363,82 @@ export class YjsCollaborativeText extends EventTarget {
         return Array.from(this.#awareness.getStates().entries());
     }
     
-    // ============ CONNECTION MANAGEMENT ============
+    /**
+     * Set editing state in awareness (DEPRECATED - use setTyping instead)
+     * @param {boolean} editing - Whether currently editing
+     */
+    setEditing(editing) {
+        console.log('🎯 YjsCollaborativeText.setEditing (deprecated):', { 
+            editing, 
+            hasAwareness: !!this.#awareness,
+            clientId: this.#awareness.clientID
+        });
+        
+        // For backwards compatibility, map this to typing state
+        if (editing) {
+            this.setTyping();
+        } else {
+            this.clearTyping();
+        }
+    }
+
+    /**
+     * Indicate that user is actively typing
+     */
+    setTyping() {
+        console.log('⌨️ YjsCollaborativeText.setTyping');
+        
+        // Clear any existing timeout
+        if (this.#typingTimeout) {
+            clearTimeout(this.#typingTimeout);
+        }
+        
+        // Set typing state
+        this.#awareness.setLocalState({
+            user: this.userId || 'anonymous',
+            editing: true,
+            typing: true,
+            timestamp: Date.now()
+        });
+        
+        // Set timeout to clear typing state
+        this.#typingTimeout = setTimeout(() => {
+            this.clearTyping();
+        }, this.#typingDuration);
+        
+        // Broadcast awareness to other clients
+        this.#broadcastAwareness();
+    }
+
+    /**
+     * Clear editing state in awareness (DEPRECATED - use clearTyping instead)
+     */
+    clearEditing() {
+        console.log('🎯 YjsCollaborativeText.clearEditing (deprecated)');
+        this.clearTyping();
+    }
+
+    /**
+     * Clear typing state
+     */
+    clearTyping() {
+        console.log('🛑 YjsCollaborativeText.clearTyping');
+        
+        // Clear any pending timeout
+        if (this.#typingTimeout) {
+            clearTimeout(this.#typingTimeout);
+            this.#typingTimeout = null;
+        }
+        
+        this.#awareness.setLocalState({
+            user: this.userId || 'anonymous',
+            editing: false,
+            typing: false,
+            timestamp: Date.now()
+        });
+        
+        this.#broadcastAwareness();
+    }    // ============ CONNECTION MANAGEMENT ============
     
     async #subscribeAndWait(attempt = 0) {
         console.log(`🔌 YjsCollaborativeText.#subscribeAndWait attempt ${attempt + 1}`) ;
@@ -406,9 +490,23 @@ export class YjsCollaborativeText extends EventTarget {
      * Disconnect and clean up resources
      */
     disconnect() {
+        console.log('🔥 Disconnecting YjsCollaborativeText');
+        
+        // Clear typing timeout
+        if (this.#typingTimeout) {
+            clearTimeout(this.#typingTimeout);
+            this.#typingTimeout = null;
+        }
+        
+        // Clean up awareness
+        if (this.#awareness && this.#awarenessHandler) {
+            this.#awareness.off('change', this.#awarenessHandler);
+        }
+        
         if (this.#updateHandler) {
             this.#ydoc.off('update', this.#updateHandler);
         }
+        
         this.#channel?.unsubscribe();
         this.#awareness?.destroy();        
         this.#ydoc?.destroy();
