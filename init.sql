@@ -16,9 +16,40 @@ create table public.cells (
   position text not null,         -- lexicographic ordering key
   type text not null default 'md',-- e.g. 'md', 'py'
   content text not null default '',
+  version integer not null default 1,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Optimistic save helper
+create or replace function save_cell(
+  p_cell_id uuid,
+  p_expected_version integer,
+  p_content text
+) returns json as $$
+declare
+  current_version integer;
+  current_content text;
+begin
+  select version, content into current_version, current_content
+  from cells where id = p_cell_id for update;
+  
+  if current_version != p_expected_version then
+    return json_build_object(
+      'success', false,
+      'conflict', true,
+      'server_version', current_version,
+      'server_content', current_content
+    );
+  end if;
+  
+  update cells 
+  set content = p_content, version = version + 1, updated_at = now()
+  where id = p_cell_id;
+  
+  return json_build_object('success', true, 'new_version', current_version + 1);
+end;
+$$ language plpgsql;
 
 -- Flashcard Decks Table
 CREATE TABLE flashcard_decks (

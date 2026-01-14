@@ -67,11 +67,9 @@
                 case "moveDown":
                 await nb.moveCellDown(args.docId);
                 break;
-                case "edit":
-                await nb.upsertCell({ 
-                    id: args.docId, 
-                    content: args.text, 
-                    position: thisCell.position 
+                case "saved":
+                nb.cellsStore.update(cells => {
+                    return cells.map(cell => cell.id === args.docId ? { ...cell, content: args.text, version: args.version } : cell);
                 });
                 break;
             }
@@ -555,14 +553,14 @@
     type={cell.type}
     docId={cell.id}
     userId="public"
-    version={cell.updated_at}
+    version={cell.version ?? 1}
     sandboxed={nb?.isSandbox}
     cellIndex={index + 1}
-    on:edit={(e) => handleCellEvent({detail: {type: 'edit', ...e.detail}})}
     on:moveUp={(e) => handleCellEvent({detail: {type: 'moveUp', ...e.detail}})}
     on:moveDown={(e) => handleCellEvent({detail: {type: 'moveDown', ...e.detail}})}
     on:addCell={(e) => handleCellEvent({detail: {type: e.detail.cellType === 'md' ? 'addMarkdownCell' : e.detail.cellType === 'r' ? 'addRCell' : 'addCodeCell', ...e.detail}})}
     on:delete={(e) => handleCellEvent({detail: {type: 'delete', ...e.detail}})}
+    on:saved={(e) => handleCellEvent({detail: {type: 'saved', ...e.detail}})}
     />
 {/each}
 

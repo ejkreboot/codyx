@@ -51,7 +51,7 @@
     // CodyxCell renderer test data
     let testMarkdownCell = $state({
         id: 'test-cell-md',
-        type: 'markdown',
+        type: 'md',
         text: '# Renderer Architecture Test\n\nThis is a **Markdown cell** using the new renderer architecture!\n\n- Clean separation of concerns ✅\n- Modular renderer classes ✅\n- LiveText integration ✅\n\nClick **Execute** to toggle preview mode, or edit this content to test the new architecture.\n\n## Features Demonstrated\n\n1. **Container Logic**: CodyxCell handles gutter, toolbar, lifecycle\n2. **Content Logic**: MarkdownRenderer handles markdown-specific behavior\n3. **Interface Compliance**: All renderers implement the same interface'
     });
 
@@ -129,10 +129,6 @@
         </section>
 
         <section class="component-section">
-            <h2>🚧 CodyxCell Renderer Architecture (Testing)</h2>
-            <p class="section-description">
-                Testing the new renderer architecture with separated concerns. Currently supports Markdown cells (edit/preview) and R cells (code execution with mock outputs).
-            </p>
             <CodyxCell 
                 initialText={testMarkdownCell.text}
                 type={testMarkdownCell.type}
