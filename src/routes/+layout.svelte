@@ -1,11 +1,29 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
+    import Haikunator from 'haikunator';
     import favicon from '$lib/assets/favicon.png';
     import '../assets/codyx-style.css';
     import { pyodideService } from '$lib/classes/pyodide-service.js';
     import webRService from '$lib/classes/webr-service.js';
 
     let { children } = $props();
+
+    function handleNewNotebookClick() {
+        const pathname = $page?.url?.pathname ?? '';
+
+        // When already on a notebook route, delegate to the notebook component
+        if (pathname.startsWith('/notebooks')) {
+            window.dispatchEvent(new CustomEvent('createNewNotebook'));
+            return;
+        }
+
+        // Landing (or any other) page: generate a slug and navigate
+        const haikunator = new Haikunator();
+        const slug = haikunator.haikunate({ tokenLength: 0 });
+        goto(`/notebooks?slug=${encodeURIComponent(slug)}`);
+    }
 
     // Global cleanup to prevent memory leaks
     onMount(() => {
@@ -83,7 +101,7 @@
             </div>
         </div>
         <div class="header-actions">
-            <button class="new-notebook-btn" onclick={() => window.dispatchEvent(new CustomEvent('createNewNotebook'))}>
+            <button class="new-notebook-btn" onclick={handleNewNotebookClick}>
                 <span class="material-symbols-outlined">add</span>
                 New Notebook
             </button>
