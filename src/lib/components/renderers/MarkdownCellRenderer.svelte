@@ -1,4 +1,5 @@
 <script>
+    import { tick } from 'svelte';
     import { processEnhancedMarkdown } from '$lib/util/enhanced-markdown.js';
 
     let {
@@ -9,6 +10,21 @@
         onStopEditing,
         onKeydown
     } = $props();
+
+    // Ensure the textarea is sized and focused whenever edit mode opens
+    $effect(async () => {
+        if (!controller?.isEditing || !textareaElement) return;
+
+        // Track content so resizing stays in sync with remote edits
+        controller.text;
+
+        await tick();
+        autoResizeTextarea(textareaElement);
+
+        if (document.activeElement !== textareaElement) {
+            textareaElement.focus();
+        }
+    });
 
     function handleInput(event) {
         // Auto-resize the textarea
