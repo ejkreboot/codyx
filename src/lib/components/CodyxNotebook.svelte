@@ -703,12 +703,6 @@
         align-items: center;
         flex-shrink: 0;
     }
-    
-    .message--info {
-        border-left-color: var(--primary-color);
-        background-color: rgba(var(--primary-color-rgb), 0.1);
-        color: var(--primary-color);
-    }
 
     .message--warning {
         border-left-color: var(--color-accent-1);

@@ -125,7 +125,7 @@
             onblur={handleBlur}
             onfocus={handleFocus}
             width="100%"
-            minHeight="300px"
+            minHeight="180px"
             maxHeight="800px"
             class="r-textarea"
           ></CodeEdytor>
@@ -495,36 +495,6 @@
 
     .hint-content {
         flex: 1;
-    }
-
-    .hint-content p {
-        margin: 0 0 8px 0;
-    }
-
-    .hint-content p:last-child {
-        margin-bottom: 0;
-    }
-
-    .hint-content code {
-        background: rgba(0, 0, 0, 0.08);
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-family: 'Fira Code', 'Courier New', monospace;
-        font-size: 13px;
-        color: #b45309;
-    }
-
-    .hint-content pre {
-        margin: 8px 0;
-        padding: 8px;
-        background: rgba(0, 0, 0, 0.06);
-        border-radius: 4px;
-        overflow-x: auto;
-    }
-
-    .hint-content pre code {
-        background: none;
-        padding: 0;
     }
 
     .hint-error {

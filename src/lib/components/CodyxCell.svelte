@@ -815,13 +815,6 @@
             margin-top: 8px;
         }
 
-        .conflict-column .column-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #4b5563;
-            margin-bottom: 4px;
-        }
-
         .conflict-block {
             border: 1px solid #d8dee9;
             border-radius: 8px;
