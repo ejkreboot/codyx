@@ -311,271 +311,268 @@ class PyodideService {
         }
     }
 
-    async executeCode(code, onProgress = null) {
-        const py = await this.initialize();
-        if (!py) {
-            throw new Error('Pyodide not available');
-        }
+async executeCode(code, onProgress = null) {
+    const py = await this.initialize();
+    if (!py) {
+        throw new Error('Pyodide not available');
+    }
+
+    try {
+        // Store the user code in Python for exec()
+        py.globals.set('__user_code__', code);
+        
+        // Start capturing output
+        await py.runPython('_output_capture.start_capture()');
+        
+        let output = '';
+        let error = null;
+        let hasPlot = false;
+        let plotData = null;
 
         try {
-            // Start capturing output
-            await py.runPython('_output_capture.start_capture()');
+            // Check if code uses matplotlib and auto-load if needed
+            const usesMatplotlib = /\b(matplotlib|plt\.|pyplot)\b/.test(code) || 
+                                 /\bfrom\s+matplotlib/.test(code) ||
+                                 /\bimport\s+matplotlib/.test(code);
             
-            let output = '';
-            let error = null;
-            let hasPlot = false;
-            let plotData = null;
-
-            try {
-                
-                // Check if code uses matplotlib and auto-load if needed
-                const usesMatplotlib = /\b(matplotlib|plt\.|pyplot)\b/.test(code) || 
-                                     /\bfrom\s+matplotlib/.test(code) ||
-                                     /\bimport\s+matplotlib/.test(code);
-                
-                if (usesMatplotlib) {
-                        if (onProgress) onProgress('📊 Loading matplotlib for plotting support... (first time may take a moment)');
-                    await py.runPythonAsync('await ensure_matplotlib()');
-                    if (onProgress) onProgress('✅ Matplotlib ready - executing your code...');
-                }
-                
-                // Check for micropip installations and provide progress feedback
-                const hasMicropipInstall = /micropip\.install/.test(code);
-                if (hasMicropipInstall && onProgress) {
-                    // Extract package names from micropip.install calls with better regex
-                    let packages = [];
-                    
-                    // Match single package: micropip.install('package') or micropip.install("package")
-                    const singleMatches = code.match(/micropip\.install\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g);
-                    if (singleMatches) {
-                        singleMatches.forEach(match => {
-                            const pkg = match.match(/['"`]([^'"`]+)['"`]/)[1];
-                            packages.push(pkg);
-                        });
-                    }
-                    
-                    // Match array format: micropip.install(['pkg1', 'pkg2'])
-                    const arrayMatches = code.match(/micropip\.install\s*\(\s*\[([^\]]+)\]\s*\)/g);
-                    if (arrayMatches) {
-                        arrayMatches.forEach(match => {
-                            const arrayContent = match.match(/\[([^\]]+)\]/)[1];
-                            const arrayPackages = arrayContent.split(',')
-                                .map(pkg => pkg.trim().replace(/['"`]/g, ''))
-                                .filter(pkg => pkg);
-                            packages = packages.concat(arrayPackages);
-                        });
-                    }
-                    
-                    if (packages.length > 0) {
-                        const uniquePackages = [...new Set(packages)];
-                        if (uniquePackages.length === 1) {
-                            onProgress(`📦 Installing ${uniquePackages[0]}... (this may take a moment)`);
-                        } else {
-                            onProgress(`📦 Installing ${uniquePackages.length} packages: ${uniquePackages.join(', ')}... (this may take a moment)`);
-                        }
-                    } else {
-                        onProgress('📦 Installing packages... (this may take a moment)');
-                    }
-                }
-                
-                // Check if code contains await - if so, use runPythonAsync
-                const hasAwait = /\bawait\s+/.test(code);
-                
-                if (hasAwait) {
-                    // Execute async code directly using runPythonAsync
-                    await py.runPythonAsync(code);
+            if (usesMatplotlib) {
+                if (onProgress) onProgress('📊 Loading matplotlib for plotting support...');
+                await py.runPythonAsync('await ensure_matplotlib()');
+                if (onProgress) onProgress('✅ Matplotlib ready - executing your code...');
+            }
+            
+            // Check for micropip installations and provide progress feedback
+            const hasMicropipInstall = /micropip\.install/.test(code);
+            if (hasMicropipInstall && onProgress) {
+                const packages = this._extractPackageNames(code);
+                if (packages.length === 1) {
+                    onProgress(`📦 Installing ${packages[0]}...`);
+                } else if (packages.length > 1) {
+                    onProgress(`📦 Installing ${packages.join(', ')}...`);
                 } else {
-                    // Execute regular code using runPython
-                    await py.runPython(code);
+                    onProgress('📦 Installing packages...');
                 }
-                
-                // Capture any matplotlib plots
+            }
+            
+            // Check if code contains top-level await
+            const hasAwait = /^(?![\s]*#).*\bawait\s+/m.test(code);
+            
+            // Execute code with proper traceback capture
+            // Using exec(compile(...)) gives us clean tracebacks with correct line numbers
+            const executionWrapper = `
+import traceback
+import sys
+
+__execution_error__ = None
+__execution_traceback__ = None
+__execution_result__ = None
+
+try:
+    # Compile first to catch syntax errors with proper locations
+    __compiled_code__ = compile(__user_code__, '<user_code>', 'exec')
+    ${hasAwait ? 'await eval(__compiled_code__)' : 'exec(__compiled_code__, globals())'}
+except SyntaxError as e:
+    # SyntaxError needs special formatting - it has lineno, offset, text attributes
+    import traceback
+    __execution_error__ = f"{type(e).__name__}: {e.msg}"
+    # Build a cleaner syntax error message
+    lines = []
+    if e.lineno:
+        lines.append(f"  Line {e.lineno}")
+        if e.text:
+            lines.append(f"    {e.text.rstrip()}")
+            if e.offset:
+                lines.append(f"    {' ' * (e.offset - 1)}^")
+    lines.append(f"{type(e).__name__}: {e.msg}")
+    __execution_traceback__ = "\\n".join(lines)
+except Exception as e:
+    __execution_error__ = f"{type(e).__name__}: {e}"
+    # Get the full traceback, but filter out our wrapper frames
+    tb_lines = traceback.format_exception(type(e), e, e.__traceback__)
+    # Filter out frames from our execution wrapper
+    filtered_lines = []
+    skip_next = False
+    for line in tb_lines:
+        # Skip frames that reference our internal execution
+        if '<string>' in line or '<exec>' in line or 'exec(__compiled_code__' in line or 'compile(__user_code__' in line:
+            skip_next = True
+            continue
+        if skip_next and line.startswith('    '):
+            continue
+        skip_next = False
+        filtered_lines.append(line)
+    __execution_traceback__ = ''.join(filtered_lines)
+`;
+            
+            if (hasAwait) {
+                await py.runPythonAsync(executionWrapper);
+            } else {
+                await py.runPython(executionWrapper);
+            }
+            
+            // Check if there was an execution error
+            const executionError = py.globals.get('__execution_error__');
+            const executionTraceback = py.globals.get('__execution_traceback__');
+            
+            // Stop capturing output
+            const capturedOutput = await py.runPython('_output_capture.stop_capture()');
+            
+            // Clean up tracking variables
+            await py.runPython(`
+__execution_error__ = None
+__execution_traceback__ = None
+__compiled_code__ = None
+`);
+            
+            if (executionError) {
+                // We have an error - use the full traceback
+                error = executionTraceback || executionError;
+                output = capturedOutput || ''; // Include any output before the error
+            } else {
+                // Success - capture any matplotlib plots
                 const plotOutput = await py.runPython('capture_matplotlib()');
                 
-                // Get captured text output
-                const capturedOutput = await py.runPython('_output_capture.stop_capture()');
-                
-                // Check if the output contains error information
-                if (capturedOutput && capturedOutput.includes('Traceback')) {
-                    // Extract just the error line from the traceback
-                    const lines = capturedOutput.split('\n');
-                    const errorLine = lines.find(line => 
-                        line.includes('Error:') || 
-                        line.match(/^\w+Error:/) ||
-                        line.match(/^\w+Exception:/)
-                    );
-                    
-                    if (errorLine) {
-                        error = errorLine.trim();
-                        output = ''; // Clear output since this was an error
-                    } else {
-                        // Fallback: use the last non-empty line
-                        const nonEmptyLines = lines.filter(line => line.trim());
-                        if (nonEmptyLines.length > 0) {
-                            error = nonEmptyLines[nonEmptyLines.length - 1].trim();
-                            output = '';
-                        }
-                    }
-                } else {
-                    // Process plot output
-                    if (plotOutput && plotOutput.includes('__MATPLOTLIB_IMG__')) {
-                        hasPlot = true;
-                        plotData = plotOutput.replace('__MATPLOTLIB_IMG__', '').replace('__END_IMG__', '');
-                    }
-                    
-                    output = capturedOutput;
+                if (plotOutput && plotOutput.includes('__MATPLOTLIB_IMG__')) {
+                    hasPlot = true;
+                    plotData = plotOutput.replace('__MATPLOTLIB_IMG__', '').replace('__END_IMG__', '');
                 }
+                
+                output = capturedOutput;
                 
                 // If no output, try to get the result of the last expression
                 if (!output.trim() && !hasPlot) {
-                    try {
-                        const result = await py.runPython(`
-import ast
+                    output = await this._getLastExpressionResult(py, code);
+                }
+            }
 
-# Parse the code to find the last expression
+        } catch (executionError) {
+            // This catches errors in our wrapper itself (rare, but possible)
+            try {
+                output = await py.runPython('_output_capture.stop_capture()');
+            } catch (e) {
+                // Ignore cleanup errors
+            }
+            
+            error = this._formatPyodideError(executionError);
+        }
+
+        // Get user variables after execution
+        const userVariables = await this._safeGetUserVariables(py);
+        this.updateGlobalVariables(userVariables);
+        
+        return { 
+            output: output || null, 
+            error,
+            hasPlot,
+            plotData,
+            userVariables
+        };
+
+    } catch (err) {
+        const userVariables = await this._safeGetUserVariables(py);
+        this.updateGlobalVariables(userVariables);
+        
+        return { 
+            output: null, 
+            error: this._formatPyodideError(err), 
+            hasPlot: false, 
+            plotData: null,
+            userVariables
+        };
+    }
+}
+
+// Helper: Extract package names from micropip.install calls
+_extractPackageNames(code) {
+    let packages = [];
+    
+    // Single package: micropip.install('package')
+    const singleMatches = code.matchAll(/micropip\.install\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g);
+    for (const match of singleMatches) {
+        packages.push(match[1]);
+    }
+    
+    // Array format: micropip.install(['pkg1', 'pkg2'])
+    const arrayMatches = code.matchAll(/micropip\.install\s*\(\s*\[([^\]]+)\]\s*\)/g);
+    for (const match of arrayMatches) {
+        const arrayPackages = match[1].split(',')
+            .map(pkg => pkg.trim().replace(/['"`]/g, ''))
+            .filter(Boolean);
+        packages.push(...arrayPackages);
+    }
+    
+    return [...new Set(packages)];
+}
+
+// Helper: Safely get user variables without throwing
+async _safeGetUserVariables(py) {
+    try {
+        const varResult = await py.runPython('get_user_variables()');
+        if (varResult && typeof varResult === 'object') {
+            return varResult.toJs ? varResult.toJs() : varResult;
+        }
+    } catch (e) {
+        // Ignore errors
+    }
+    return {};
+}
+
+// Helper: Try to get the result of the last expression
+async _getLastExpressionResult(py, code) {
+    try {
+        py.globals.set('__user_code__', code);
+        const result = await py.runPython(`
+import ast
 try:
     tree = ast.parse(__user_code__)
     if tree.body and isinstance(tree.body[-1], ast.Expr):
-        # Last statement is an expression, evaluate it
-        result = eval(compile(ast.Expression(tree.body[-1].value), '<string>', 'eval'))
-        if result is not None:
-            str(result)
-        else:
-            ""
+        result = eval(compile(ast.Expression(tree.body[-1].value), '<user_code>', 'eval'))
+        str(result) if result is not None else ""
     else:
         ""
 except:
     ""
-                        `);
-                        if (result) output = result;
-                    } catch (evalError) {
-                        // Ignore evaluation errors for expressions
-                    }
-                }
+`);
+        return result || '';
+    } catch (e) {
+        return '';
+    }
+}
 
-            } catch (executionError) {
-                // Stop capturing output to get any partial output
-                let capturedOutput = '';
-                try {
-                    capturedOutput = await py.runPython('_output_capture.stop_capture()');
-                } catch (cleanupError) {
-                    // Ignore cleanup errors
-                }
-                
-                // Only clean up on severe errors that might contaminate the environment
-                try {
-                    const isRecursionError = executionError.message?.includes('RecursionError') || 
-                                           executionError.message?.includes('maximum recursion depth') ||
-                                           String(executionError).includes('RecursionError');
-                    
-                    if (isRecursionError) {
-                        console.log('🔥 Recursion error detected - suggesting manual reset');
-                        // Don't auto-cleanup, let user decide to reset manually
-                    }
-                } catch (cleanupError) {
-                    console.log('⚠️ Error analysis failed:', cleanupError);
-                }
-                
-                // Extract meaningful Python error message
-                let errorMessage = executionError.message || String(executionError) || 'Python execution failed';
-                
-                // Clean up Pyodide wrapper text and extract the actual Python error
-                if (errorMessage.includes('PythonError:')) {
-                    // Extract everything after "PythonError: "
-                    errorMessage = errorMessage.replace(/^.*PythonError:\s*/, '');
-                }
-                
-                // If it's still just "PythonError", try to get more details from the string representation
-                if (errorMessage === 'PythonError' || errorMessage.trim() === '') {
-                    const fullError = String(executionError);
-                    // Look for actual Python error patterns
-                    const pythonErrorMatch = fullError.match(/(SyntaxError|NameError|IndentationError|TypeError|ValueError|AttributeError|ImportError|ModuleNotFoundError)[^:]*:.*$/m);
-                    if (pythonErrorMatch) {
-                        errorMessage = pythonErrorMatch[0];
-                    } else {
-                        errorMessage = fullError || 'Unknown Python error';
-                    }
-                }
-                
-                
-                // Handle import errors specifically
-                if (errorMessage.includes('ModuleNotFoundError') || errorMessage.includes('ImportError')) {
-                    const match = errorMessage.match(/No module named '([^']+)'/);
-                    if (match) {
-                        const moduleName = match[1];
-                        if (['matplotlib', 'numpy', 'pandas'].includes(moduleName)) {
-                            errorMessage = `Module '${moduleName}' should be available. Try reloading the page or check the exact import name.`;
-                        } else {
-                            errorMessage = `Module '${moduleName}' not found. Try installing it with:\n\nimport micropip\nawait micropip.install('${moduleName}')`;
-                        }
-                    }
-                }
-                
-                // Enhanced error messages for specific cases
-                if (errorMessage?.includes('RecursionError') || errorMessage?.includes('maximum recursion depth')) {
-                    error = `${errorMessage}\n\n💡 Tip: Click the "🧹 Reset" button to completely restart the Python environment.`;
-                } else {
-                    error = errorMessage || 'Python execution error';
-                }
-                
-                output = capturedOutput; // Include any partial output
-            }
-
-            // Get user variables after execution (even if there was an error)
-            let userVariables = {};
-            try {
-                const varResult = await py.runPython('get_user_variables()');
-                // Ensure varResult is a proper object and not a JsProxy
-                if (varResult && typeof varResult === 'object') {
-                    userVariables = varResult.toJs ? varResult.toJs() : varResult;
-                } else {
-                    userVariables = {};
-                }
-            } catch (varError) {
-                userVariables = {};
-            }
-            
-            // Update global variables and notify all subscribers
-            this.updateGlobalVariables(userVariables);
-            
-            return { 
-                output: output || null, 
-                error: error,
-                hasPlot: hasPlot,
-                plotData: plotData,
-                userVariables: userVariables
-            };
-
-        } catch (err) {
-            let errorMessage = err.message || 'Unknown error';
-            
-            // Still try to get user variables even after a fatal error
-            let userVariables = {};
-            try {
-                const py = await this.initialize();
-                const varResult = await py.runPython('get_user_variables()');
-                if (varResult && typeof varResult === 'object') {
-                    userVariables = varResult.toJs ? varResult.toJs() : varResult;
-                } else {
-                    userVariables = {};
-                }
-            } catch (varError) {
-                // Ignore variable retrieval errors in error case
-                userVariables = {};
-            }
-            
-            // Update global variables even in error case
-            this.updateGlobalVariables(userVariables);
-            
-            return { 
-                output: null, 
-                error: errorMessage, 
-                hasPlot: false, 
-                plotData: null,
-                userVariables: userVariables
-            };
+// Helper: Format Pyodide/JS errors into readable messages
+_formatPyodideError(err) {
+    const rawError = err.message || String(err);
+    
+    // Already has a traceback
+    if (rawError.includes('Traceback (most recent call last)')) {
+        return rawError;
+    }
+    
+    // Extract from PythonError wrapper
+    if (rawError.includes('PythonError:')) {
+        return rawError.split('PythonError:').pop().trim();
+    }
+    
+    // Try to find a Python exception pattern
+    const pythonErrorMatch = rawError.match(/(SyntaxError|NameError|IndentationError|TypeError|ValueError|AttributeError|ImportError|ModuleNotFoundError|KeyError|IndexError|ZeroDivisionError|RuntimeError|RecursionError|StopIteration|FileNotFoundError|PermissionError|OSError)[^\n]*(?:\n.*)?/m);
+    if (pythonErrorMatch) {
+        return pythonErrorMatch[0];
+    }
+    
+    // Handle specific known issues
+    if (rawError.includes('RecursionError') || rawError.includes('maximum recursion depth')) {
+        return `RecursionError: maximum recursion depth exceeded\n\n💡 Tip: Click "🧹 Reset" to restart the Python environment.`;
+    }
+    
+    if (rawError.includes('ModuleNotFoundError') || rawError.includes('No module named')) {
+        const match = rawError.match(/No module named '([^']+)'/);
+        if (match) {
+            return `ModuleNotFoundError: No module named '${match[1]}'\n\n💡 Try:\nimport micropip\nawait micropip.install('${match[1]}')`;
         }
     }
+    
+    return rawError || 'Python execution error';
+}
 
     // Get current user-defined variables
     async getUserVariables() {

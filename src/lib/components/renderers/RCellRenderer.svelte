@@ -1,5 +1,6 @@
 <script>
     import {CodeEdytor, RCodeEdytor} from 'code-edytor';
+    import { marked } from 'marked';
     let {
         controller,
         codeEditor = $bindable(),
@@ -11,6 +12,12 @@
 
     let vars = $state([]);
     let text = $derived(controller ? controller.text : '');
+
+    // Quick Hint state
+    let hintLoading = $state(false);
+    let hintText = $state('');
+    let hintError = $state('');
+    let showHintButton = $derived(controller?.output?.type === 'error' && !hintText && !hintLoading);
 
 
     // Execute function - run R code
@@ -52,6 +59,46 @@
             onInput(event);
         }
     }
+
+    async function getQuickHint() {
+        hintLoading = true;
+        hintError = '';
+        hintText = '';
+
+        try {
+            const response = await fetch('/api/hint', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code: controller.text,
+                    error: controller.output.content,
+                    language: 'R'
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                hintText = data.hint;
+            } else {
+                hintError = data.error || 'Failed to get hint';
+            }
+        } catch (err) {
+            hintError = "Couldn't get a hint right now. Try again?";
+        } finally {
+            hintLoading = false;
+        }
+    }
+
+    // Reset hint when code changes or new execution starts
+    $effect(() => {
+        if (controller?.isExecuting) {
+            hintText = '';
+            hintError = '';
+        }
+    });
 </script>
 
 <div class="r-cell-container">
@@ -141,6 +188,35 @@
                         R Error
                     </div>
                     <pre class="error-content">{controller.output.content}</pre>
+                    
+                    {#if showHintButton}
+                        <button class="hint-button" onclick={getQuickHint}>
+                            <span class="material-icons">lightbulb</span>
+                            Quick Hint
+                        </button>
+                    {/if}
+
+                    {#if hintLoading}
+                        <div class="hint-loading">
+                            <span class="material-icons spinning">sync</span>
+                            Thinking...
+                        </div>
+                    {/if}
+
+                    {#if hintText}
+                        <div class="hint-text">
+                            <span class="material-icons">lightbulb</span>
+                            <div class="hint-content">
+                                {@html marked.parse(hintText)}
+                            </div>
+                        </div>
+                    {/if}
+
+                    {#if hintError}
+                        <div class="hint-error">
+                            {hintError}
+                        </div>
+                    {/if}
                 </div>
             {/if}
         </div>
@@ -316,6 +392,7 @@
     .r-error-output {
         background: #fff5f5;
         border-left: 4px solid #dc3545;
+        padding-bottom: 5px;
     }
     
     .error-header {
@@ -343,6 +420,122 @@
         color: #721c24;
         background: white;
         white-space: pre-wrap;
+    }
+
+    /* Quick Hint Button */
+    .hint-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 16px 16px 20px 16px;
+        padding: 10px 18px;
+        background: linear-gradient(135deg, #fff9e6 0%, #fff4d9 100%);
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        color: #78350f;
+        font-family: 'Raleway', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+    }
+
+    .hint-button:hover {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-color: #d97706;
+        color: #78350f;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+    }
+
+    .hint-button:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(245, 158, 11, 0.15);
+    }
+
+    .hint-button .material-icons {
+        font-size: 18px;
+        color: #f59e0b;
+    }
+
+    .hint-loading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        color: #555;
+        font-family: 'Raleway', sans-serif;
+        font-size: 13px;
+        font-style: italic;
+    }
+
+    .hint-loading .material-icons {
+        font-size: 16px;
+    }
+
+    .hint-text {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 16px;
+        background: linear-gradient(135deg, #fff9e6 0%, #fff4d9 100%);
+        font-family: 'Raleway', sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #78350f;
+    }
+
+    .hint-text .material-icons {
+        font-size: 20px;
+        color: #f59e0b;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .hint-content {
+        flex: 1;
+    }
+
+    .hint-content p {
+        margin: 0 0 8px 0;
+    }
+
+    .hint-content p:last-child {
+        margin-bottom: 0;
+    }
+
+    .hint-content code {
+        background: rgba(0, 0, 0, 0.08);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Fira Code', 'Courier New', monospace;
+        font-size: 13px;
+        color: #b45309;
+    }
+
+    .hint-content pre {
+        margin: 8px 0;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+
+    .hint-content pre code {
+        background: none;
+        padding: 0;
+    }
+
+    .hint-error {
+        margin: 12px 16px;
+        padding: 12px;
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 4px;
+        color: #856404;
+        font-family: 'Raleway', sans-serif;
+        font-size: 13px;
     }
     
     .r-executing {

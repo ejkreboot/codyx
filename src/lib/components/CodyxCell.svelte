@@ -435,7 +435,6 @@
                 <p>🚧 Controller for type "{type}" not implemented yet!</p>
             </div>
         {/if}
-    
     </div>
 </div>
 

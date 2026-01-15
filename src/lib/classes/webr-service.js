@@ -71,6 +71,25 @@ class WebRService {
         }
     }
 
+    /**
+     * Warmup method to pre-install commonly used R packages
+     * Should be called when the browser is idle for better first-run performance
+     */
+    async warmup() {
+        await this.initialize();
+        
+        // Pre-install the most commonly used packages
+        const commonPackages = ['ggplot2', 'dplyr'];
+        
+        console.log(`📦 Pre-loading common R packages: ${commonPackages.join(', ')}`);
+        try {
+            await this.webR.installPackages(commonPackages);
+            console.log(`✅ Common R packages loaded successfully`);
+        } catch (error) {
+            console.log(`⚠️ Some packages failed to pre-load:`, error);
+        }
+    }
+
     async executeCode(code) {
         if (this.status !== 'ready') {
             await this.initialize();

@@ -49,6 +49,7 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
+		"@anthropic-ai/sdk": "^0.71.2",
 		"@material/web": "^2.4.0",
 		"@supabase/supabase-js": "^2.58.0",
 		"code-edytor": "github:ejkreboot/code-edytor",

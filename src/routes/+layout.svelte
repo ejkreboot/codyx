@@ -21,6 +21,34 @@
 
         window.addEventListener('beforeunload', handleBeforeUnload);
         
+        // Warmup WebR when browser is idle for better first-run performance
+        const warmupWebR = () => {
+            if (typeof requestIdleCallback !== 'undefined') {
+                requestIdleCallback(async () => {
+                    console.log('🔥 Warming up WebR...');
+                    try {
+                        await webRService.warmup();
+                        console.log('✅ WebR warmup complete');
+                    } catch (error) {
+                        console.log('⚠️ WebR warmup failed:', error);
+                    }
+                }, { timeout: 5000 }); // Fallback after 5 seconds if never idle
+            } else {
+                // Fallback for browsers without requestIdleCallback
+                setTimeout(async () => {
+                    console.log('🔥 Warming up WebR...');
+                    try {
+                        await webRService.warmup();
+                        console.log('✅ WebR warmup complete');
+                    } catch (error) {
+                        console.log('⚠️ WebR warmup failed:', error);
+                    }
+                }, 2000);
+            }
+        };
+
+        warmupWebR();
+        
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
