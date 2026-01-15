@@ -37,6 +37,10 @@
     
     // Event dispatcher
     const dispatch = createEventDispatcher();
+
+    function notifyStatusChange() {
+        dispatch('statuschange', { docId, dirty, stale, saving });
+    }
     
     // Event handler functions for proper cleanup
     let handlePatched, handleTyping, handleConnectionChange, handleStatusChange, handleConflict, handleStale;
@@ -136,6 +140,7 @@
             stale = false;
             dirty = false;
             pendingRemote = null;
+            notifyStatusChange();
         }
 
         async function useServerContent() {
@@ -147,6 +152,7 @@
             stale = false;
             dirty = false;
             await saveCell();
+            notifyStatusChange();
         }
 
         async function keepLocalAndRetry() {
@@ -154,6 +160,7 @@
             conflictData = null;
             stale = true;
             await saveCell();
+            notifyStatusChange();
         }
 
         async function saveMyVersion() {
@@ -292,6 +299,8 @@
             } else if (e.detail.status === 'clean') {
                 statusMessage = '';
             }
+
+            notifyStatusChange();
         };
 
         handleConflict = (e) => {
@@ -305,6 +314,7 @@
         handleStale = (e) => {
             stale = true;
             pendingRemote = e.detail ?? null;
+            notifyStatusChange();
         };
         
         liveText.addEventListener('patched', handlePatched);
@@ -317,6 +327,8 @@
         // Initialize connection state from LiveText
         connectionState = liveText.connectionState;
         dirty = liveText.status === 'dirty';
+
+        notifyStatusChange();
 
         // Inject collapsible functionality for markdown
         if (!window.toggleCollapsible) {

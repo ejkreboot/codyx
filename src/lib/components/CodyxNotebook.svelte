@@ -17,6 +17,19 @@
     // connection state 
     let connectionState = $state('connected'); // 'connected', 'disconnected', 'connecting' - assume connected since page loaded
     let cellConnectionStates = $state(new Map()); // Track individual cell states
+    
+    // Cell status tracking for unsaved changes warning
+    let cellStatuses = $state(new Map()); // Track dirty/stale/saving state for each cell
+    let hasUnsavedChanges = $derived(
+        Array.from(cellStatuses.values()).some(status => status.dirty || status.stale || status.saving)
+    );
+    
+    // Expose hasUnsavedChanges to window for beforeunload handler
+    $effect(() => {
+        if (typeof window !== 'undefined') {
+            window.__codyxHasUnsavedChanges = hasUnsavedChanges;
+        }
+    });
 
     // Notebook name editing state
     let isEditingName = $state(false);
@@ -324,6 +337,16 @@
         // Update overall notebook connection state
         updateNotebookConnectionState();
     }
+    
+    function handleCellStatusChange(event) {
+        const { docId, dirty, stale, saving } = event.detail;
+        
+        // Update the status for this cell
+        cellStatuses.set(docId, { dirty, stale, saving });
+        
+        // Trigger reactivity
+        cellStatuses = new Map(cellStatuses);
+    }
 
     // Clean up cell state when cells are removed
     function cleanupCellConnectionState(cellId) {
@@ -575,6 +598,7 @@
     on:addCell={(e) => handleCellEvent({detail: {type: e.detail.cellType === 'md' ? 'addMarkdownCell' : e.detail.cellType === 'r' ? 'addRCell' : 'addCodeCell', ...e.detail}})}
     on:delete={(e) => handleCellEvent({detail: {type: 'delete', ...e.detail}})}
     on:saved={(e) => handleCellEvent({detail: {type: 'saved', ...e.detail}})}
+    on:statuschange={handleCellStatusChange}
     />
 {/each}
 

@@ -28,7 +28,15 @@
     // Global cleanup to prevent memory leaks
     onMount(() => {
 
-        const handleBeforeUnload = async () => {
+        const handleBeforeUnload = async (e) => {
+            // Check if there are unsaved changes
+            if (typeof window !== 'undefined' && window.__codyxHasUnsavedChanges) {
+                e.preventDefault();
+                // Modern browsers require returnValue to be set for the warning to show
+                e.returnValue = '';
+                return '';
+            }
+            
             try {
                 await pyodideService.cleanup();
                 await webRService.cleanup();
