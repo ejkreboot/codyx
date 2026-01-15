@@ -391,6 +391,20 @@
     
 </script>
 
+<div class="print-only-header">
+    <img src="/logo_200.png" alt="CODYX" class="print-logo" />
+    <div class="print-brand">
+        <h1 class="print-title">CODYX</h1>
+        <div class="print-tagline">Collaborative Data Science Notebooks</div>
+    </div>
+    {#if nb?.slug}
+        <div class="print-notebook-name">
+            <span class="print-notebook-label">Notebook:</span>
+            <span class="print-notebook-slug">{nb.slug}</span>
+        </div>
+    {/if}
+</div>
+
 {#if error}
 <div class="message message--error">
     <span class="material-symbols-outlined">error</span>

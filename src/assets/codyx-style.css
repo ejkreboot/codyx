@@ -400,6 +400,222 @@
     box-shadow: 0 2px 8px rgba(214, 48, 49, 0.1);
 }
 
+/* ================================ */
+/* PRINT-ONLY HEADER                */
+/* ================================ */
+.print-only-header {
+    display: none; /* hidden by default */
+}
+
+/* ================================ */
+/* PRINT STYLES                     */
+/* Trim chrome and tighten layout when printing */
+/* ================================ */
+@media print {
+    :root {
+        --space-1: 0.1rem;
+        --space-2: 0.2rem;
+        --space-3: 0.35rem;
+        --space-4: 0.5rem;
+        --space-5: 0.6rem;
+        --space-6: 0.75rem;
+        --space-8: 1rem;
+        --max-width: 100%;
+        --content-width: 100%;
+        --border-radius: 0;
+        --border-radius-lg: 0;
+        --border-radius-xl: 0;
+    }
+
+    @page {
+        margin: 0.35in 0.45in 0.45in 0.35in;
+    }
+
+    html {
+        font-size: 70% !important; /* scale text down ~30% */
+    }
+
+    /* Show and style the print-only header */
+    .print-only-header {
+        display: flex !important;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 0.3in;
+        margin-bottom: 0.25in;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .print-logo {
+        height: 48px;
+        width: 48px;
+        object-fit: contain;
+    }
+
+    .print-brand {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .print-title {
+        font-family: 'Orbitron', monospace;
+        font-size: 1.5rem;
+        font-weight: 300;
+        margin: 0;
+        color: #555958;
+        letter-spacing: 0.15em;
+        line-height: 1;
+    }
+
+    .print-tagline {
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.65rem;
+        color: #999;
+        font-weight: 400;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .print-notebook-name {
+        margin-left: auto;
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+    }
+
+    .print-notebook-label {
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.9rem;
+        color: #999;
+        font-weight: 500;
+    }
+
+    .print-notebook-slug {
+        font-family: 'Cutive Mono', monospace;
+        font-size: 1rem;
+        color: #555958;
+        font-weight: 600;
+    }
+
+    body {
+        background: white !important;
+        color: #222 !important;
+        padding: 0 !important;
+    }
+
+    /* Hide chrome elements */
+    .app-header,
+    .app-footer,
+    .content-info,
+    .toolbar,
+    .cell-gutter,
+    .cell-actions,
+    .cell-status-dots,
+    .cell-type-icon,
+    .cell-index,
+    .python-sub-gutter,
+    .r-sub-gutter,
+    .save-gutter-btn,
+    .cell-typing-indicator,
+    .message,
+    .pyodide-loading-overlay {
+        display: none !important;
+    }
+
+    /* Tighten notebook layout */
+    .main-container,
+    .content-area,
+    .cell-container,
+    .cell-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: white !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+
+    .cell-container {
+        border: 1px solid #ddd !important;
+        margin-bottom: 0.35in !important;
+        page-break-inside: avoid;
+    }
+
+    .cell-content {
+        padding: 0.2in 0.25in 0.25in 0.25in !important;
+    }
+
+    /* Markdown / rendered content */
+    .rendered-markdown,
+    .markdown-preview,
+    .cell-textarea,
+    .python-cell-container,
+    .python-output,
+    .import-suggestions,
+    .r-output,
+    .message--warning {
+        background: white !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .rendered-markdown {
+        padding: 0 0 0.15in 0 !important;
+        min-height: auto !important;
+    }
+
+    .markdown-preview {
+        display: none !important;
+    }
+
+    /* Remove hover/focus chrome in print */
+    .rendered-markdown:hover,
+    .rendered-markdown:focus,
+    button,
+    input,
+    textarea {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    /* Keep code blocks readable */
+    pre,
+    code {
+        background: #f7f7f7 !important;
+        color: #222 !important;
+        border: 1px solid #e0e0e0 !important;
+        page-break-inside: avoid;
+    }
+
+    /* Hide code editor gutters/line numbers */
+    .cm-gutters,
+    .cm-lineNumbers,
+    .cm-gutterElement,
+    .CodeMirror-gutters,
+    .code-editor-gutter {
+        display: none !important;
+    }
+
+    /* Pull code content left once gutters are gone */
+    .cm-content,
+    .cm-scroller,
+    .CodeMirror-lines {
+        padding-left: 0 !important;
+    }
+
+    /* Avoid breaking tables and images across pages */
+    table,
+    img,
+    pre {
+        page-break-inside: avoid;
+    }
+}
+
 .message--info {
     background: linear-gradient(135deg, var(--primary-color), #ffb74d);
     color: white;
