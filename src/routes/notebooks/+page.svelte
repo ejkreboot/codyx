@@ -43,11 +43,22 @@
         max-width: 900px;
         background: white;
         border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
         padding: var(--space-8);
         margin: 0 auto;
         position: relative;
         min-height: 400px;
+    }
+
+    @media screen {
+        .page__main {
+            background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
+            padding-top: var(--space-6);
+            padding-bottom: var(--space-6);
+        }
+
+        .notebook-container {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
     }
 
     /* Responsive design */
